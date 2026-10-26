@@ -135,13 +135,13 @@ const SIM={
            ap:'Six shots, no air resistance. Solve for the unknown with the kinematics equations, set the slider to your answer, then launch. First-try hits score 3; every miss costs a point.'},
     newRound(sim,i){const lv=BioLab.level,rnd=(a,b,st)=>{const v=a+Math.random()*(b-a);return Math.round(v/st)*st;};let r;
       const hint=lv==='bio';
-      if(i<2){const h=rnd(5,12,0.5),v=rnd(8,20,0.5),t=Math.sqrt(2*h/G),x=Math.round(v*t);
+      if(i<2){const h=rnd(5,12,0.5),v=rnd(8,20,0.5),t=Math.sqrt(2*h/G),x=Math.round(v*t);if(Math.abs(12*t-x)<=2.5)return this.newRound(sim,i); /* the 12 m/s starting speed must miss */
         r={kind:'speed',set:{ang:0,h0:h,v0:12},x,answer:x/t,controls:['v0'],
           prompt:`<b>Set ${i+1} of 2: find the speed.</b> A cannon on a ${h.toFixed(1)} m cliff fires <b>horizontally</b>. The bull’s-eye is <b>${x} m</b> from the base of the cliff. What launch speed hits it?`+(hint?` <span class="gm-hint">Hint: first find how long it falls, t = √(2h/g). Then speed = distance ÷ time.</span>`:'')};}
-      else if(i<4){const v=rnd(6,14,0.5),x=rnd(8,22,1),t=x/v,h=0.5*G*t*t;if(h>15)return this.newRound(sim,i);
+      else if(i<4){const v=rnd(6,14,0.5),x=rnd(8,22,1),t=x/v,h=0.5*G*t*t;if(h>15||Math.abs(v*Math.sqrt(6/G)-x)<=2.5)return this.newRound(sim,i);
         r={kind:'height',set:{ang:0,v0:v,h0:3},x,answer:h,controls:['h0'],
           prompt:`<b>Set ${i-1} of 2: find the height.</b> The cannon fires <b>horizontally</b> at <b>${v.toFixed(1)} m/s</b>. The bull’s-eye is <b>${x} m</b> away. How high must the cannon be?`+(hint?` <span class="gm-hint">Hint: time in the air = distance ÷ speed. Then h = ½gt².</span>`:'')};}
-      else{const v=rnd(14,24,0.5),R=Math.round(v*v/G*rnd(0.55,0.9,0.01)),th=0.5*Math.asin(R*G/(v*v))*180/Math.PI;
+      else{const v=rnd(14,24,0.5),R=Math.round(v*v/G*rnd(0.55,0.9,0.01)),th=0.5*Math.asin(R*G/(v*v))*180/Math.PI;if(Math.abs(v*v*Math.sin(40*Math.PI/180)/G-R)<=2.5)return this.newRound(sim,i);
         r={kind:'angle',set:{h0:0,v0:v,ang:20},x:R,answer:th,controls:['ang'],
           prompt:`<b>Set ${i-3} of 2: find the angle.</b> The cannon sits on level ground and fires at <b>${v.toFixed(1)} m/s</b>. The bull’s-eye is <b>${R} m</b> away. What launch angle hits it?`+(hint?` <span class="gm-hint">Hint: range R = v²·sin(2θ)/g, so sin(2θ) = gR/v². Two angles work!</span>`:` <span class="gm-hint">Two angles work; either one counts.</span>`)};}
       BioLab.setValues(sim,Object.assign({mode:'target',air:false,obj:'cannon',twin:false},r.set));
