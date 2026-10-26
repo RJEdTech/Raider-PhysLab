@@ -137,7 +137,7 @@ const CIRCUIT={
     if(hon){const k=kirchhoff(sim);if(k)h+=`<p style="margin-top:8px"><b>Junction rule:</b> ${k.j}</p><p><b>Loop rule:</b> ${k.l}</p>`;}
     if(ap)h+=`<p class="help">Battery: EMF ${sim.p.volts.toFixed(1)} V, internal resistance ${RINT} Ω, terminal voltage ${s.term.toFixed(2)} V. Equivalent resistance of the bulbs: ${Number.isFinite(s.Req)&&s.Req<1e6?s.Req.toFixed(2)+' Ω':'open circuit'}.</p>`;
     return h;},
-  narrate(sim){const s=sim.st.sol,p=sim.p,hon=atLeast('honors'),c=p.circuit;
+  narrate(sim){const s=sim.st.sol=solve(sim.p),p=sim.p,hon=atLeast('honors'),c=p.circuit;
     if(p.vm==='series')return '<b>The voltmeter is wired in series.</b> Its huge resistance (10 MΩ) blocks the current, so the bulbs go dark, yet it reads almost the full battery voltage: '+s.vmRead.toFixed(2)+' V.';
     if(p.am==='A_acrossB1')return '<b>The ammeter is wired across B1.</b> Its tiny resistance gives the current an easy detour, so B1 goes out and the ammeter takes '+fmtA(s.amRead)+'. That can blow a real meter’s fuse.';
     if(s.Itot>5)return '<b>Short circuit!</b> The current takes the wire path with almost no resistance: '+fmtA(s.Itot)+' flows, the wires heat up, the bulb goes dark and the battery drains fast.';
@@ -264,5 +264,7 @@ function kirchhoff(sim){const s=sim.st.sol,p=sim.p,c=p.circuit;
   if(c==='combo'){const a=s.el.B1,b=s.el.B2,d=s.el.B3;return {j:`at J1, ${a.I.toFixed(3)} A in (through B1) = ${b.I.toFixed(3)} A (B2) + ${d.I.toFixed(3)} A (B3) out ✓`,l:`+${s.term.toFixed(2)} V − ${a.V.toFixed(2)} V (B1) − ${b.V.toFixed(2)} V (B2) ≈ 0 ✓`};}
   if(c==='series2'){const a=s.el.B1,b=s.el.B2;return {j:'there are no junctions in series, so the same current flows everywhere: '+s.Itot.toFixed(3)+' A.',l:`+${s.term.toFixed(2)} V − ${a.V.toFixed(2)} V − ${b.V.toFixed(2)} V ≈ 0 ✓`};}
   const a=s.el.B1;if(!a)return null;return {j:'one loop, no junctions: '+s.Itot.toFixed(3)+' A everywhere.',l:`+${s.term.toFixed(2)} V − ${a.V.toFixed(2)} V ≈ 0 ✓`};}
+/* Re-solve on every setting change, so readouts and the caption are current even while the bench is paused (Guided and Challenge modes). */
+CIRCUIT.controls.forEach(c=>{const f=c.onChange;c.onChange=function(sim){if(sim.st)sim.st.sol=solve(sim.p);if(f)f.call(this,sim);};});
 BioLab.register(CIRCUIT);
 })();

@@ -128,6 +128,30 @@ const SIM={
     {id:'probe',label:'Probe next dot',lvl:'honors',run(sim){const s=mainShot(sim.st);if(!s||!s.dots.length)return;sim.st.probe=(sim.st.probe+1)%s.dots.length;}},
     {id:'clear',label:'Clear traces',run(sim){const st=sim.st;st.shots=[];st.main=-1;st.probe=-1;st.marks=[];st.twin=null;}}
   ],
+  /* Challenge game, in the spirit of Physics Classroom's Turd the Target: six problems in three pairs.
+     Each round gives two quantities and asks for the third; students calculate, set ONE slider, then launch. */
+  game:{label:'Hit the target',title:'Hit the target',rounds:6,fireLabel:'Launch',par:240,metrics:['dist','tof'],
+    intro:{bio:'Six shots. Each one gives you two numbers and asks for the third. Work it out on paper, set the one slider you get, then launch. A first-try hit scores 3 points.',
+           ap:'Six shots, no air resistance. Solve for the unknown with the kinematics equations, set the slider to your answer, then launch. First-try hits score 3; every miss costs a point.'},
+    newRound(sim,i){const lv=BioLab.level,rnd=(a,b,st)=>{const v=a+Math.random()*(b-a);return Math.round(v/st)*st;};let r;
+      const hint=lv==='bio';
+      if(i<2){const h=rnd(5,12,0.5),v=rnd(8,20,0.5),t=Math.sqrt(2*h/G),x=Math.round(v*t);
+        r={kind:'speed',set:{ang:0,h0:h,v0:12},x,answer:x/t,controls:['v0'],
+          prompt:`<b>Set ${i+1} of 2: find the speed.</b> A cannon on a ${h.toFixed(1)} m cliff fires <b>horizontally</b>. The bull’s-eye is <b>${x} m</b> from the base of the cliff. What launch speed hits it?`+(hint?` <span class="gm-hint">Hint: first find how long it falls, t = √(2h/g). Then speed = distance ÷ time.</span>`:'')};}
+      else if(i<4){const v=rnd(6,14,0.5),x=rnd(8,22,1),t=x/v,h=0.5*G*t*t;if(h>15)return this.newRound(sim,i);
+        r={kind:'height',set:{ang:0,v0:v,h0:3},x,answer:h,controls:['h0'],
+          prompt:`<b>Set ${i-1} of 2: find the height.</b> The cannon fires <b>horizontally</b> at <b>${v.toFixed(1)} m/s</b>. The bull’s-eye is <b>${x} m</b> away. How high must the cannon be?`+(hint?` <span class="gm-hint">Hint: time in the air = distance ÷ speed. Then h = ½gt².</span>`:'')};}
+      else{const v=rnd(14,24,0.5),R=Math.round(v*v/G*rnd(0.55,0.9,0.01)),th=0.5*Math.asin(R*G/(v*v))*180/Math.PI;
+        r={kind:'angle',set:{h0:0,v0:v,ang:20},x:R,answer:th,controls:['ang'],
+          prompt:`<b>Set ${i-3} of 2: find the angle.</b> The cannon sits on level ground and fires at <b>${v.toFixed(1)} m/s</b>. The bull’s-eye is <b>${R} m</b> away. What launch angle hits it?`+(hint?` <span class="gm-hint">Hint: range R = v²·sin(2θ)/g, so sin(2θ) = gR/v². Two angles work!</span>`:` <span class="gm-hint">Two angles work; either one counts.</span>`)};}
+      BioLab.setValues(sim,Object.assign({mode:'target',air:false,obj:'cannon',twin:false},r.set));
+      const st=sim.st;st.shots=[];st.main=-1;st.probe=-1;st.twin=null;st.target={x:r.x,w:3};st.hitShown=false;return r;},
+    fire(sim,r){fire(sim);},
+    poll(sim,r){const st=sim.st,m=mainShot(st);if(!m||!m.done||!st.hitShown)return null;
+      const d=m.x-r.x;if(m.hit)return {ok:true,msg:`Hit! It landed ${f1(m.x)} m out, inside the ${r.x} m bull’s-eye.`};
+      const fix=r.kind==='speed'?(d<0?'faster':'slower'):r.kind==='height'?(d<0?'higher':'lower'):'a different angle';
+      return {ok:false,msg:`It landed at ${f1(m.x)} m: ${f1(Math.abs(d))} m ${d<0?'short':'long'}. Check your math; you need ${fix}.`};},
+    solve(sim,r){const v=r.kind==='speed'?{v0:Math.round(r.answer*2)/2}:r.kind==='height'?{h0:Math.round(r.answer*10)/10}:{ang:Math.round(r.answer)};BioLab.setValues(sim,v);}},
   init(sim){const st={shots:[],main:-1,seq:0,probe:-1,marks:[],twin:null,tseed:12345,target:null,hits:0,tries:0,hitShown:false};
     sim.st=st;if(sim.p.mode==='target')newTarget(st,7);fire(sim);return st;},
   step(sim,dt){const st=sim.st;st.shots.forEach(s=>{if(!s.done)adv(s,dt);});
