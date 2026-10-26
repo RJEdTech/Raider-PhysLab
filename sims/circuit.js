@@ -98,6 +98,7 @@ const live=sim=>solve(gOff(sim)?Object.assign({},sim.p,{volts:0}):sim.p);
 const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pk=a=>a[Math.floor(Math.random()*a.length)],rs=(a,b,st)=>Math.round((a+Math.random()*(b-a))/st)*st;
 const r2=v=>Math.round(v*100)/100,n2=v=>r2(v).toFixed(2),trim=v=>String(r2(v));
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const nb=s=>s.replace(/(\d) (Ω|V|A|W)(?![\w])/g,'$1\u00a0$2'); // keep a number and its unit on one line
 const LAYR={single:10,series2:20,parallel2:5,combo:15};
 const GM={
   itot:{name:'the battery current',fmt:v=>v.toFixed(3)+' A',tf:v=>n2(v)+' A',meas:s=>s.Itot},
@@ -106,7 +107,7 @@ const GM={
   iB2:{name:'the current through B2',fmt:v=>v.toFixed(3)+' A',tf:v=>n2(v)+' A',meas:s=>s.el.B2?s.el.B2.I:NaN},
   pB1:{name:'B1’s power',fmt:v=>v.toFixed(2)+' W',tf:v=>n2(v)+' W',meas:s=>s.el.B1?s.el.B1.P:NaN},
   ratio:{name:'B2’s current',fmt:v=>v.toFixed(2)+' times B1’s',tf:v=>trim(v)+' times B1’s',meas:s=>s.el.B1&&s.el.B2&&s.el.B1.I>1e-9?s.el.B2.I/s.el.B1.I:NaN},
-  glow:{name:'B1’s brightness',fmt:v=>v.toFixed(2)+' times B2’s',tf:()=>'the same as B2’s',meas:s=>s.el.B1&&s.el.B2&&s.el.B2.P>1e-9?s.el.B1.P/s.el.B2.P:NaN}
+  glow:{name:'B1’s brightness',fmt:v=>v.toFixed(2)+' times B2’s',tf:()=>'1.00 times B2’s',meas:s=>s.el.B1&&s.el.B2&&s.el.B2.P>1e-9?s.el.B1.P/s.el.B2.P:NaN}
 };
 const ck=(m,target,lo,hi)=>({name:m.name,fmt:m.fmt,meas:m.meas,target,tstr:m.tf(target),lo,hi});
 const RAISE_V='Raise the battery voltage: more push drives more current.',LOWER_V='Lower the battery voltage: less push drives less current.';
@@ -193,8 +194,8 @@ const MK={
       checks:[ck(GM.iB2,t,'Too little current in B2: lower B1’s resistance.','Too much current in B2: raise B1’s resistance.')]};}
 };
 const GPLAN={bio:['ohmV','brightV','seriesMatch','parTotal','layout','comboV'],honors:['ohmR','divider','parRatio','parTotalR','comboR','equal'],ap:['powR','divider','parTwo','parTotalR','comboR','comboBranch']};
-const GFALL={ohmV:{V:4.5},brightV:{V:4.5},seriesMatch:{X:6},parTotal:{V:4},layout:{V:9,c:'combo'},comboV:{k:4},ohmR:{V:9,R:20},powR:{V:12,R:16},divider:{R1:10,R2:20,V:12},
-  parRatio:{k:2,R2:15},parTotalR:{V:9,R1:30,R2:20},comboR:{V:12,R2:20,R3:30,R1:12},equal:{q:10,V:12},parTwo:{V:9,R2:6},comboBranch:{V:12,R2:20,R3:30,R1:12}};
+const GFALL={ohmV:{V:4.5},brightV:{V:4.5},seriesMatch:{X:6},parTotal:{V:4},layout:{V:9,c:'combo'},comboV:{k:4},ohmR:{V:9,R:20},powR:{V:12,R:16},divider:{R1:10,R2:20,V:6},
+  parRatio:{k:2,R2:15},parTotalR:{V:6,R1:20,R2:10},comboR:{V:12,R2:20,R3:30,R1:6},equal:{q:10,V:12},parTwo:{V:9,R2:6},comboBranch:{V:12,R2:20,R3:30,R1:6}};
 function gDefaults(){const o={};CIRCUIT.controls.forEach(c=>o[c.id]=c.def);return o;}
 function gCheck(r,p){const s=solve(p);return r.checks.map(c=>{const v=c.meas(s,p),dev=Number.isFinite(v)?(v-c.target)/c.target:Infinity;return {c,v,dev,ok:Math.abs(dev)<=GTOL};});}
 function gValid(r){const base=Object.assign(gDefaults(),r.set),pa=Object.assign({},base,r.ans);
@@ -212,14 +213,15 @@ const GAME={label:'Light it right',title:'Light it right',rounds:6,fireLabel:'Sw
          honors:'Six circuits, from Ohm’s law to series and parallel combinations. Calculate the setting, then press Switch on to test it: you need to land within 4% of the target. First-try hits score 3; every miss costs a point.'},
   newRound(sim,i){const lv=BioLab.level,kind=GPLAN[lv==='ap'?'ap':lv==='honors'?'honors':'bio'][i],r=gPick(kind,lv);r.kind=kind;
     BioLab.setValues(sim,Object.assign(gDefaults(),r.set));sim.st.off=true;sim.st.sol=live(sim);sim.infoDirty=true;
-    r.prompt=`<b>${r.title}.</b> ${r.text}`+(lv==='bio'&&r.hint?` <span class="gm-hint">Hint: ${r.hint}</span>`:'');return r;},
+    r.prompt=nb(`<b>${r.title}.</b> ${r.text}`+(lv==='bio'&&r.hint?` <span class="gm-hint">Hint: ${r.hint}</span>`:''));return r;},
   fire(sim,r){sim.st.off=false;sim.st.sol=live(sim);r.t0=performance.now();sim.infoDirty=true;},
   poll(sim,r){if(performance.now()-r.t0<600)return null;sim.st.off=false;const s=sim.st.sol=live(sim);sim.infoDirty=true;
     if(s.Itot>5)return {ok:false,msg:`Short circuit! ${fmtA(s.Itot)} rushed through the bare wire around the bulb, so it went dark. Choose a layout where every path runs through a bulb.`};
     const res=gCheck(r,sim.p),bad=res.find(x=>!x.ok);
-    if(!bad)return {ok:true,msg:`Spot on! ${cap(res.map(x=>`${x.c.name} is ${x.c.fmt(x.v)}`).join(' and '))}, within 4% of the target. ${r.tip}`};
+    const loss=r.checks[0].meas===GM.itot.meas&&res[0].dev<-0.01?(BioLab.level==='bio'?' The small shortfall is energy lost inside the battery itself.':' The small shortfall is the battery’s own 0.1 Ω internal resistance.'):'';
+    if(!bad)return {ok:true,msg:nb(`Spot on! ${cap(res.map(x=>`${x.c.name} is ${x.c.fmt(x.v)}`).join(' and '))}, within 4% of the target. ${r.tip}${loss}`)};
     const pc=Math.abs(bad.dev*100),pcs=pc<10?pc.toFixed(1):pc.toFixed(0);
-    return {ok:false,msg:`${cap(bad.c.name)} came out at ${bad.c.fmt(bad.v)}: ${pcs}% ${bad.dev>0?'above':'below'} the target of ${bad.c.tstr}. ${bad.dev>0?bad.c.hi:bad.c.lo}`};},
+    return {ok:false,msg:nb(`${cap(bad.c.name)} came out at ${bad.c.fmt(bad.v)}: ${pcs}% ${bad.dev>0?'above':'below'} the target of ${bad.c.tstr}. ${bad.dev>0?bad.c.hi:bad.c.lo}`)};},
   retry(sim,r){sim.st.off=true;sim.st.sol=live(sim);sim.infoDirty=true;},
   solve(sim,r){BioLab.setValues(sim,r.ans);}};
 
@@ -375,7 +377,7 @@ function drawBulb(ctx,part,b,k,e,hon,p,showI){const [x,y]=part.at,gl=clamp(b,0,1
   if(gl>0.01){const g=ctx.createRadialGradient(x,y,4,x,y,26+40*Math.min(1,gl));g.addColorStop(0,`rgba(255,226,120,${0.75*Math.min(1,gl)})`);g.addColorStop(1,'rgba(255,226,120,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,26+40*Math.min(1,gl),0,6.29);ctx.fill();}
   ctx.fillStyle=gl>0.01?`rgba(255,240,180,${0.35+0.5*Math.min(1,gl)})`:PAL['card'];ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,18,0,6.29);ctx.fill();ctx.stroke();
   ctx.strokeStyle=gl>0.01?'#c77700':PAL['cv-soft'];ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x-9,y+6);for(let i=0;i<6;i++)ctx.lineTo(x-7+i*3,y+(i%2?-6:2));ctx.lineTo(x+9,y+6);ctx.stroke();
-  const lx=part.o==='v'?x+26:x,ly=part.o==='v'?y+4:y-28;
+  const lx=part.o==='v'?x+26:x,ly=part.o==='v'?y+4:y-24-15*k; // horizontal bulbs: both label lines sit above the glass
   txt(ctx,part.n,lx,ly,{s:13*k,w:700,a:part.o==='v'?'left':'center'});
   if(e)txt(ctx,hon?e.R.toFixed(0)+' Ω':Math.round(100*e.P/PREF)+'%',lx,ly+15*k,{s:11.5*k,c:PAL['cv-soft'],a:part.o==='v'?'left':'center'});
   if(e&&showI)txt(ctx,fmtA(e.I),part.o==='v'?lx:x,part.o==='v'?ly+30*k:y+38*k,{s:12*k,w:700,c:PAL['s2'],a:part.o==='v'?'left':'center'});}
