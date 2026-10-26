@@ -87,6 +87,142 @@ const fmtV=x=>!Number.isFinite(x)?'—':x.toFixed(2)+' V';
 const AMOPT=[{v:'none',l:'No ammeter'},{v:'A_main',l:'In the main line (by the battery)'},{v:'A_b1',l:'In series with B1'},{v:'A_b2',l:'In series with B2'},{v:'A_b3',l:'In series with B3'},{v:'A_acrossB1',l:'Across B1 (wrong way!)',lvl:'honors'}];
 const VMOPT=[{v:'none',l:'No voltmeter'},{v:'V_bat',l:'Across the battery'},{v:'V_B1',l:'Across B1'},{v:'V_B2',l:'Across B2'},{v:'V_B3',l:'Across B3'},{v:'series',l:'In series (wrong way!)',lvl:'honors'}];
 
+/* ---------- "Light it right" game ----------
+   Each round names one measurable target (a current, a brightness, a voltage, a power or a current ratio) and exposes one or two controls.
+   While the student sets up, the circuit is switched off (the solver sees 0 V), so the readouts cannot be used to hunt with the slider.
+   "Switch on" connects it for a short test. The picker keeps only rounds where the exact answer lands on a slider step and passes with margin,
+   the starting setting fails, and one step either side of the answer (or any other layout) fails. */
+const GTOL=0.04;
+const gOff=sim=>!!(sim.game&&sim.game.state!=='over'&&sim.st&&sim.st.off);
+const live=sim=>solve(gOff(sim)?Object.assign({},sim.p,{volts:0}):sim.p);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pk=a=>a[Math.floor(Math.random()*a.length)],rs=(a,b,st)=>Math.round((a+Math.random()*(b-a))/st)*st;
+const r2=v=>Math.round(v*100)/100,n2=v=>r2(v).toFixed(2),trim=v=>String(r2(v));
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const LAYR={single:10,series2:20,parallel2:5,combo:15};
+const GM={
+  itot:{name:'the battery current',fmt:v=>v.toFixed(3)+' A',tf:v=>n2(v)+' A',meas:s=>s.Itot},
+  b1:{name:'B1’s brightness',fmt:v=>v.toFixed(1)+'%',tf:v=>Math.round(v)+'%',meas:s=>s.el.B1?100*s.el.B1.P/PREF:NaN},
+  vB1:{name:'the voltage across B1',fmt:v=>v.toFixed(2)+' V',tf:v=>n2(v)+' V',meas:s=>s.el.B1?s.el.B1.V:NaN},
+  iB2:{name:'the current through B2',fmt:v=>v.toFixed(3)+' A',tf:v=>n2(v)+' A',meas:s=>s.el.B2?s.el.B2.I:NaN},
+  pB1:{name:'B1’s power',fmt:v=>v.toFixed(2)+' W',tf:v=>n2(v)+' W',meas:s=>s.el.B1?s.el.B1.P:NaN},
+  ratio:{name:'B2’s current',fmt:v=>v.toFixed(2)+' times B1’s',tf:v=>trim(v)+' times B1’s',meas:s=>s.el.B1&&s.el.B2&&s.el.B1.I>1e-9?s.el.B2.I/s.el.B1.I:NaN},
+  glow:{name:'B1’s brightness',fmt:v=>v.toFixed(2)+' times B2’s',tf:()=>'the same as B2’s',meas:s=>s.el.B1&&s.el.B2&&s.el.B2.P>1e-9?s.el.B1.P/s.el.B2.P:NaN}
+};
+const ck=(m,target,lo,hi)=>({name:m.name,fmt:m.fmt,meas:m.meas,target,tstr:m.tf(target),lo,hi});
+const RAISE_V='Raise the battery voltage: more push drives more current.',LOWER_V='Lower the battery voltage: less push drives less current.';
+const RPOOL=[10,12,15,20,24,30,40,60];
+function twoR(g){const a=g('R2',()=>pk(RPOOL));let b=g('R3',()=>pk(RPOOL));while(b===a)b=pk(RPOOL);return [a,b];}
+/* Round makers. F (optional) fixes the random picks: the fallback used if the picker ever runs dry. */
+const MK={
+  ohmV(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>rs(2,9,0.5)),t=V/10;
+    return {title:'Ohm’s law',set:{circuit:'single',volts:0},ans:{volts:V},controls:['volts'],metrics:['itot'],
+      text:`Bulb B1 has a resistance of <b>10 Ω</b>. Set the battery so exactly <b>${n2(t)} A</b> flows through it.`,hint:'V = I × R. Multiply the current by 10 Ω.',
+      tip:`${trim(V)} V ÷ 10 Ω = ${n2(t)} A.`,checks:[ck(GM.itot,t,RAISE_V,LOWER_V)]};},
+  brightV(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([3,4.5,6])),t=Math.round(100*(V/9)**2),fr={3:'⅓',4.5:'½',6:'⅔'}[V];
+    return {title:'Dim the bulb',set:{circuit:'single',volts:0},ans:{volts:V},controls:['volts'],metrics:['b1'],
+      text:`On a 9 V battery this bulb glows at 100%. Set the battery so it glows at exactly <b>${t}%</b> brightness.`,
+      hint:V===4.5?'Brightness goes with voltage squared: ⅓ of 9 V gives (⅓)² = 1/9 of the light, about 11%.':'Brightness goes with voltage squared: ½ of 9 V gives (½)² = ¼ of the light, or 25%.',
+      tip:`${fr} of 9 V drives ${fr} of the current, so the power drops to (${fr})², about ${t}%.`,checks:[ck(GM.b1,t,'Too dim: raise the voltage.','Too bright: lower the voltage.')]};},
+  seriesMatch(F){const g=(k,f)=>F&&k in F?F[k]:f(),X=g('X',()=>pk([3,4,4.5,5,6,7,7.5,8,9])),V=2*X,t=Math.round(100*(X/9)**2);
+    return {title:'Bulbs in series',set:{circuit:'series2',volts:0},ans:{volts:V},controls:['volts'],metrics:['b1','b2'],
+      text:`B1 and B2 are identical 10 Ω bulbs in series. Set the battery so B1 glows exactly as brightly as one bulb alone on <b>${trim(X)} V</b> (${t}% brightness).`,
+      hint:'In series the two bulbs split the battery’s voltage equally.',tip:`Each bulb gets half of ${trim(V)} V, which is ${trim(X)} V.`,
+      checks:[ck(GM.b1,t,'Too dim: each bulb gets only half the battery, so raise the voltage.','Too bright: lower the voltage.')]};},
+  parTotal(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>rs(2,6,0.5)),t=V/5;
+    return {title:'Bulbs in parallel',set:{circuit:'parallel2',volts:0,am:'A_main'},ans:{volts:V},controls:['volts'],metrics:['amr'],
+      text:`B1 and B2 are identical 10 Ω bulbs in parallel. Set the battery so it delivers <b>${n2(t)} A</b> in total.`,
+      hint:'Each bulb gets the full battery voltage, so each carries V ÷ 10 Ω. The battery supplies both.',
+      tip:`Each bulb carries ${n2(V/10)} A on ${trim(V)} V; together that is ${n2(t)} A.`,checks:[ck(GM.itot,t,RAISE_V,LOWER_V)]};},
+  layout(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([6,9,12])),c=g('c',()=>pk(['single','series2','parallel2','combo'])),t=r2(V/LAYR[c]);
+    const tip={single:`One 10 Ω bulb: ${V} V ÷ 10 Ω = ${n2(t)} A.`,series2:`Two bulbs in series make 20 Ω: ${V} V ÷ 20 Ω = ${n2(t)} A.`,
+      parallel2:`Two bulbs in parallel act like 5 Ω: ${V} V ÷ 5 Ω = ${n2(t)} A. (The Switches layout with both switches closed works too.)`,combo:`B2 and B3 side by side act like 5 Ω, and B1 adds 10 Ω, so 15 Ω: ${V} V ÷ 15 Ω = ${n2(t)} A.`}[c];
+    return {title:'Pick the layout',set:{circuit:c==='single'?'series2':'single',volts:V},ans:{circuit:c},okAlt:c==='parallel2'?['switches']:[],controls:['circuit'],metrics:['itot'],
+      text:`The battery is set to <b>${V} V</b> and every bulb is 10 Ω. Choose the circuit that makes the battery deliver <b>${n2(t)} A</b>.`,
+      hint:'One bulb draws V ÷ 10 Ω. Bulbs in series add resistance; bulbs in parallel give the current more paths.',tip,
+      checks:[ck(GM.itot,t,'Too little current means too much resistance. Give the current more paths.','Too much current means too little resistance. Put bulbs in series to add resistance.')]};},
+  comboV(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=1.5*g('k',()=>ri(2,8)),t=V/15;
+    return {title:'Series + parallel',set:{circuit:'combo',volts:0},ans:{volts:V},controls:['volts'],metrics:['itot'],
+      text:`All three bulbs are 10 Ω. Set the battery so it delivers <b>${n2(t)} A</b>.`,hint:'B2 and B3 side by side act like one 5 Ω bulb. Add B1’s 10 Ω, then use V = I × R.',
+      tip:`10 Ω + 5 Ω = 15 Ω, and ${n2(t)} A × 15 Ω = ${trim(V)} V.`,checks:[ck(GM.itot,t,RAISE_V,LOWER_V)]};},
+  ohmR(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([6,9,12])),R=g('R',()=>ri(5,30)),t=r2(V/R);
+    return {title:'Ohm’s law',set:{circuit:'single',volts:V,r1:50},ans:{r1:R},controls:['r1'],metrics:['itot'],
+      text:`The battery is set to <b>${V} V</b>. Choose B1’s resistance so exactly <b>${n2(t)} A</b> flows.`,
+      tip:`R = V ÷ I = ${V} V ÷ ${n2(t)} A ≈ ${R} Ω.`,checks:[ck(GM.itot,t,'Too little current: lower the resistance.','Too much current: raise the resistance.')]};},
+  powR(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([6,9,12])),R=g('R',()=>ri(6,25)),t=r2(V*V/R);
+    return {title:'Power',set:{circuit:'single',volts:V,r1:50},ans:{r1:R},controls:['r1'],metrics:['ptot'],
+      text:`The battery is set to <b>${V} V</b>. Choose B1’s resistance so the bulb uses exactly <b>${n2(t)} W</b>.`,
+      tip:`P = V²/R, so R = V²/P = ${V*V} ÷ ${n2(t)} ≈ ${R} Ω.`,checks:[ck(GM.pB1,t,'Too little power: lower the resistance so more current flows.','Too much power: raise the resistance.')]};},
+  divider(F){const g=(k,f)=>F&&k in F?F[k]:f(),pool=[5,8,10,12,15,20,24,25,30,40],R1=g('R1',()=>pk(pool));let R2=g('R2',()=>pk(pool));while(R2===R1)R2=pk(pool);
+    const V=g('V',()=>rs(3,24,0.5)),V1=V*R1/(R1+R2),t=r2(V1);
+    return {title:'Share the voltage',set:{circuit:'series2',volts:0,r1:R1,r2:R2,vm:'V_B1'},ans:{volts:V},controls:['volts'],metrics:['vmr'],
+      text:`B1 is <b>${R1} Ω</b> and B2 is <b>${R2} Ω</b>, in series. Set the battery so exactly <b>${n2(t)} V</b> is across B1.`,
+      tip:`The current is ${n2(V1)} V ÷ ${R1} Ω = ${(V1/R1).toFixed(3)} A, and pushing that through ${R1+R2} Ω takes ${trim(V)} V.`,
+      checks:[ck(GM.vB1,t,'Too little voltage across B1: raise the battery voltage.','Too much voltage across B1: lower the battery voltage.')]};},
+  parRatio(F){const g=(k,f)=>F&&k in F?F[k]:f(),k=g('k',()=>pk([2,3,0.5])),R2=g('R2',()=>k===0.5?2*ri(3,12):ri(5,25)),R1=R2*k,word={2:'twice',3:'three times',0.5:'half'}[k];
+    return {title:'Split the current',set:{circuit:'parallel2',volts:9,r1:R1,r2:R1},ans:{r2:R2},controls:['r2'],metrics:['itot'],
+      text:`Two bulbs in parallel on 9 V. B1 is <b>${R1} Ω</b>. Choose B2 so it carries exactly <b>${word}</b> B1’s current.`,
+      tip:'Both bulbs get the same 9 V, so the current in each goes as 1/R. '+(k>1?`B2 needs 1/${k} of B1’s resistance: ${R2} Ω.`:`B2 needs twice B1’s resistance: ${R2} Ω.`),
+      checks:[ck(GM.ratio,k,'B2 carries too little: lower its resistance.','B2 carries too much: raise its resistance.')]};},
+  parTotalR(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([6,9,12])),R1=g('R1',()=>ri(10,60)),R2=g('R2',()=>ri(5,40)),t=r2(V/R1+V/R2);
+    return {title:'Parallel total',set:{circuit:'parallel2',volts:V,r1:R1,r2:100},ans:{r2:R2},controls:['r2'],metrics:['itot'],
+      text:`Two bulbs in parallel on ${V} V. B1 is <b>${R1} Ω</b>. Choose B2 so the battery delivers <b>${n2(t)} A</b> in total.`,
+      tip:`B1 takes ${(V/R1).toFixed(3)} A, so B2 needs ${(V/R2).toFixed(3)} A: ${V} V ÷ ${(V/R2).toFixed(3)} A ≈ ${R2} Ω.`,
+      checks:[ck(GM.itot,t,'Too little current: lower B2’s resistance.','Too much current: raise B2’s resistance.')]};},
+  comboR(F,lv){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([9,12,15,18]));let R2,R3;
+    if(lv==='ap')[R2,R3]=twoR(g);else{R2=R3=g('R2',()=>2*ri(5,20));}
+    const Rp=R2*R3/(R2+R3),R1=g('R1',()=>ri(3,40)),t=r2(V/(R1+Rp));
+    return {title:'Series + parallel',set:{circuit:'combo',volts:V,r1:100,r2:R2,r3:R3},ans:{r1:R1},controls:['r1'],metrics:['itot'],
+      text:(R2===R3?`The battery is ${V} V, and B2 and B3 are both <b>${R2} Ω</b>.`:`The battery is ${V} V. B2 is <b>${R2} Ω</b> and B3 is <b>${R3} Ω</b>.`)+` Choose B1 so the battery delivers <b>${n2(t)} A</b>.`,
+      tip:`B2 and B3 in parallel make ${trim(Rp)} Ω. The total must be ${V} V ÷ ${n2(t)} A ≈ ${trim(R1+Rp)} Ω, so B1 = ${R1} Ω.`,
+      checks:[ck(GM.itot,t,'Too little current: lower B1’s resistance.','Too much current: raise B1’s resistance.')]};},
+  equal(F){const g=(k,f)=>F&&k in F?F[k]:f(),R=4*g('q',()=>ri(3,10)),V=g('V',()=>pk([9,12])),R1=R/4;
+    return {title:'Equal glow',set:{circuit:'combo',volts:V,r1:R,r2:R,r3:R},ans:{r1:R1},controls:['r1'],metrics:['b1','b2'],
+      text:`B2 and B3 are both <b>${R} Ω</b>. Choose B1 so it glows exactly as brightly as B2.`,
+      tip:`B1 carries twice B2’s current, and P = I²R, so B1 needs a quarter of the resistance: ${R} Ω ÷ 4 = ${R1} Ω.`,
+      checks:[ck(GM.glow,1,'B1 is dimmer than B2: raise B1’s resistance. It carries the bigger current, and P = I²R.','B1 is brighter than B2: lower B1’s resistance.')]};},
+  parTwo(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([6,9,12])),R2=g('R2',()=>ri(5,12)),R1=2*R2,t=r2(V/R1+V/R2);
+    return {title:'Design the split',set:{circuit:'parallel2',volts:V,r1:50,r2:50},ans:{r1:R1,r2:R2},controls:['r1','r2'],metrics:['itot'],
+      text:`Two bulbs in parallel on ${V} V. Choose both resistances so the battery delivers <b>${n2(t)} A</b> and B2 carries exactly <b>twice</b> B1’s current.`,
+      tip:`B1 carries a third of the current, ${(t/3).toFixed(3)} A, so B1 = ${V} V ÷ ${(t/3).toFixed(3)} A ≈ ${R1} Ω, and B2 is half that: ${R2} Ω.`,
+      checks:[ck(GM.ratio,2,'B2 carries too little compared with B1: make B2’s resistance smaller than B1’s.','B2 carries too much compared with B1: make B2’s resistance closer to B1’s.'),
+              ck(GM.itot,t,'The ratio is right but the total is too small: lower both resistances.','The ratio is right but the total is too big: raise both resistances.')]};},
+  comboBranch(F){const g=(k,f)=>F&&k in F?F[k]:f(),V=g('V',()=>pk([9,12,15,18])),[R2,R3]=twoR(g),Rp=R2*R3/(R2+R3),R1=g('R1',()=>ri(2,40)),I=V/(R1+Rp),t=r2(I*R3/(R2+R3));
+    return {title:'One branch',set:{circuit:'combo',volts:V,r1:100,r2:R2,r3:R3,am:'A_b2'},ans:{r1:R1},controls:['r1'],metrics:['amr'],
+      text:`The battery is ${V} V. B2 is <b>${R2} Ω</b> and B3 is <b>${R3} Ω</b>. Choose B1 so exactly <b>${n2(t)} A</b> flows through B2.`,
+      tip:`B2 takes ${R3}/(${R2} + ${R3}) of the total, so the battery must deliver ${I.toFixed(3)} A. Total R = ${V} V ÷ ${I.toFixed(3)} A ≈ ${trim(R1+Rp)} Ω, so B1 = ${R1} Ω.`,
+      checks:[ck(GM.iB2,t,'Too little current in B2: lower B1’s resistance.','Too much current in B2: raise B1’s resistance.')]};}
+};
+const GPLAN={bio:['ohmV','brightV','seriesMatch','parTotal','layout','comboV'],honors:['ohmR','divider','parRatio','parTotalR','comboR','equal'],ap:['powR','divider','parTwo','parTotalR','comboR','comboBranch']};
+const GFALL={ohmV:{V:4.5},brightV:{V:4.5},seriesMatch:{X:6},parTotal:{V:4},layout:{V:9,c:'combo'},comboV:{k:4},ohmR:{V:9,R:20},powR:{V:12,R:16},divider:{R1:10,R2:20,V:12},
+  parRatio:{k:2,R2:15},parTotalR:{V:9,R1:30,R2:20},comboR:{V:12,R2:20,R3:30,R1:12},equal:{q:10,V:12},parTwo:{V:9,R2:6},comboBranch:{V:12,R2:20,R3:30,R1:12}};
+function gDefaults(){const o={};CIRCUIT.controls.forEach(c=>o[c.id]=c.def);return o;}
+function gCheck(r,p){const s=solve(p);return r.checks.map(c=>{const v=c.meas(s,p),dev=Number.isFinite(v)?(v-c.target)/c.target:Infinity;return {c,v,dev,ok:Math.abs(dev)<=GTOL};});}
+function gValid(r){const base=Object.assign(gDefaults(),r.set),pa=Object.assign({},base,r.ans);
+  for(const id of r.controls){const c=CIRCUIT.controls.find(x=>x.id===id),a=r.ans[id];
+    if(c.type==='range'&&(a<c.min-1e-9||a>c.max+1e-9||Math.abs((a-c.min)/c.step-Math.round((a-c.min)/c.step))>1e-6))return false;}
+  if(!gCheck(r,pa).every(x=>Math.abs(x.dev)<=0.7*GTOL))return false;
+  if(gCheck(r,base).every(x=>x.ok))return false;
+  for(const id of r.controls){const c=CIRCUIT.controls.find(x=>x.id===id);
+    const alts=c.type==='range'?[r.ans[id]-c.step,r.ans[id]+c.step].filter(v=>v>=c.min-1e-9&&v<=c.max+1e-9):c.options.map(o=>o.v).filter(v=>v!==r.ans[id]&&!(r.okAlt||[]).includes(v));
+    for(const v of alts){const q=Object.assign({},pa);q[id]=v;if(gCheck(r,q).every(x=>x.ok))return false;}}
+  return true;}
+function gPick(kind,lv){for(let t=0;t<800;t++){const r=MK[kind](null,lv);if(gValid(r)){r.tries=t+1;return r;}}const r=MK[kind](GFALL[kind],lv);r.tries=-1;return r;}
+const GAME={label:'Light it right',title:'Light it right',rounds:6,fireLabel:'Switch on',par:300,metrics:['itot'],
+  intro:{bio:'Six circuits. Each round names a current or a brightness to hit. The circuit stays off while you set it up, so work it out first, set the control, then press Switch on. You need to land within 4%; a first-try hit scores 3 points.',
+         honors:'Six circuits, from Ohm’s law to series and parallel combinations. Calculate the setting, then press Switch on to test it: you need to land within 4% of the target. First-try hits score 3; every miss costs a point.'},
+  newRound(sim,i){const lv=BioLab.level,kind=GPLAN[lv==='ap'?'ap':lv==='honors'?'honors':'bio'][i],r=gPick(kind,lv);r.kind=kind;
+    BioLab.setValues(sim,Object.assign(gDefaults(),r.set));sim.st.off=true;sim.st.sol=live(sim);sim.infoDirty=true;
+    r.prompt=`<b>${r.title}.</b> ${r.text}`+(lv==='bio'&&r.hint?` <span class="gm-hint">Hint: ${r.hint}</span>`:'');return r;},
+  fire(sim,r){sim.st.off=false;sim.st.sol=live(sim);r.t0=performance.now();sim.infoDirty=true;},
+  poll(sim,r){if(performance.now()-r.t0<600)return null;sim.st.off=false;const s=sim.st.sol=live(sim);sim.infoDirty=true;
+    if(s.Itot>5)return {ok:false,msg:`Short circuit! ${fmtA(s.Itot)} rushed through the bare wire around the bulb, so it went dark. Choose a layout where every path runs through a bulb.`};
+    const res=gCheck(r,sim.p),bad=res.find(x=>!x.ok);
+    if(!bad)return {ok:true,msg:`Spot on! ${cap(res.map(x=>`${x.c.name} is ${x.c.fmt(x.v)}`).join(' and '))}, within 4% of the target. ${r.tip}`};
+    const pc=Math.abs(bad.dev*100),pcs=pc<10?pc.toFixed(1):pc.toFixed(0);
+    return {ok:false,msg:`${cap(bad.c.name)} came out at ${bad.c.fmt(bad.v)}: ${pcs}% ${bad.dev>0?'above':'below'} the target of ${bad.c.tstr}. ${bad.dev>0?bad.c.hi:bad.c.lo}`};},
+  retry(sim,r){sim.st.off=true;sim.st.sol=live(sim);sim.infoDirty=true;},
+  solve(sim,r){BioLab.setValues(sim,r.ans);}};
+
 const CIRCUIT={
   id:'circuit',hash:'circuit',apUnit:11,order:1,tab:'Circuit builder',kind:'Virtual lab',next:['capacitor'],
   card:'Light bulbs in series and parallel, place real meters, and watch the electrons. Then short it out.',
@@ -107,8 +243,9 @@ const CIRCUIT={
     {id:'am',label:'Ammeter',type:'select',def:'none',lvl:'bio',options:AMOPT,help:'An ammeter measures current. It belongs in series, in the path of the current.'},
     {id:'vm',label:'Voltmeter',type:'select',def:'none',lvl:'bio',options:VMOPT,help:'A voltmeter measures the voltage difference across a part. It belongs in parallel, across that part.'}
   ],
-  init(sim){return {sol:solve(sim.p),it:0};},
-  step(sim,dt){const s=sim.st;s.sol=solve(sim.p);s.it+=dt;if(s.it>0.25){s.it=0;sim.infoDirty=true;}},
+  game:GAME,
+  init(sim){const st={it:0,off:!!(sim.game&&sim.game.state!=='over')};st.sol=solve(st.off?Object.assign({},sim.p,{volts:0}):sim.p);return st;},
+  step(sim,dt){const s=sim.st;s.sol=live(sim);s.it+=dt;if(s.it>0.25){s.it=0;sim.infoDirty=true;}},
   metrics:[
     {id:'itot',label:'Current from the battery',unit:'A',lvl:'bio',min:0,max:2,d:3,get:s=>s.st.sol.Itot},
     {id:'b1',label:'B1 brightness',unit:'%',lvl:'bio',min:0,max:100,d:0,get:s=>{const e=s.st.sol.el.B1;return e?100*e.P/PREF:NaN;}},
@@ -137,7 +274,8 @@ const CIRCUIT={
     if(hon){const k=kirchhoff(sim);if(k)h+=`<p style="margin-top:8px"><b>Junction rule:</b> ${k.j}</p><p><b>Loop rule:</b> ${k.l}</p>`;}
     if(ap)h+=`<p class="help">Battery: EMF ${sim.p.volts.toFixed(1)} V, internal resistance ${RINT} Ω, terminal voltage ${s.term.toFixed(2)} V. Equivalent resistance of the bulbs: ${Number.isFinite(s.Req)&&s.Req<1e6?s.Req.toFixed(2)+' Ω':'open circuit'}.</p>`;
     return h;},
-  narrate(sim){const s=sim.st.sol=solve(sim.p),p=sim.p,hon=atLeast('honors'),c=p.circuit;
+  narrate(sim){const s=sim.st.sol=live(sim),p=sim.p,hon=atLeast('honors'),c=p.circuit;
+    if(gOff(sim))return 'The circuit is switched off while you set it up. Press <b>Switch on</b> to test it.';
     if(p.vm==='series')return '<b>The voltmeter is wired in series.</b> Its huge resistance (10 MΩ) blocks the current, so the bulbs go dark, yet it reads almost the full battery voltage: '+s.vmRead.toFixed(2)+' V.';
     if(p.am==='A_acrossB1')return '<b>The ammeter is wired across B1.</b> Its tiny resistance gives the current an easy detour, so B1 goes out and the ammeter takes '+fmtA(s.amRead)+'. That can blow a real meter’s fuse.';
     if(s.Itot>5)return '<b>Short circuit!</b> The current takes the wire path with almost no resistance: '+fmtA(s.Itot)+' flows, the wires heat up, the bulb goes dark and the battery drains fast.';
@@ -212,14 +350,15 @@ const CIRCUIT={
     // battery
     drawBattery(ctx,k,p.volts);
     // parts
-    for(const b of tp.br)for(const part of b.parts){if(part.t==='bulb'){const e=s.el[part.n];drawBulb(ctx,part,e?e.P/PREF:0,k,e,hon,p);}else drawSwitch(ctx,part,part.n==='S1'?p.s1:p.s2,k);}
+    const off=gOff(sim),showI=!!sim.game&&!off;
+    for(const b of tp.br)for(const part of b.parts){if(part.t==='bulb'){const e=s.el[part.n];drawBulb(ctx,part,e?e.P/PREF:0,k,e,hon,p,showI);}else drawSwitch(ctx,part,part.n==='S1'?p.s1:p.s2,k);}
     // junction dots
     for(const n of Object.keys(tp.nodes)){if(n.startsWith('j')){const q=tp.nodes[n];ctx.fillStyle=PAL['cv-ink'];ctx.beginPath();ctx.arc(q[0],q[1],5,0,6.29);ctx.fill();if(hon)txt(ctx,n==='j1'?'J1':'J2',q[0]+8,q[1]+(n==='j1'?-8:18),{s:12*k,w:700,c:PAL['cv-soft']});}}
     // meters
     drawMeters(ctx,sim,s,k);
     // header
     txt(ctx,tp.name,16,26,{s:15*k,w:700});
-    txt(ctx,'Current from battery: '+fmtA(s.Itot),16,46,{s:12.5*k,c:PAL['cv-soft']});
+    txt(ctx,off?'Switched off: press Switch on to test':'Current from battery: '+fmtA(s.Itot),16,46,{s:12.5*k,c:off?PAL['s1']:PAL['cv-soft'],w:off?700:400});
     if(s.Itot>5)pill(ctx,'SHORT CIRCUIT: wires heating',600,30,'#c62828','#fff',12*k);
     ctx.fillStyle=PAL['s2'];ctx.beginPath();ctx.arc(26,432,4,0,6.29);ctx.fill();txt(ctx,'electron (moves − → +)',36,436,{s:12*k,c:PAL['cv-soft']});
   }
@@ -232,13 +371,14 @@ function drawBattery(ctx,k,V){const x=BAT_X,y=230;ctx.fillStyle=PAL['cv-bg'];ctx
   ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,TOP+12);ctx.lineTo(x,y-12);ctx.moveTo(x,y+14);ctx.lineTo(x,BOT-12);ctx.stroke();
   txt(ctx,'+',x+34,y-6,{s:18*k,w:800,c:PAL['s1']});txt(ctx,'−',x+34,y+18,{s:18*k,w:800,c:PAL['s2']});
   txt(ctx,V.toFixed(1)+' V',x-38,y+5,{s:13*k,w:700,a:'right'});}
-function drawBulb(ctx,part,b,k,e,hon,p){const [x,y]=part.at,gl=clamp(b,0,1.6);
+function drawBulb(ctx,part,b,k,e,hon,p,showI){const [x,y]=part.at,gl=clamp(b,0,1.6);
   if(gl>0.01){const g=ctx.createRadialGradient(x,y,4,x,y,26+40*Math.min(1,gl));g.addColorStop(0,`rgba(255,226,120,${0.75*Math.min(1,gl)})`);g.addColorStop(1,'rgba(255,226,120,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,26+40*Math.min(1,gl),0,6.29);ctx.fill();}
   ctx.fillStyle=gl>0.01?`rgba(255,240,180,${0.35+0.5*Math.min(1,gl)})`:PAL['card'];ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,18,0,6.29);ctx.fill();ctx.stroke();
   ctx.strokeStyle=gl>0.01?'#c77700':PAL['cv-soft'];ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x-9,y+6);for(let i=0;i<6;i++)ctx.lineTo(x-7+i*3,y+(i%2?-6:2));ctx.lineTo(x+9,y+6);ctx.stroke();
   const lx=part.o==='v'?x+26:x,ly=part.o==='v'?y+4:y-28;
   txt(ctx,part.n,lx,ly,{s:13*k,w:700,a:part.o==='v'?'left':'center'});
-  if(e)txt(ctx,hon?e.R.toFixed(0)+' Ω':Math.round(100*e.P/PREF)+'%',lx,ly+15*k,{s:11.5*k,c:PAL['cv-soft'],a:part.o==='v'?'left':'center'});}
+  if(e)txt(ctx,hon?e.R.toFixed(0)+' Ω':Math.round(100*e.P/PREF)+'%',lx,ly+15*k,{s:11.5*k,c:PAL['cv-soft'],a:part.o==='v'?'left':'center'});
+  if(e&&showI)txt(ctx,fmtA(e.I),part.o==='v'?lx:x,part.o==='v'?ly+30*k:y+38*k,{s:12*k,w:700,c:PAL['s2'],a:part.o==='v'?'left':'center'});}
 function drawSwitch(ctx,part,on,k){const [x,y]=part.at;ctx.fillStyle=PAL['cv-bg'];if(part.o==='h')ctx.fillRect(x-24,y-14,48,28);else ctx.fillRect(x-14,y-24,28,48);
   ctx.fillStyle=PAL['cv-ink'];const a=part.o==='h'?[[x-20,y],[x+20,y]]:[[x,y-20],[x,y+20]];a.forEach(q=>{ctx.beginPath();ctx.arc(q[0],q[1],4,0,6.29);ctx.fill();});
   ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a[0][0],a[0][1]);
@@ -265,6 +405,7 @@ function kirchhoff(sim){const s=sim.st.sol,p=sim.p,c=p.circuit;
   if(c==='series2'){const a=s.el.B1,b=s.el.B2;return {j:'there are no junctions in series, so the same current flows everywhere: '+s.Itot.toFixed(3)+' A.',l:`+${s.term.toFixed(2)} V − ${a.V.toFixed(2)} V − ${b.V.toFixed(2)} V ≈ 0 ✓`};}
   const a=s.el.B1;if(!a)return null;return {j:'one loop, no junctions: '+s.Itot.toFixed(3)+' A everywhere.',l:`+${s.term.toFixed(2)} V − ${a.V.toFixed(2)} V ≈ 0 ✓`};}
 /* Re-solve on every setting change, so readouts and the caption are current even while the bench is paused (Guided and Challenge modes). */
-CIRCUIT.controls.forEach(c=>{const f=c.onChange;c.onChange=function(sim){if(sim.st)sim.st.sol=solve(sim.p);if(f)f.call(this,sim);};});
+/* In the game, touching any control switches the circuit off again, so a reading only comes from pressing Switch on. */
+CIRCUIT.controls.forEach(c=>{const f=c.onChange;c.onChange=function(sim){if(sim.st){if(sim.game&&sim.game.state!=='flying'&&sim.game.state!=='over')sim.st.off=true;sim.st.sol=live(sim);}if(f)f.call(this,sim);};});
 BioLab.register(CIRCUIT);
 })();
