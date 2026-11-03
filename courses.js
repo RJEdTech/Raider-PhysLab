@@ -21,7 +21,7 @@ BioLab.COURSES = [
       { n: 'Unit 5', t: 'Work, power and energy', ids: ['skatepark', 'power'] },
       { n: 'Unit 6', t: 'Momentum', ids: ['collisions', 'impulse'] },
       { n: 'Unit 7', t: 'Waves and sound', ids: ['waves', 'sound'] },
-      { n: 'Unit 8', t: 'Light and optics', ids: ['refraction', 'lenses'] }
+      { n: 'Unit 8', t: 'Light and optics', ids: ['color', 'refraction', 'lenses'] }
     ],
     further: ['rocket', 'chaos', 'relativity'] },
   { id: 'honors', name: 'Honors Physics',
@@ -34,7 +34,7 @@ BioLab.COURSES = [
       { n: 'Unit 5', t: 'Work, power and energy', ids: ['skatepark', 'power', 'springs'] },
       { n: 'Unit 6', t: 'Momentum and collisions', ids: ['collisions', 'impulse'] },
       { n: 'Unit 7', t: 'Waves and sound', ids: ['pendulum', 'waves', 'sound'] },
-      { n: 'Unit 8', t: 'Optics', ids: ['refraction', 'lenses'] },
+      { n: 'Unit 8', t: 'Optics', ids: ['color', 'refraction', 'lenses'] },
       { n: 'Unit 9', t: 'Circuits and electricity', ids: ['coulomb', 'circuit', 'magnetism'] }
     ],
     further: ['rocket', 'chaos', 'relativity', 'photoelectric'] },
@@ -76,7 +76,7 @@ BioLab.TOPIC_ORDER = {
   6: ['pendulum', 'springs'],
   7: ['buoyancy', 'fluidflow'],
   8: ['waves', 'sound'],
-  9: ['refraction', 'lenses'],
+  9: ['color', 'refraction', 'lenses'],
   10: ['coulomb', 'efield', 'capacitor'],
   11: ['circuit'],
   12: ['magnetism', 'induction'],
