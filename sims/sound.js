@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const {clamp,lerp,rng,rr,txt,pill,atLeast,PAL,axes,bars,legend,serColor}=BioLab.h;
+const {clamp,lerp,rng,rr,txt,pill,atLeast,PAL,axes,bars,legend,serColor,RM}=BioLab.h;
 
 /* Time runs in milliseconds, slowed so a 440 Hz wave shows about 1.8 cycles per second.
    Distances: 150 px = 1 m. */
@@ -43,6 +43,215 @@ function modeUI(sim){const m=M(sim),ui=sim.ui;if(!ui||!ui.sec)return;
   (sim.def.controls||[]).forEach(c=>{if(!c.modes)return;const e=ui.sec.querySelector('#sound-'+c.id)||ui.sec.querySelector('#sound-'+c.id+'-l');const w=e&&e.closest('.ctl');if(w)w.hidden=!atLeast(c.lvl||'bio')||!c.modes.includes(m);});
   (sim.def.metrics||[]).forEach(mm=>{const t=ui.tiles&&ui.tiles[mm.id];const w=t&&t.num&&t.num.closest('.tile');if(w)w.hidden=!atLeast(mm.lvl||'bio')||(mm.modes&&!mm.modes.includes(m));});}
 
+/* ---------- Virtual lab bench: speed of sound with a resonance tube (lab 'speedofsound'; see VLAB.md) ----------
+   A PVC tube stands in a tall cylinder of water. The water closes the bottom, so the air column above it resonates
+   when L = λ/4 − 0.4d (first) and 3λ/4 − 0.4d (second). The sound level meter peaks there with a Lorentzian width of
+   about 1 cm. Room temperature, tube diameter, the forks' true frequencies and the humidity come from the lab's seed. */
+const FORKS=[288,320,341.3,384,426.6,480],EXT=[384,426.6,480];
+const SOS={S:2.6,yb:432,depth:70,cx:140,cw:104,tw:46,tlen:80,cylH:76,tau:20,G1:40,G3:22,room:38,fork:54};
+function hr(seed,a,b){let h=(seed^Math.imul(a+1,0x9E3779B1)^Math.imul(b+7,0x85EBCA77))|0;h=Math.imul(h^h>>>16,0x7feb352d);h=Math.imul(h^h>>>15,0x846ca68b);h^=h>>>16;return (h>>>0)/4294967296;}
+function hn(seed,a,b){const u=Math.max(1e-9,hr(seed,a,b)),w=hr(seed,a,b+100003);return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*w);}
+const LCD='700 VSIZEpx "Consolas","Menlo","DejaVu Sans Mono","Courier New",monospace';
+const sB=sim=>sim&&sim.st&&sim.st.B&&sim.st.B.kind==='sos'&&sim.vlab?sim.st.B:null;
+function sosInit(sim){const V=sim.vlab,seed=V.seed,b=V.bench;['best','best2','rang'].forEach(k=>{if(!b[k]||typeof b[k]!=='object')b[k]={};});
+  const T=Math.round((20+4*hr(seed,1,0))*10)/10,dmm=Math.round((34.8+0.6*hr(seed,2,0))*100)/100;
+  const v=331.3*Math.sqrt(1+T/273.15)+0.3+0.4*hr(seed,3,0);   // a little humidity speeds sound up by a few tenths of a m/s
+  const fa={};FORKS.forEach((f,i)=>fa[f]=f*(1+0.0012*hn(seed,40+i,0)));   // real forks are within about 0.1% of their stamp
+  return {kind:'sos',seed,T,dmm,v,fa,A:0,jit:0,jt:0,jn:0,strikes:0};}
+function sosRes(B,f){const lam=B.v/B.fa[f],e=0.4*B.dmm/1000,L1=(lam/4-e)*100,L3=(3*lam/4-e)*100;return {lam,L1,L3,w1:0.9+0.012*L1,w3:0.9+0.012*L3};}
+const lor=(x,x0,w)=>1/(1+((x-x0)/w)*((x-x0)/w));
+function sosGain(B,f,L){const r=sosRes(B,f);return SOS.G1*lor(L,r.L1,r.w1)+SOS.G3*lor(L,r.L3,r.w3);}
+function sosLevel(sim){const B=sB(sim);if(!B)return 0;const L=sim.p.benchL/10;
+  return 10*Math.log10(Math.pow(10,SOS.room/10)+B.A*B.A*Math.pow(10,SOS.fork/10)*(1+sosGain(B,sim.p.fork,L)))+B.jit;}
+const sosMeter=sim=>Math.round(sosLevel(sim)*10)/10;
+/* remember, per fork, the closest the student came to each resonance while the fork rang (checks accept a reading taken there) */
+function sosTrack(sim){const B=sB(sim);if(!B||B.seed!==sim.vlab.seed||B.A<0.15)return;const b=sim.vlab.bench,f=sim.p.fork,key=String(f),L=sim.p.benchL/10,r=sosRes(B,f);b.rang[key]=1;
+  const g1=lor(L,r.L1,r.w1),g3=lor(L,r.L3,r.w3);
+  if(!b.best[key]||g1>b.best[key].g)b.best[key]={L:Math.round(L*100)/100,g:Math.round(g1*1e4)/1e4};
+  if(!b.best2[key]||g3>b.best2[key].g)b.best2[key]={L:Math.round(L*100)/100,g:Math.round(g3*1e4)/1e4};}
+function sosStep(sim,dt){const B=sB(sim);if(!B||sim.t<0)return;const s=dt/SIM.timeScale;   // real seconds on the bench
+  B.A*=Math.exp(-s/SOS.tau);if(B.A<0.003)B.A=0;
+  B.jt+=s;if(B.jt>=0.25){B.jt=0;B.jn++;B.jit=0.2*hn(B.seed,77,B.jn);}
+  sosTrack(sim);}
+/* the fork through the speakers: off by default; fades to silence within 0.6 s if the page stops drawing */
+let BA=null;
+function bAudioStart(sim){bAudioStop();const B=sB(sim);if(!B)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC){B.msg='This browser cannot play sound.';return;}
+    const ac=new AC(),g=ac.createGain(),o=ac.createOscillator();g.gain.value=0;o.type='sine';o.frequency.value=B.fa[sim.p.fork]||440;o.connect(g);g.connect(ac.destination);o.start();
+    BA={ac,g,o};if(ac.resume)ac.resume().catch(()=>{});B.msg='';}
+  catch(e){BA=null;B.msg='Sound could not start in this browser.';}}
+function bAudioStop(){if(!BA)return;try{BA.o.stop();BA.ac.close();}catch(e){}BA=null;}
+function bAudioUpdate(sim){if(!BA)return;const B=sB(sim);if(!B||!sim.p.benchSnd||sim.mode!=='vlab'){bAudioStop();return;}
+  try{const now=BA.ac.currentTime,amp=sim.running?B.A*Math.sqrt((1+sosGain(B,sim.p.fork,sim.p.benchL/10))/(1+SOS.G1)):0,g=BA.g.gain;
+    g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(0.25*amp,now+0.05);g.linearRampToValueAtTime(0,now+0.6);
+    BA.o.frequency.setTargetAtTime(B.fa[sim.p.fork]||440,now,0.01);}catch(e){}}
+function sosNarrate(sim){const B=sB(sim),p=sim.p,f=p.fork+' Hz';
+  if(B.A<0.05)return 'The '+f+' fork is quiet. Press <b>Strike the fork</b>, then slide the tube and watch the sound level meter.';
+  if(B.A<0.3)return 'The '+f+' fork is fading. <b>Strike it again</b> so you compare loudness at the same strength.';
+  return 'The '+f+' fork is ringing just above the mouth of the tube. The air column only sounds loud when its length makes a standing wave with the fork. <b>Slide the tube slowly and find the loudest point.</b>';}
+/* --- notebook checks (they compare with the bench and with the student's own entries, and never show the true L) --- */
+const nv=s=>BioLab.vlab.num(s);
+function sosDm(sim){const V=sim.vlab,dm=V.val('m','val',2),dmm=V.val('m','val',1),B=sB(sim);return Number.isFinite(dm)?dm:Number.isFinite(dmm)?dmm/1000:B?B.dmm/1000:0.035;}
+const MROWS=['room temperature T (°C)','inside diameter d (mm)','inside diameter d (m)'];
+function mCheck(sim,rv,v){const B=sB(sim),i=MROWS.indexOf(rv);if(i<0)return null;
+  if(i===0){if(!B||Math.abs(v-B.T)<=0.051)return null;return 'The thermometer reads '+B.T.toFixed(1)+' °C. Check your reading.';}
+  if(i===1){if(!B||Math.abs(v-B.dmm)<=0.006)return null;if(Math.abs(v*10-B.dmm)<=0.06||Math.abs(v*1000-B.dmm)<=0.6)return 'The calipers read in millimeters. Record the reading as it is shown.';return 'The calipers read '+B.dmm.toFixed(2)+' mm. Check your reading.';}
+  const dmm=sim.vlab.val('m','val',1);if(!Number.isFinite(dmm))return 'Record d in millimeters first.';if(Math.abs(v-dmm/1000)<=0.0000051)return null;return 'To change millimeters to meters, divide by 1000.';}
+function lCheck(sim,rv,v){const B=sB(sim);if(!B)return null;const f=+rv,r=sosRes(B,f),b=sim.vlab.bench,key=String(f);
+  if(v>0&&v<1.5)return 'Record L in centimeters in this column. The next column is for meters.';
+  if(!b.rang[key])return 'Strike the '+f+' Hz fork and find where it sounds loudest before you record L.';
+  if(Math.abs(v-r.L1)<=1.0)return null;
+  const bs=b.best[key];if(bs&&Math.abs(v-r.L1)<=1.6&&Math.abs(v-bs.L)<=0.3)return null;
+  if(Math.abs(v-r.L3)<=2.5)return 'That is the second, longer resonance. Table 1 needs the first (shortest) loud spot.';
+  return 'The '+f+' Hz fork was not at its loudest at this length. Strike it again, slide the tube slowly through the loud spot, and read the ruler at the water surface.';}
+function lmCheck(sim,rv,v){const i=FORKS.indexOf(+rv),Lc=sim.vlab.val('t1','Lcm',i);if(!Number.isFinite(Lc))return 'Fill in L (cm) for this fork first.';
+  if(Math.abs(v-Lc/100)<=0.0006)return null;return 'L in meters is L in centimeters ÷ 100. Check this against your L (cm).';}
+function lamCheck(sim,rv,v){const V=sim.vlab,i=FORKS.indexOf(+rv);let Lm=V.val('t1','Lm',i);if(!Number.isFinite(Lm)){const Lc=V.val('t1','Lcm',i);if(!Number.isFinite(Lc))return 'Fill in L for this fork first.';Lm=Lc/100;}
+  const ex=4*(Lm+0.4*sosDm(sim));if(Math.abs(v-ex)<=Math.max(0.003,0.003*ex))return null;
+  if(Math.abs(v-4*Lm)<=0.003)return 'Include the end correction: λ = 4(L + 0.4d).';return 'Check this: λ = 4(L + 0.4d), with L and d both in meters.';}
+function vCheck(sim,rv,v){const i=FORKS.indexOf(+rv),lam=sim.vlab.val('t1','lam',i);if(!Number.isFinite(lam))return 'Fill in λ for this fork first.';
+  const ex=(+rv)*lam;if(Math.abs(v-ex)<=Math.max(0.6,0.004*ex))return null;return 'v = fλ: multiply the fork frequency by your wavelength.';}
+function l2Check(sim,rv,v){const B=sB(sim);if(!B)return null;const f=+rv,r=sosRes(B,f),b=sim.vlab.bench,key=String(f);
+  if(v>0&&v<1.5)return 'Record L₂ in centimeters.';
+  if(!b.rang[key])return 'Strike the '+f+' Hz fork and find its second loud spot before you record L₂.';
+  if(Math.abs(v-r.L3)<=1.2)return null;
+  const bs=b.best2[key];if(bs&&Math.abs(v-r.L3)<=1.8&&Math.abs(v-bs.L)<=0.3)return null;
+  if(Math.abs(v-r.L1)<=2.5)return 'That is the first resonance. Keep raising the tube past it until the sound gets loud again.';
+  return 'The '+f+' Hz fork was not at its loudest at this length. Strike it again and slide the tube slowly through the second loud spot.';}
+function hlCheck(sim,rv,v){const V=sim.vlab,f=+rv,L1=V.val('t1','Lcm',FORKS.indexOf(f)),L2=V.val('t2','L2',EXT.indexOf(f));
+  if(!Number.isFinite(L1)||!Number.isFinite(L2))return 'Fill in L (cm) in Table 1 and L₂ for this fork first.';
+  const ex=2*(L2-L1)/100;if(Math.abs(v-ex)<=0.003)return null;return 'Check this: subtract L₁ from L₂, double it, and change centimeters to meters.';}
+function vavgCheck(sim,v,V){const vs=V.col('t1','v').filter(Number.isFinite);if(vs.length<3)return 'Fill in v for at least three forks in Table 1 first.';
+  const m=vs.reduce((a,b)=>a+b,0)/vs.length;if(Math.abs(v-m)<=0.3)return null;return 'Check this: add the speeds in your v column and divide by how many there are.';}
+function vactCheck(sim,v,V){const T=V.val('m','val',0);if(!Number.isFinite(T))return 'Record the room temperature first.';if(Math.abs(v-(331+0.6*T))<=0.15)return null;
+  return 'Check this: put your room temperature into v = 331 + 0.6T.';}
+function perrCheck(sim,v,V){const a=nv(V.raw('k:vavg')),b=nv(V.raw('k:vact'));if(!Number.isFinite(a)||!Number.isFinite(b)||!b)return 'Work out your average speed and the actual speed first.';
+  const ex=Math.abs(a-b)/b*100;if(Math.abs(Math.abs(v)-ex)<=0.06)return null;return 'Check this: find the difference, ignore its sign, divide by the actual speed and multiply by 100.';}
+/* --- bench drawing --- */
+function lcd(ctx,x,y,w,h,label,value,k,vs){ctx.fillStyle='#2b2f36';rr(ctx,x,y,w,h,12);ctx.fill();txt(ctx,label,x+14,y+22,{s:12*k,w:700,c:'#d7dbe0'});
+  const sy=y+32,sh=h-42;ctx.fillStyle='#cfe3c8';rr(ctx,x+12,sy,w-24,sh,6);ctx.fill();ctx.fillStyle='#1b2a1b';ctx.font=LCD.replace('VSIZE',String(vs));ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(value,x+w-24,sy+sh/2+2);}
+function drawSOS(sim,ctx,vdt,k,vt){const B=sim.st.B,p=sim.p,G=SOS,S=G.S,L=p.benchL/10,fs=12*k;
+  ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);ctx.fillStyle=PAL['cv-bench'];ctx.fillRect(0,438,800,12);ctx.fillStyle=PAL['line'];ctx.fillRect(0,438,800,1.5);
+  const yw=G.yb-G.depth*S,yt=yw-L*S,x0=G.cx-G.cw/2,x1=G.cx+G.cw/2,ytop=G.yb-G.cylH*S,tx0=G.cx-G.tw/2,tx1=G.cx+G.tw/2,tyb=yt+G.tlen*S;
+  // water in the cylinder
+  ctx.fillStyle=PAL['cv-water'];ctx.fillRect(x0+2,yw,x1-x0-4,G.yb-yw);
+  // the PVC tube with a meter stick taped to it, 0 at the top of the tube
+  ctx.fillStyle='#d9dcd4';ctx.fillRect(tx0,yt,tx1-tx0,tyb-yt);ctx.strokeStyle='#8f948b';ctx.lineWidth=1.5;ctx.strokeRect(tx0,yt,tx1-tx0,tyb-yt);
+  ctx.fillStyle='#b9bdb4';ctx.beginPath();ctx.ellipse(G.cx,yt,G.tw/2,4,0,0,TAU);ctx.fill();ctx.fillStyle='#55584f';ctx.beginPath();ctx.ellipse(G.cx,yt,G.tw/2-4,2.6,0,0,TAU);ctx.fill();
+  const rx0=G.cx-11,rx1=G.cx+11,ry1=yt+76*S;ctx.fillStyle='#ecd98f';ctx.fillRect(rx0,yt+3,rx1-rx0,ry1-yt-3);ctx.strokeStyle='#2b2b2b';ctx.lineWidth=1;
+  for(let c=1;c<=75;c++){const y=Math.round(yt+c*S)+.5,len=c%10===0?14:c%5===0?9:5;ctx.beginPath();ctx.moveTo(rx0,y);ctx.lineTo(rx0+len,y);ctx.stroke();}
+  // water over the submerged part, and the surface
+  ctx.fillStyle='rgba(60,140,210,.28)';ctx.fillRect(tx0,yw,tx1-tx0,Math.min(tyb,G.yb)-yw);
+  ctx.strokeStyle='rgba(30,110,185,.95)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0+2,yw);ctx.lineTo(x1-2,yw);ctx.stroke();
+  // cylinder glass and base
+  ctx.strokeStyle=PAL['cv-glass'];ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0-6,ytop-4);ctx.lineTo(x0,ytop);ctx.lineTo(x0,G.yb+2);ctx.lineTo(x1,G.yb+2);ctx.lineTo(x1,ytop);ctx.stroke();
+  ctx.fillStyle=PAL['cv-glass'];rr(ctx,x0-18,G.yb+2,x1-x0+36,6,3);ctx.fill();
+  // ruler numbers, beside the cylinder
+  for(let c=10;c<=70;c+=k>1.3?20:10){const y=yt+c*S;if(y<14||y>430)continue;txt(ctx,String(c),x0-10,y+5,{s:fs,w:600,c:PAL['cv-soft'],a:'right'});}
+  if(yt+6>14)txt(ctx,'cm',x0-10,Math.max(16,yt+6),{s:fs,c:PAL['cv-soft'],a:'right'});
+  // L bracket
+  if(yw-yt>18){const bx=x1+16;ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx-5,yt);ctx.lineTo(bx+5,yt);ctx.moveTo(bx,yt);ctx.lineTo(bx,yw);ctx.moveTo(bx-5,yw);ctx.lineTo(bx+5,yw);ctx.stroke();
+    txt(ctx,'L',bx+9,(yt+yw)/2+6,{s:Math.min(15*k,22),w:800});}
+  // sound from the mouth of the tube, stronger when the column resonates
+  const lvN=clamp((sosLevel(sim)-SOS.room-2)/(SOS.fork+16-SOS.room),0,1);
+  if(B.A>0.03){ctx.strokeStyle=serColor(1);ctx.lineWidth=2;for(let i=0;i<3;i++){const ph=((vt*0.8+i/3)%1),r=14+ph*36;ctx.globalAlpha=lvN*(1-ph)*0.9;ctx.beginPath();ctx.arc(G.cx,yt-2,r,Math.PI*1.08,Math.PI*1.32);ctx.stroke();ctx.beginPath();ctx.arc(G.cx,yt-2,r,Math.PI*1.68,Math.PI*1.92);ctx.stroke();}ctx.globalAlpha=1;}
+  // the tuning fork, tines down, just above the mouth
+  const wob=B.A>0.02&&!RM?1.6*B.A*Math.sin(vt*55):0,fy=yt-10;ctx.fillStyle='#9aa3ab';ctx.strokeStyle='#5e666d';ctx.lineWidth=1;
+  [[-9-wob,-1],[5+wob,1]].forEach(([dx])=>{ctx.fillRect(G.cx+dx,fy-44,4,44);ctx.strokeRect(G.cx+dx,fy-44,4,44);});
+  ctx.fillRect(G.cx-9,fy-50,18,7);ctx.fillRect(G.cx-2,fy-74,4,26);
+  pill(ctx,p.fork+' Hz',G.cx+50,fy-56,B.A>0.05?serColor(1):PAL['card2'],B.A>0.05?'#ffffff':PAL['cv-ink'],12*k);
+  // the sound level meter's microphone, beside the mouth of the tube
+  ctx.fillStyle=PAL['cv-lamp'];rr(ctx,tx1+6,yt-30,8,16,4);ctx.fill();ctx.fillRect(tx1+9,yt-14,2,12);
+  drawRulerLoupe(sim,ctx,k,L);
+  // instruments
+  const db=sosMeter(sim);drawMeter(ctx,470,12,316,150,db,k);
+  lcd(ctx,470,172,316,96,'ROOM THERMOMETER',B.T.toFixed(1)+' °C',k,38);
+  drawCalipers(ctx,470,278,316,124,B.dmm,k);
+  const st=B.A>=0.3?'ringing':B.A>=0.05?'fading':'quiet';
+  txt(ctx,p.fork+' Hz fork: '+st,628,427,{s:13*k,w:700,a:'center',c:B.A>=0.05?PAL['cv-ink']:PAL['cv-soft']});
+  if(BA)pill(ctx,'♪ Sound on',730,192,serColor(0),'#ffffff',12*k);
+  else if(B.msg)txt(ctx,B.msg,786,196,{s:12*k,c:PAL['cv-soft'],a:'right'});}
+function drawRulerLoupe(sim,ctx,k,L){const X=232,Y=12,W=222,H=424,PX=8,top=Y+34,bot=Y+H-8,mid=(top+bot)/2,Lmm=L*10,Ym=mm=>mid+(mm-Lmm)*PX;
+  ctx.fillStyle=PAL['card'];rr(ctx,X,Y,W,H,12);ctx.fill();ctx.strokeStyle=PAL['rj'];ctx.lineWidth=2;rr(ctx,X,Y,W,H,12);ctx.stroke();
+  txt(ctx,'Ruler, magnified',X+W/2,Y+23,{s:Math.min(13*k,21),w:700,a:'center'});
+  ctx.save();ctx.beginPath();ctx.rect(X+6,top,W-12,bot-top);ctx.clip();
+  ctx.fillStyle='#d9dcd4';ctx.fillRect(X+6,top,W-12,bot-top);
+  const r0=X+30,r1=X+W-30;ctx.fillStyle='#ecd98f';ctx.fillRect(r0,top,r1-r0,bot-top);ctx.strokeStyle='#2b2b2b';
+  for(let mm=Math.floor(Lmm-(mid-top)/PX)-1;mm<=Lmm+(bot-mid)/PX+1;mm++){if(mm<0)continue;const y=Math.round(Ym(mm))+.5,cm=mm%10===0,h5=mm%5===0;ctx.lineWidth=cm?2:1;ctx.beginPath();ctx.moveTo(r0,y);ctx.lineTo(r0+(cm?44:h5?30:16),y);ctx.stroke();
+    if(cm)txt(ctx,String(mm/10),r0+52,y+7,{s:Math.min(18*k,26),w:700,c:'#1d1d1d'});}
+  // water below the surface; a slight meniscus where it meets the tube
+  ctx.fillStyle='rgba(60,140,210,.30)';ctx.fillRect(X+6,mid,W-12,bot-mid);
+  ctx.strokeStyle='rgba(25,100,175,.95)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X+6,mid-3);ctx.quadraticCurveTo(X+14,mid,X+24,mid);ctx.lineTo(X+W-24,mid);ctx.quadraticCurveTo(X+W-14,mid,X+W-6,mid-3);ctx.stroke();
+  ctx.restore();
+  txt(ctx,'air',X+W-10,top+18*Math.min(k,1.4),{s:12*k,w:700,c:'#3a3a3a',a:'right'});txt(ctx,'water',X+W-10,bot-8,{s:12*k,w:700,c:'#123a5c',a:'right'});}
+function drawMeter(ctx,x,y,w,h,db,k){ctx.fillStyle='#2b2f36';rr(ctx,x,y,w,h,12);ctx.fill();txt(ctx,'SOUND LEVEL METER',x+14,y+22,{s:12*k,w:700,c:'#d7dbe0'});
+  if(k<1.3)txt(ctx,'mic at the tube',x+w-14,y+22,{s:12*k,c:'#aab0b8',a:'right'});
+  const sy=y+32,sh=56;ctx.fillStyle='#cfe3c8';rr(ctx,x+12,sy,w-24,sh,6);ctx.fill();ctx.fillStyle='#1b2a1b';ctx.font=LCD.replace('VSIZE','42');ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(db.toFixed(1)+' dB',x+w-24,sy+sh/2+2);
+  const bx0=x+18,bx1=x+w-18,by=sy+sh+14,bh=14,lo=30,hi=80,X=v=>bx0+(clamp(v,lo,hi)-lo)/(hi-lo)*(bx1-bx0);
+  ctx.fillStyle='#1d2126';ctx.fillRect(bx0,by,bx1-bx0,bh);ctx.fillStyle='#7fd36e';ctx.fillRect(bx0,by,X(db)-bx0,bh);
+  ctx.strokeStyle='#8a9098';ctx.lineWidth=1;for(let v=lo;v<=hi;v+=10){const px=Math.round(X(v))+.5;ctx.beginPath();ctx.moveTo(px,by+bh);ctx.lineTo(px,by+bh+5);ctx.stroke();txt(ctx,String(v),px,by+bh+6+11*k,{s:11*k,c:'#c3c8ce',a:'center'});}}
+function drawCalipers(ctx,x,y,w,h,dmm,k){ctx.fillStyle=PAL['card'];rr(ctx,x,y,w,h,12);ctx.fill();ctx.strokeStyle=PAL['line'];ctx.lineWidth=1;rr(ctx,x,y,w,h,12);ctx.stroke();
+  txt(ctx,'Calipers: inside diameter d',x+14,y+22,{s:12*k,w:700});
+  const cx=x+56,cy=y+h/2+18,ro=34,ri=29;ctx.fillStyle='#d9dcd4';ctx.beginPath();ctx.arc(cx,cy,ro,0,TAU);ctx.fill();ctx.fillStyle=PAL['card'];ctx.beginPath();ctx.arc(cx,cy,ri,0,TAU);ctx.fill();ctx.strokeStyle='#8f948b';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,ro,0,TAU);ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,ri,0,TAU);ctx.stroke();
+  const jy=cy+4,by=y+34+6*Math.min(k,1.5);ctx.fillStyle='#aeb4ba';ctx.strokeStyle='#6c737a';ctx.lineWidth=1;
+  // beam, fixed jaw on the left wall, sliding jaw on the right wall, then the slider body with its display
+  ctx.fillRect(cx-ri,by,x+w-12-(cx-ri),8);ctx.strokeRect(cx-ri,by,x+w-12-(cx-ri),8);
+  ctx.fillRect(cx-ri,by,4,jy-by);ctx.fillRect(cx+ri-4,by,4,jy-by);ctx.fillRect(cx+ri-4,by+8,ro+16-ri+4,10);
+  const sx=cx+ro+12,sw=x+w-12-sx;ctx.fillStyle='#2b2f36';rr(ctx,sx,by+8,sw,44,6);ctx.fill();ctx.fillStyle='#cfe3c8';rr(ctx,sx+8,by+14,sw-16,32,4);ctx.fill();
+  ctx.fillStyle='#1b2a1b';ctx.font=LCD.replace('VSIZE','26');ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(dmm.toFixed(2)+' mm',sx+sw-18,by+31);
+  if(k<1.3)txt(ctx,'jaws inside the tube end',x+w-14,y+h-12,{s:12*k,c:PAL['cv-soft'],a:'right'});}
+
+/* --- the lab: Dvorak's data, analysis and conclusion; the procedure follows Baldasare's resonance-tube activity, in our own words --- */
+const raw=(sim,k)=>sim.vlab.raw(k).trim();
+const forkStep=(f,i)=>({title:'Fork '+(i+1)+' of 6: '+f+' Hz',
+  text:i===0?'<p>Select the <b>'+f+' Hz</b> fork. Start with a short air column, strike the fork and raise the tube slowly until you find the shortest length where the sound is loudest. Read L on the magnified ruler at the water surface and record it in centimeters in the '+f+' Hz row of Table 1.</p><p>Find the spot a second time with a fresh strike. If your two readings differ, record their average.</p>'
+    :'<p>Repeat with the <b>'+f+' Hz</b> fork: find its first loud spot, check it with a second strike, and record L in centimeters in the '+f+' Hz row of Table 1.</p>',
+  done:sim=>raw(sim,'c:t1:Lcm:'+i)!=='',doneHint:'Record L (cm) for '+f+' Hz in Table 1, below the bench.'});
+const LAB_SOS={id:'speedofsound',title:'Speed of Sound in Air: Resonance Tube Lab',course:'Physics',teachers:'Baldasare, Dvorak',
+  source:{label:'Speed of sound lab (Dvorak); 7C Speed of Sound (Baldasare)',href:'https://rjhs.instructure.com/courses/15146/assignments/579876'},level:'honors',
+  purpose:'<p>Determine the speed of sound in the room.</p><p>Handouts on Canvas: <a href="https://rjhs.instructure.com/courses/15146/assignments/579876" target="_blank" rel="noopener">Dvorak, speed of sound lab</a> · <a href="https://rjhs.instructure.com/courses/15502/assignments/554953" target="_blank" rel="noopener">Baldasare, 7C Speed of Sound</a></p>',
+  background:'<p>A tuning fork vibrates at one frequency f. Hold it over a tube and its sound waves travel down the air column, bounce off the bottom and come back up. When the reflected wave returns in step with the fork, the waves build a <b>standing wave</b> and the air column gets much louder. That is <b>resonance</b>.</p>'+
+    '<p>In this lab the bottom of the tube is a water surface, so the tube is closed at one end. The air cannot move at the water, so there is a <b>node</b> there. The air moves most at the open end, an <b>antinode</b>. The shortest column that fits a node at one end and an antinode at the other is a quarter of a wavelength. The antinode actually sits a little above the mouth of the tube, about 0.4 of the inside diameter d, so</p>'+
+    '<p><b>λ = 4(L + 0.4d)</b> and then <b>v = fλ</b>.</p><p>Sound travels faster in warmer air. Near room temperature, the speed of sound in air is about <b>v = 331 + 0.6T</b> m/s, with T in °C. Percent error = |measured − actual| ÷ actual × 100%.</p>'+
+    '<p><b>About the virtual bench.</b> The bench runs a model of a real resonance tube. The air column is loudest when L = λ/4 − 0.4d, and the loud spot is about 2 cm wide, so you have to hunt for its center, as in the real lab. The sound level meter reads to 0.1 dB and flickers a little. The fork fades over about half a minute. Each student gets a slightly different room temperature and tube, and real forks are off from their stamped frequency by about 0.1%. The model leaves out the small rise of the water level when the tube is pushed down, and draws the tube and cylinder wider than they are.</p>',
+  materials:['PVC pipe (the resonance tube), open at both ends','Tall graduated cylinder filled with water','Tuning forks: 288, 320, 341.3, 384, 426.6 and 480 Hz','Rubber stopper or mallet, to strike the forks','Meter stick taped to the tube, read to 0.1 cm','Thermometer','Calipers, for the inside diameter of the tube','Sound level meter (on the virtual bench; in class you use your ears)'],
+  hypothesis:{prompt:'<p>Predict how the length of the resonating air column will change as you switch to higher-frequency forks. Also estimate how fast sound travels in the room, and explain where your estimate comes from.</p>'},
+  setup(sim){audioStop();const o=document.getElementById(sim.def.id+'-benchL-out');if(o)o.hidden=true;BioLab.refresh(sim);},
+  teardown(sim){bAudioStop();},
+  controls:['fork','benchL','benchSnd','sos-strike','sos-up','sos-down','sos-mute'],
+  steps:[
+    {title:'Get set up',text:'<p>The bench has a tall cylinder filled with water and a PVC tube standing in it. The water seals the bottom of the tube, so the air inside is a column closed at one end. A meter stick is taped to the tube with 0 at the top of the tube, so the reading where the water surface crosses the ruler is the length L of the air column.</p><p>A sound level meter’s microphone sits at the mouth of the tube. The <b>Hear the fork</b> switch also plays the tone through your speakers. It starts off.</p>'},
+    {title:'Measure the room and the tube',text:'<p>Read the room temperature on the thermometer and the inside diameter of the tube on the calipers. Record both in the <b>Room and tube</b> table below the bench, then change d to meters.</p>',
+     done:sim=>raw(sim,'c:m:val:0')!==''&&raw(sim,'c:m:val:1')!=='',doneHint:'Record the room temperature and d (mm) in the Room and tube table.'},
+    {title:'How to find the loudest point',text:'<p>Use the slider to slide the tube down so the air column is short. Strike the fork and hold it just above the mouth of the tube. Then raise the tube slowly. At one length the sound gets much louder: the air column is resonating with the fork. Move back and forth through the loud spot until you find its center, then read L on the magnified ruler.</p><p>The fork fades, so strike it again whenever it gets quiet and compare at the same strength. <b>Raise tube 1 mm</b>, <b>Lower tube 1 mm</b> and the arrow keys on the slider make fine adjustments. Always use the first (shortest) loud spot.</p>'}
+  ].concat(FORKS.map(forkStep),[
+    {title:'Finish Table 1',text:'<p>For each fork, change L to meters, then work out the wavelength λ = 4(L + 0.4d) and the speed of sound v = fλ. Fill in the rest of Table 1.</p>',
+     done:sim=>FORKS.every((f,i)=>raw(sim,'c:t1:v:'+i)!==''),doneHint:'Fill in L (m), λ and v for every fork in Table 1.'},
+    {title:'Closer look (optional): a second resonance',text:'<p>The tube is long enough to reach a second, longer resonance for the three highest forks. It sits at three quarters of a wavelength: L₂ = 3λ/4 − 0.4d.</p><p>For 384, 426.6 and 480 Hz, keep raising the tube past the first loud spot until the sound gets loud again. Record L₂ in the Extension table, then work out 2(L₂ − L₁). You can skip this step.</p>'},
+    {title:'Analyze your data',text:'<p>Below the bench, check your graph of λ against f, then work out your average speed, the actual speed in the room and your percent error. Answer the questions, write your conclusion and turn in your lab.</p>'}]),
+  tables:[
+    {id:'m',title:'Room and tube',cols:[{id:'q',label:'Measured',rows:MROWS,rowLabels:['Room temperature, T (°C)','Inside diameter of the tube, d (mm)','Inside diameter, d (m)']},{id:'val',label:'Your reading',input:'number',check:mCheck}]},
+    {id:'t1',title:'Table 1: First resonance for each fork',cols:[{id:'f',label:'Frequency (Hz)',rows:FORKS},
+      {id:'Lcm',label:'L (cm)',input:'number',check:lCheck},{id:'Lm',label:'L (m)',input:'number',check:lmCheck},
+      {id:'lam',label:'Wavelength λ = 4(L + 0.4d) (m)',input:'number',check:lamCheck},{id:'v',label:'Speed v = fλ (m/s)',input:'number',check:vCheck}]},
+    {id:'t2',title:'Extension (Closer look, optional): second resonance',cols:[{id:'f',label:'Frequency (Hz)',rows:EXT},
+      {id:'L2',label:'L₂ (cm)',input:'number',check:l2Check},{id:'hl',label:'2(L₂ − L₁) (m)',input:'number',check:hlCheck}]}],
+  observations:[{id:'o1',label:'What happened to the sound as you slid the tube through the loud spot?'}],
+  graph:{type:'line',title:'Wavelength vs frequency',xl:'Frequency f (Hz)',yl:'Wavelength λ (m)',xmin:250,xmax:500,ymin:0,series:[{table:'t1',x:'f',y:'lam',label:'Your wavelengths'}]},
+  calcs:[
+    {id:'vavg',label:'Calculate an average velocity for the speed of sound using your lab data: v<sub>avg</sub>',unit:'m/s',input:'number',check:vavgCheck},
+    {id:'vact',label:'Calculate the actual speed of sound in the room based on the current temperature: v = 331 + 0.6T',unit:'m/s',input:'number',check:vactCheck},
+    {id:'perr',label:'Calculate the percent error of your average speed of sound: |v<sub>avg</sub> − v<sub>actual</sub>| ÷ v<sub>actual</sub> × 100',unit:'%',input:'number',check:perrCheck}],
+  questions:[
+    {id:'c1',n:'1',q:'<p>How close were you to the actual speed of sound in the room? Use percent error to support your decision.</p>'},
+    {id:'c2',n:'2',q:'<p>What possible errors existed in this lab that were beyond your control?</p>'},
+    {id:'a1',n:'3',q:'<p>Use v = 331 + 0.6T to find the speed of sound in a room at 22 °C. Show your work.</p>'},
+    {id:'a2',n:'4',q:'<p>Look at your table and graph. As the frequency of the fork went up, what happened to the wavelength? Use v = fλ to explain why.</p>'},
+    {id:'a3',n:'5',q:'<p>Your graph plots λ against f. If you plotted λ against 1/f instead, what shape would the graph have, and what would its slope tell you?</p>'},
+    {id:'a4',n:'6',q:'<p>True or false: sound travels faster in solids than in air. Explain your answer using how tightly the particles in each material are linked.</p>'},
+    {id:'a5',n:'7',q:'<p>Why is the first resonance only about a quarter of a wavelength long? Say where the node and the antinode are in the air column.</p>'},
+    {id:'x1',n:'Ext',q:'<p>Closer look (optional): compare 2(L₂ − L₁) with λ in Table 1 for each fork you tried. Why does 2(L₂ − L₁) not need the end correction?</p>'}],
+  conclusion:{prompt:'<p>Answer the purpose: what is the speed of sound in the room? Make a claim, support it with evidence from your own data (your average speed and percent error), and give the reasoning: how a resonating air column lets you measure a wavelength.</p>'}};
+
 function earP(sim){const p=sim.p,w=waveInfo(p);if(p.mode!=='waves'||w.v<=0)return 0;const d=earDist(),ta=d/(w.v/1000);if(sim.t<ta)return 0;
   return -w.p0*Math.cos(TAU*(d/w.lam-p.freq*sim.t/1000));}
 function earDb(sim){const p=sim.p,w=waveInfo(p);if(w.v<=0)return 0;return sim.t>=earDist()/(w.v/1000)?p.db:0;}
@@ -67,16 +276,27 @@ const SIM={
     {id:'f2',modes:['beats'],label:'Second speaker frequency',type:'range',min:100,max:1000,step:1,def:444,unit:' Hz',lvl:'bio'},
     {id:'tubeEnd',modes:['tube'],label:'Tube',type:'seg',def:'closed',lvl:'ap',options:[{v:'closed',l:'Closed at one end'},{v:'open',l:'Open at both ends'}]},
     {id:'tubeL',modes:['tube'],label:'Tube length',type:'range',min:0.2,max:2,step:0.05,def:0.85,unit:' m',lvl:'ap'},
-    {id:'harm',modes:['tube'],label:'Resonance number',type:'range',min:1,max:4,step:1,def:1,unit:'',lvl:'ap',help:'1 is the lowest note the tube plays. A closed tube only has odd harmonics.'}
+    {id:'harm',modes:['tube'],label:'Resonance number',type:'range',min:1,max:4,step:1,def:1,unit:'',lvl:'ap',help:'1 is the lowest note the tube plays. A closed tube only has odd harmonics.'},
+    // virtual lab bench only (hidden in the other views)
+    {id:'fork',label:'Tuning fork',type:'seg',def:288,vlab:true,noTrial:true,options:FORKS.map(f=>({v:f,l:f+' Hz'})),onChange(sim){const B=sB(sim);if(B)B.A=0;}},
+    {id:'benchL',label:'Slide the tube up or down',type:'range',min:100,max:720,step:0.5,def:120,unit:' mm',vlab:true,noTrial:true,help:'Drag, or use the arrow keys for 0.5 mm steps. Read the length on the ruler.',onChange(sim){sosTrack(sim);}},
+    {id:'benchSnd',label:'Hear the fork',type:'toggle',def:false,vlab:true,noTrial:true,help:'Plays the fork’s tone through your speakers while it rings. Off to start.',onChange(sim){if(sim.p.benchSnd&&sB(sim))bAudioStart(sim);else bAudioStop();}}
   ],
   actions:[
     {id:'play',label:'Play the sound',primary:true,run(sim){audioStart(sim);}},
     {id:'stop',label:'Stop the sound',run(sim){audioStop();}},
-    {id:'restart',label:'Restart the wave',run(sim){BioLab.reset(sim);}}
+    {id:'restart',label:'Restart the wave',run(sim){BioLab.reset(sim);}},
+    {id:'sos-strike',label:'Strike the fork',primary:true,vlab:true,enabled:s=>!!sB(s),run(s){const B=sB(s);if(!B)return;B.strikes++;B.A=0.9+0.1*hr(B.seed,300,B.strikes);BioLab.play(s);sosTrack(s);}},
+    {id:'sos-up',label:'Raise tube 1 mm',vlab:true,enabled:s=>!!sB(s)&&s.p.benchL<720,run(s){if(sB(s))BioLab.setValues(s,{benchL:Math.min(720,s.p.benchL+1)});}},
+    {id:'sos-down',label:'Lower tube 1 mm',vlab:true,enabled:s=>!!sB(s)&&s.p.benchL>100,run(s){if(sB(s))BioLab.setValues(s,{benchL:Math.max(100,s.p.benchL-1)});}},
+    {id:'sos-mute',label:'Mute',vlab:true,enabled:s=>!!s.p.benchSnd,run(s){BioLab.setValues(s,{benchSnd:false});}}
   ],
+  labs:[LAB_SOS],
+  /* what the bench instruments show right now (used by the virtual-lab tests) */
+  benchRead(sim){const B=sB(sim);if(!B)return null;return {thermometer:B.T,calipers:B.dmm,meter:sosMeter(sim),ruler:Math.round(sim.p.benchL)/10,fork:sim.p.fork,ringing:B.A>=0.05};},
   onLevel(sim){modeUI(sim);},
-  init(sim){return {xs:DOP.start,fronts:[],next:0,audioMsg:''};},
-  step(sim,dt){const p=sim.p,s=sim.st;if(p.mode!=='doppler')return;const v=soundSpeed(p);
+  init(sim){const s={xs:DOP.start,fronts:[],next:0,audioMsg:''};if(sim&&sim.vlab&&sim.vlab.lab.id==='speedofsound')s.B=sosInit(sim);return s;},
+  step(sim,dt){const p=sim.p,s=sim.st;if(s.B){sosStep(sim,dt);return;}if(p.mode!=='doppler')return;const v=soundSpeed(p);
     s.xs+=p.vs/1000*dt;
     if(s.xs>DOP.end){s.xs=DOP.start;s.fronts=[];s.next=sim.t+dt;}
     if(v>0){const T=1000/p.freq;if(s.next<sim.t-T*2)s.next=sim.t;while(s.next<=sim.t+dt){s.fronts.push({x:s.xs-(p.vs/1000)*(sim.t+dt-s.next),t:s.next});s.next+=T;}}
@@ -120,7 +340,7 @@ const SIM={
       const ax=axes(ctx,box,{xmin:0,xmax:5,ymin:0,ymax:Math.max(...vals)*1.15,xcats:labs,yl:'Frequency (Hz)'});
       bars(ctx,ax,vals,{colors:vals.map((v,i)=>i===p.harm-1?serColor(0):serColor(1)),d:0});
       txt(ctx,(T0.closed?'Closed at one end: odd harmonics only':'Open at both ends: every harmonic'),box.L+10,box.T+14,{s:13,c:PAL['muted']});}},
-  narrate(sim){const p=sim.p,m=p.mode;
+  narrate(sim){if(sB(sim))return sosNarrate(sim);const p=sim.p,m=p.mode;
     if(m==='waves'){const w=waveInfo(p);if(w.v<=0)return 'The speaker still vibrates, but there are no molecules to push. <b>Sound needs a medium</b>, so the listener hears nothing.';
       const med=p.medium==='air'?'air':p.medium;
       return `The speaker cone pushes and pulls on the ${med} ${p.freq} times a second. Each push squeezes molecules together (a <b>compression</b>) and each pull spreads them apart (a rarefaction). The compressions travel at ${w.v.toFixed(0)} m/s and are ${w.lam.toFixed(2)} m apart. The red molecule only jiggles back and forth: the wave moves, the ${med} stays put.`;}
@@ -194,10 +414,10 @@ const SIM={
     {lvl:'ap',t:'Doppler equation',d:'f′ = f(v + v_o)/(v − v_s) for a source and listener moving toward each other.'},
     {lvl:'ap',t:'Standing wave',d:'A wave pattern that stays in place, with nodes (no motion) and antinodes (most motion).'},
     {lvl:'ap',t:'Harmonics',d:'Open tube: fₙ = nv/2L for n = 1, 2, 3… Closed tube: fₙ = nv/4L for n = 1, 3, 5…'}],
-  about:'<p><b>Sound wave.</b> The displacement of the air is ξ = s₀ sin(kx − ωt) and the pressure change is Δp = −B ∂ξ/∂x, so pressure peaks where molecules are most bunched. Pressure amplitude comes from the loudness: p₀ = 20 µPa × 10^(dB/20). The wave is treated as a plane wave in a long tube, so it does not get quieter with distance. Molecule motion is exaggerated by about 10,000× and time is slowed about 250×. Speeds: air 331.3√(1 + T/273) m/s, helium 1,007 m/s, water 1,480 m/s.</p><p><b>Moving source.</b> A wavefront leaves the source once per period and spreads as a circle at the speed of sound from where it was made. Pitch heard ahead: f′ = f(v + v_o)/(v − v_s); behind: f·v/(v + v_s). Sources stay below the speed of sound. <b>Beats</b> use the sum of two equal-amplitude sine waves, whose envelope is 2|cos(πΔf·t)|. On the stage the playback is slowed 10×. <b>Tubes</b> use ideal ends (no end correction), so real tubes resonate slightly lower.</p><p>The <b>Play the sound</b> button plays a pure sine tone through your speakers for up to 20 seconds. It never starts on its own.</p>',
+  about:'<p><b>Sound wave.</b> The displacement of the air is ξ = s₀ sin(kx − ωt) and the pressure change is Δp = −B ∂ξ/∂x, so pressure peaks where molecules are most bunched. Pressure amplitude comes from the loudness: p₀ = 20 µPa × 10^(dB/20). The wave is treated as a plane wave in a long tube, so it does not get quieter with distance. Molecule motion is exaggerated by about 10,000× and time is slowed about 250×. Speeds: air 331.3√(1 + T/273) m/s, helium 1,007 m/s, water 1,480 m/s.</p><p><b>Moving source.</b> A wavefront leaves the source once per period and spreads as a circle at the speed of sound from where it was made. Pitch heard ahead: f′ = f(v + v_o)/(v − v_s); behind: f·v/(v + v_s). Sources stay below the speed of sound. <b>Beats</b> use the sum of two equal-amplitude sine waves, whose envelope is 2|cos(πΔf·t)|. On the stage the playback is slowed 10×. <b>Tubes</b> use ideal ends (no end correction), so real tubes resonate slightly lower.</p><p>The <b>Play the sound</b> button plays a pure sine tone through your speakers for up to 20 seconds. It never starts on its own.</p><p><b>Virtual lab: speed of sound.</b> A PVC tube stands in a tall cylinder of water, which closes its bottom end. The sound level near the mouth is the room noise (38 dB) plus the fork’s sound (54 dB when freshly struck), multiplied by a resonance boost of up to 40× (about +16 dB). The boost peaks at L = λ/4 − 0.4d and again, weaker, at 3λ/4 − 0.4d, with a width of about 1 cm on either side, so you hunt for the center of a broad loud spot. The fork’s amplitude halves about every 14 s. Sound speed is 331.3√(1 + T/273) m/s plus a few tenths of a m/s for humidity. Each student’s room temperature (20 to 24 °C), tube diameter (34.8 to 35.4 mm) and fork tuning (about ±0.1%) come from the lab’s seed.</p>',
   initVis(sim){const r=rng(11),d=[],cols=82,rows=4;for(let c=0;c<cols;c++)for(let q=0;q<rows;q++)d.push({x:AIR.x0+6+(c+0.5)*(AIR.x1-AIR.x0-12)/cols+(r()-0.5)*2,y:lerp(AIR.y0+6,AIR.y1-6,(q+r())/rows)});d[0]={x:420,y:(AIR.y0+AIR.y1)/2,tag:true};sim.vis.dots=d;
     const t=[];for(let i=0;i<120;i++)t.push({x:r(),y:r()});sim.vis.tdots=t;},
-  draw(sim,ctx,vdt,k,vt){const p=sim.p;ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
+  draw(sim,ctx,vdt,k,vt){const p=sim.p;if(sB(sim)){drawSOS(sim,ctx,vdt,k,vt);bAudioUpdate(sim);return;}if(BA)bAudioStop();ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
     if(p.mode==='waves')drawWaves(sim,ctx,k);else if(p.mode==='doppler')drawDoppler(sim,ctx,k);else if(p.mode==='beats')drawBeats(sim,ctx,k,vt);else drawTube(sim,ctx,k);
     audioUpdate(sim);
     if(AUD)pill(ctx,'♪ Sound on',730,22,serColor(0),'#ffffff',12*k);
