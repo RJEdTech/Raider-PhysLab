@@ -167,8 +167,8 @@ function drawEM(sim,ctx,vdt,k){const v=sim.vis,M=emNow(sim),ink=PAL['cv-ink'],so
   ctx.fillStyle=PAL['cv-bg2'];rr(ctx,8,6,540,232,12);ctx.fill();
   const A=48,cy=EMW.y,ex=EMW.x0;
   ctx.strokeStyle=soft;ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(ex,cy);ctx.lineTo(EMW.x1,cy);ctx.stroke();ctx.setLineDash([]);
-  if(atLeast('honors')){const ob=Math.min(18,wpx*0.3);ctx.strokeStyle=PAL['s2'];ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();
-    for(let x=ex;x<=EMW.x1;x+=1.5){const s=Math.sin(v.ph-6.2832*(x-ex)/wpx),X=x-s*ob,Y=cy+s*24;x===ex?ctx.moveTo(X,Y):ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);}
+  if(atLeast('honors')){const ob=Math.min(6,wpx*0.06);ctx.strokeStyle=PAL['s2'];ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();
+    for(let x=ex;x<=EMW.x1;x+=1.5){const s=Math.sin(v.ph-6.2832*(x-ex)/wpx),X=x+s*ob,Y=cy+s*18;x===ex?ctx.moveTo(X,Y):ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);}
   ctx.strokeStyle=wc;ctx.lineWidth=3;ctx.beginPath();for(let x=ex;x<=EMW.x1;x+=1.5){const y=cy-A*Math.sin(v.ph-6.2832*(x-ex)/wpx);x===ex?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
   const qy=cy-A*0.55*Math.sin(v.ph);ctx.strokeStyle=soft;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(52,cy-A*0.6);ctx.lineTo(52,cy+A*0.6);ctx.stroke();
   ctx.fillStyle=PAL['cv-e'];ctx.strokeStyle=PAL['cv-estroke'];ctx.beginPath();ctx.arc(52,qy,10,0,6.29);ctx.fill();ctx.stroke();txt(ctx,'−',52,qy+1,{s:16,w:700,c:'#1c1c1f',a:'center',b:'middle'});
@@ -380,7 +380,7 @@ const PUZ=[{id:'pA',q:'White light, rose (magenta) glasses: which car color look
   {id:'pB',q:'White light, magenta car: which glasses make it look black?',ask:'filt',obj:'magenta',filt:null},
   {id:'pC',q:'White light, yellow car: which glasses make it look black?',ask:'filt',obj:'yellow',filt:null}];
 const SEEOPT=KEYC.map(c=>({v:c,l:CAP(c)})),ANSOPT=['red','green','blue','cyan','magenta','yellow'].map(c=>({v:c,l:CAP(c)}));
-const FILT6=['red','cyan','green','magenta','blue','yellow'],PRI=[0,2,4],SEC=[1,3,5];   // each primary beside its complement
+const FILT6=['green','cyan','red','magenta','blue','yellow'],PRI=[0,2,4],SEC=[1,3,5];   // primaries and secondaries alternate; short labels sit beside Magenta on a phone
 /* which bench setting the lamp is in, if it is a clean one (each bulb at 90% or more, or 10% or less) */
 function lightKey(p){const b=[p.R,p.G,p.B];if(b.some(v=>v>10&&v<90))return null;const on=b.map(v=>v>=90);if(!on.some(Boolean))return 'off';
   return (on[0]?'R':'')+(on[1]?'G':'')+(on[2]?'B':'');}
@@ -430,7 +430,7 @@ const LAB_CF={id:'color-filters',title:'Virtual Lab 2: Light, Objects and Filter
      done:allFilled('t2','obs',6),doneHint:'Record an observation in every row of Table 2.'},
     {title:'Black-car puzzles',text:'<p>Each puzzle in <b>Table 3</b> describes a car that looks black. Choose your answer first. Then test your answer on the bench with white light and record what you see. If it is not black, think again, change your answer and test again.</p>',setup:cover(0),
      done:sim=>allFilled('t3','ans',3)(sim)&&allFilled('t3','seen',3)(sim),doneHint:'Answer and test all three puzzles in Table 3.'},
-    {title:'Light meter',text:'<p>Use white light and the <b>white car</b>. Read the light meter with no glasses and record it in <b>Table 4</b>. Then read it through each pair of glasses and record the readings in <b>Table 5</b>. Table 5 lists each primary color beside its opposite (complementary) color. Your bar graph draws from Table 5.</p>',setup:cover(0),
+    {title:'Light meter',text:'<p>Use white light and the <b>white car</b>. Read the light meter with no glasses and record it in <b>Table 4</b>. Then read it through each pair of glasses and record the readings in <b>Table 5</b>. Your bar graph draws from Table 5.</p>',setup:cover(0),
      done:sim=>allFilled('t4','m',1)(sim)&&allFilled('t5','m',6)(sim),doneHint:'Fill in Table 4 and every row of Table 5.'},
     {title:'Analyze and answer',text:'<p>Work out the averages, check your bar graph, then answer the Challenge questions (Step Two) and summarize the Interesting questions (Step Three). Finish with your conclusion and turn in your lab.</p>',setup:cover(0)}],
   tables:[
