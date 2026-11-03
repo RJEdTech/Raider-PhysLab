@@ -380,7 +380,7 @@ const PUZ=[{id:'pA',q:'White light, rose (magenta) glasses: which car color look
   {id:'pB',q:'White light, magenta car: which glasses make it look black?',ask:'filt',obj:'magenta',filt:null},
   {id:'pC',q:'White light, yellow car: which glasses make it look black?',ask:'filt',obj:'yellow',filt:null}];
 const SEEOPT=KEYC.map(c=>({v:c,l:CAP(c)})),ANSOPT=['red','green','blue','cyan','magenta','yellow'].map(c=>({v:c,l:CAP(c)}));
-const FILT6=['red','green','blue','cyan','magenta','yellow'];
+const FILT6=['red','cyan','green','magenta','blue','yellow'],PRI=[0,2,4],SEC=[1,3,5];   // each primary beside its complement
 /* which bench setting the lamp is in, if it is a clean one (each bulb at 90% or more, or 10% or less) */
 function lightKey(p){const b=[p.R,p.G,p.B];if(b.some(v=>v>10&&v<90))return null;const on=b.map(v=>v>=90);if(!on.some(Boolean))return 'off';
   return (on[0]?'R':'')+(on[1]?'G':'')+(on[2]?'B':'');}
@@ -398,8 +398,8 @@ function meterCheck(sim,rv,v){const f=String(rv),a=((sim.vlab.bench.mr||{})[f])|
   if(!a.length)return 'Set up white light and the white car'+(f==='none'?' with no glasses':' with '+FILTN[f].toLowerCase()+' glasses')+', then read the light meter.';
   if(a.some(x=>Math.abs(x-v)<=0.25))return null;const S=a[a.length-1];return 'The light meter read about '+S.toFixed(1)+' % for this setup. Check your reading.';}
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
-function priCalc(sim,v,V){const c=V.col('t5','m').slice(0,3);if(c.some(x=>!Number.isFinite(x)))return 'Fill in the red, green and blue rows of Table 5 first.';return Math.abs(v-avg(c))<=0.15?null:'Check this against Table 5: add the red, green and blue readings and divide by 3.';}
-function secCalc(sim,v,V){const c=V.col('t5','m').slice(3);if(c.some(x=>!Number.isFinite(x)))return 'Fill in the cyan, magenta and yellow rows of Table 5 first.';return Math.abs(v-avg(c))<=0.15?null:'Check this against Table 5: add the cyan, magenta and yellow readings and divide by 3.';}
+function priCalc(sim,v,V){const c=PRI.map(i=>V.col('t5','m')[i]);if(c.some(x=>!Number.isFinite(x)))return 'Fill in the red, green and blue rows of Table 5 first.';return Math.abs(v-avg(c))<=0.15?null:'Check this against Table 5: add the red, green and blue readings and divide by 3.';}
+function secCalc(sim,v,V){const c=SEC.map(i=>V.col('t5','m')[i]);if(c.some(x=>!Number.isFinite(x)))return 'Fill in the cyan, magenta and yellow rows of Table 5 first.';return Math.abs(v-avg(c))<=0.15?null:'Check this against Table 5: add the cyan, magenta and yellow readings and divide by 3.';}
 function ratCalc(sim,v,V){const p=vlNum(V.raw('k:pri')),s=vlNum(V.raw('k:sec'));if(!Number.isFinite(p)||!Number.isFinite(s)||!p)return 'Work out both averages first.';return Math.abs(v-s/p)<=0.03?null:'Check this: divide your secondary-color average by your primary-color average.';}
 function vlNum(s){s=String(s||'').trim();return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN;}
 const allFilled=(t,c,n)=>sim=>{for(let i=0;i<n;i++)if(sim.vlab.raw('c:'+t+':'+c+':'+i).trim()==='')return false;return true;};
@@ -430,7 +430,7 @@ const LAB_CF={id:'color-filters',title:'Virtual Lab 2: Light, Objects and Filter
      done:allFilled('t2','obs',6),doneHint:'Record an observation in every row of Table 2.'},
     {title:'Black-car puzzles',text:'<p>Each puzzle in <b>Table 3</b> describes a car that looks black. Choose your answer first. Then test your answer on the bench with white light and record what you see. If it is not black, think again, change your answer and test again.</p>',setup:cover(0),
      done:sim=>allFilled('t3','ans',3)(sim)&&allFilled('t3','seen',3)(sim),doneHint:'Answer and test all three puzzles in Table 3.'},
-    {title:'Light meter',text:'<p>Use white light and the <b>white car</b>. Read the light meter with no glasses and record it in <b>Table 4</b>. Then read it through each pair of glasses and record the readings in <b>Table 5</b>. Your bar graph draws from Table 5.</p>',setup:cover(0),
+    {title:'Light meter',text:'<p>Use white light and the <b>white car</b>. Read the light meter with no glasses and record it in <b>Table 4</b>. Then read it through each pair of glasses and record the readings in <b>Table 5</b>. Table 5 lists each primary color beside its opposite (complementary) color. Your bar graph draws from Table 5.</p>',setup:cover(0),
      done:sim=>allFilled('t4','m',1)(sim)&&allFilled('t5','m',6)(sim),doneHint:'Fill in Table 4 and every row of Table 5.'},
     {title:'Analyze and answer',text:'<p>Work out the averages, check your bar graph, then answer the Challenge questions (Step Two) and summarize the Interesting questions (Step Three). Finish with your conclusion and turn in your lab.</p>',setup:cover(0)}],
   tables:[
@@ -442,7 +442,7 @@ const LAB_CF={id:'color-filters',title:'Virtual Lab 2: Light, Objects and Filter
       {id:'ans',label:'Your answer',input:'select',options:ANSOPT},{id:'seen',label:'What you see when you test it',input:'select',options:SEEOPT,check:puzCheck}]},
     {id:'t4',title:'Table 4: Light meter, white light on the white car',cols:[{id:'f',label:'Glasses',rows:['none'],rowLabels:['No glasses']},{id:'m',label:'Light meter (%)',input:'number',dp:1,check:meterCheck}]},
     {id:'t5',title:'Table 5: Light meter through each pair of glasses',cols:[{id:'f',label:'Glasses',rows:FILT6,rowLabels:FILT6.map(CAP)},{id:'m',label:'Light meter (%)',input:'number',dp:1,check:meterCheck}]}],
-  graph:{type:'bar',title:'Light reaching the eye through each pair of glasses',xl:'Glasses',yl:'Light meter (%)',ymin:0,ymax:60,series:[{table:'t5',x:'f',y:'m',label:'Light meter'}]},
+  graph:{type:'bar',title:'Light meter reading for each lens',xl:'Glasses',yl:'Light meter (%)',ymin:0,ymax:60,series:[{table:'t5',x:'f',y:'m',label:'Light meter'}]},
   calcs:[{id:'pri',label:'Average reading through the red, green and blue glasses',unit:'%',input:'number',check:priCalc},
     {id:'sec',label:'Average reading through the cyan, magenta and yellow glasses',unit:'%',input:'number',check:secCalc},
     {id:'ratio',label:'Secondary-color average ÷ primary-color average',unit:'',input:'number',check:ratCalc}],
