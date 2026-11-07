@@ -687,3 +687,51 @@ photoelectric: {
   ]
 }
 });
+
+/* elevator.js */
+BioLab.addPractical({
+elevator: {
+  hook: 'You step on a bathroom scale in a hotel elevator, and at the lobby it shows 60.0 kg. What will it show as the elevator starts up, while it cruises, and as it slows at the top? And does riding down make you lighter?',
+  answer: 'With an acceleration of 1.0 m/s², the scale shows 66.1 kg while the elevator speeds up, 60.0 kg while it cruises and 53.9 kg while it slows at the top. Riding down, it shows 53.9 kg as you start down and 66.1 kg as you slow at the lobby. Going down does not make you lighter. Accelerating down does.',
+  uses: [
+    'Roller coasters: at the bottom of a dip the track curves up, your acceleration points up, and the seat pushes you hard. Over the top of a hill the acceleration points down, so you feel lighter. On airtime hills, where it is more than g, the lap bar holds you in.',
+    'Astronauts on the International Space Station float even though gravity there is still about 90% as strong as on the ground. The station and the crew are falling around Earth together, so nothing has to push on them.',
+    'Phone accelerometers: a phone lying on a table reads about 1 g, and a phone in free fall reads about 0 g. Like the scale, it measures the push holding it up, not gravity itself.'
+  ],
+  takeaway: 'A scale reads how hard it pushes on you, not how much you weigh. It reads high when your acceleration points up and low when it points down, whichever way you are moving. Steady speed reads the same as standing still, and free fall reads zero.',
+  lede: 'Ride an elevator standing on a bathroom scale, like a ride in a hotel elevator. Find out when the scale reads more than your weight, when it reads less, and what a drop tower does to it.',
+  tour: [
+    'You (60 kg) stand on a bathroom scale in an elevator at the lobby. The scale reads 588 N, which a bathroom scale shows as 60.0 kg. The floor pushes up on you exactly as hard as gravity pulls down.',
+    'The elevator speeds up on its way up. To speed you up, the floor has to push harder than gravity pulls, so the green arrow grows and the scale reads 648 N (66.1 kg). That heavy feeling as an elevator starts up is real.',
+    'Now it cruises up at a steady 2.0 m/s, about 4.5 mph. With no speeding up or slowing down, the scale is back to 588 N. With your eyes closed, you could not tell cruising from standing still.',
+    'Near the top it slows down. You are still moving up, but the acceleration now points down, so the floor pushes less than gravity pulls: 528 N (53.9 kg). That is the light, floaty feeling just before the doors open.',
+    'The top graph is velocity and the bottom graph is the scale. Where the velocity climbs, the scale reads high. Where the velocity is flat, the scale reads your weight. Where the velocity drops, the scale reads low.',
+    'Going down, the scale reads low (528 N) as you start down and high (648 N) as you slow at the lobby. Going down does not make you lighter. Accelerating down does.',
+    'On a drop tower your seat is the scale. In free fall you and the seat fall together, so it reads 0 N: weightless. Then the brakes push up with 1764 N, three times your weight, to stop you.'
+  ]
+}
+});
+
+/* twobody (P2, Nov 2026) */
+BioLab.addPractical({
+twobody: {
+  hook: 'Moving day. A 20 kg box of books sits on a wood floor, and you can manage about 100 N. Is it easier to drag it with a strap angled 30° up, or to push it with your hands angled 30° down?',
+  hookSet: {mode:'pull',boxes:'one',F:100,angle:30,m1:20,surface:'wood'},
+  answer: 'Drag it. Pulled at 30°, the strap holds up 50 N of the box’s weight, the floor pushes up with only 146 N, and the box slides, speeding up at 2.14 m/s². Pushed at 30° down, the same 50 N presses it into the floor. Friction can then hold up to 98.4 N, more than the 86.6 N forward part of your push, so the box does not move.',
+  uses: [
+    'Sledding: a tow rope angled up holds up part of the load, so the runners press into the snow less and drag less. Pushing from behind with your arms angled down presses them in.',
+    'Push brooms and snow shovels: angling the handle down presses the blade onto the ground. That helps it scrape, but it also makes it harder to slide.',
+    'Towing a trailer: the hitch pulls the trailer forward and the trailer pulls the car back just as hard. The engine’s push has to speed up both and overcome the drag on both.',
+    'Freight trains: the coupling right behind the engine carries the most force, because it pulls every car behind it. The coupling to the last car pulls only that one car.'
+  ],
+  takeaway: 'A slanted force does two jobs: one part moves the object forward, and the other pushes it up or down. Pulling up lightens the load on the floor and cuts friction; pushing down adds to it. For objects joined together, find the acceleration from the whole system, then the force between them from one object’s diagram.',
+  tour: [
+    'One 20 kg box of books, about one full moving box of books, sits on a wood floor. You pull a strap held level with 100 N, about the force to hold up a 10 kg bag. The floor pushes up on the box exactly as hard as gravity pulls it down: 196 N.',
+    'The strap now pulls at 30°. Your 100 N splits into 86.6 N forward and 50 N up. The floor only pushes up with 146 N, so friction drops from 58.8 N to 43.8 N, and the box speeds up a little faster.',
+    'Now push with the same 100 N, angled 30° down. The 50 N part presses the box into the floor: the floor pushes up with 246 N, and friction can hold up to 98.4 N. Your 86.6 N forward part can’t beat that, so the box stays put.',
+    'A 15 kg box is tied behind, and you pull with 150 N at 30°. Each box gets its own diagram. The rope pulls box 2 forward and box 1 backward, equally hard: the purple arrows, 65.3 N each.',
+    'Treat both boxes as one object. Only outside forces count: your pull, gravity, the floor and friction. The rope’s two pulls cancel inside, so the pair speeds up at (129.9 − 80.4) ÷ 35 = 1.41 m/s².',
+    'Now push box 1 with 200 N, angled 20° down. Box 1 pushes box 2 ahead with 71.8 N, and box 2 pushes back on box 1 just as hard. Equal and opposite, on different boxes: Newton’s third law.'
+  ]
+}
+});

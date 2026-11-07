@@ -16,7 +16,7 @@ BioLab.COURSES = [
     units: [
       { n: 'Unit 1', t: 'One-dimensional motion', ids: ['motion1d', 'freefall'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/1d-kinematics/position-time-graphs/', title: 'Position–time graphs', label: 'Mr. Jackson’s lesson', text: 'Read the graph, then walk the graph: slope, distance and displacement.', kind: 'Lesson' }] },
       { n: 'Unit 2', t: 'Two-dimensional motion and projectiles', ids: ['vectors2d', 'projectile'] },
-      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'incline'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/newtons-first-law/', title: 'Newton’s first law', label: 'Mr. Jackson’s lesson', text: 'Free-body diagrams: balanced or unbalanced?', kind: 'Lesson' }, { lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/net-force/', title: 'Net force and F = ma', label: 'Mr. Jackson’s lesson', text: 'Find the net force, then the acceleration.', kind: 'Lesson' }] },
+      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'incline', 'elevator', 'twobody'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/newtons-first-law/', title: 'Newton’s first law', label: 'Mr. Jackson’s lesson', text: 'Free-body diagrams: balanced or unbalanced?', kind: 'Lesson' }, { lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/net-force/', title: 'Net force and F = ma', label: 'Mr. Jackson’s lesson', text: 'Find the net force, then the acceleration.', kind: 'Lesson' }] },
       { n: 'Unit 4', t: 'Circular motion and gravity', ids: ['circular', 'gravity'] },
       { n: 'Unit 5', t: 'Work, power and energy', ids: ['skatepark', 'power'] },
       { n: 'Unit 6', t: 'Momentum', ids: ['collisions', 'impulse'] },
@@ -29,7 +29,7 @@ BioLab.COURSES = [
     units: [
       { n: 'Unit 1', t: 'One-dimensional motion', ids: ['motion1d', 'freefall', 'linearize'] },
       { n: 'Unit 2', t: 'Two-dimensional motion', ids: ['vectors2d', 'projectile'] },
-      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'incline', 'atwood'] },
+      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'incline', 'elevator', 'twobody', 'atwood'] },
       { n: 'Unit 4', t: 'Circular motion and gravity', ids: ['circular', 'gravity'] },
       { n: 'Unit 5', t: 'Work, power and energy', ids: ['skatepark', 'power', 'springs'] },
       { n: 'Unit 6', t: 'Momentum and collisions', ids: ['collisions', 'impulse'] },
@@ -42,7 +42,7 @@ BioLab.COURSES = [
     blurb: 'Tools in the order AP Physics 1 covers them, matching the AP units.',
     units: [
       { n: 'Unit 1', t: 'Kinematics', ids: ['motion1d', 'freefall', 'vectors2d', 'projectile', 'linearize'] },
-      { n: 'Unit 2', t: 'Force and translational dynamics', ids: ['forces', 'friction', 'incline', 'atwood', 'circular', 'gravity'] },
+      { n: 'Unit 2', t: 'Force and translational dynamics', ids: ['forces', 'friction', 'incline', 'elevator', 'atwood', 'twobody', 'circular', 'gravity'] },
       { n: 'Unit 3', t: 'Work, energy and power', ids: ['skatepark', 'power', 'springs'] },
       { n: 'Unit 4', t: 'Linear momentum', ids: ['collisions', 'impulse'] },
       { n: 'Unit 5', t: 'Torque and rotational dynamics', ids: ['torque', 'rotation'] },
@@ -69,7 +69,7 @@ BioLab.COURSES = [
 BioLab.TOPIC_ORDER = {
   0: ['linearize'],
   1: ['motion1d', 'freefall', 'vectors2d', 'projectile'],
-  2: ['forces', 'friction', 'incline', 'atwood', 'circular', 'gravity'],
+  2: ['forces', 'friction', 'incline', 'elevator', 'atwood', 'twobody', 'circular', 'gravity'],
   3: ['skatepark', 'power'],
   4: ['collisions', 'impulse'],
   5: ['torque', 'rotation'],
