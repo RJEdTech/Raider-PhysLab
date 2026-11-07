@@ -58,6 +58,7 @@ motion1d: {
     'This graph shows velocity, the speed and direction. The cart holds 1.5 m/s the whole time, like a car on cruise control, so the line is flat.',
     'Acceleration is how fast the velocity changes. The cart is not speeding up or slowing down, so this line sits at zero.',
     'Now the cart starts from rest and gains 0.5 m/s every second, like a car pulling away gently. The dots spread apart, the position line curves upward and the velocity line slopes up.',
+    'Now the cart starts at 18 m, rolling left at 1 m/s, with an acceleration of −0.5 m/s². Velocity and acceleration are both negative, both pointing left, so the cart speeds up to the left, like a car pulling away in reverse. Negative acceleration does not always mean slowing down: compare the signs of v and a.',
     'Two billiard balls roll in separate lanes. Ball A is faster but starts 4 m behind. Where the two position lines cross, the balls are side by side: that is when A catches B.',
     'Your turn. Drag the walking slider to walk toward or away from a motion detector, and try to make your position graph trace the dashed target.'
   ]
