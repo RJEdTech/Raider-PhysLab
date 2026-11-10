@@ -16,7 +16,7 @@ BioLab.COURSES = [
     units: [
       { n: 'Unit 1', t: 'One-dimensional motion', ids: ['motion1d', 'freefall'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/1d-kinematics/position-time-graphs/', title: 'Position–time graphs', label: 'Mr. Jackson’s lesson', text: 'Read the graph, then walk the graph: slope, distance and displacement.', kind: 'Lesson' }] },
       { n: 'Unit 2', t: 'Two-dimensional motion and projectiles', ids: ['vectors2d', 'projectile'] },
-      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'incline', 'elevator', 'twobody'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/newtons-first-law/', title: 'Newton’s first law', label: 'Mr. Jackson’s lesson', text: 'Free-body diagrams: balanced or unbalanced?', kind: 'Lesson' }, { lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/net-force/', title: 'Net force and F = ma', label: 'Mr. Jackson’s lesson', text: 'Find the net force, then the acceleration.', kind: 'Lesson' }] },
+      { n: 'Unit 3', t: 'Forces and Newton’s laws', ids: ['forces', 'friction', 'atwood', 'incline', 'elevator', 'twobody'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/newtons-first-law/', title: 'Newton’s first law', label: 'Mr. Jackson’s lesson', text: 'Free-body diagrams: balanced or unbalanced?', kind: 'Lesson' }, { lesson: true, href: 'https://jackson-classroom.github.io/physics/forces/net-force/', title: 'Net force and F = ma', label: 'Mr. Jackson’s lesson', text: 'Find the net force, then the acceleration.', kind: 'Lesson' }] },
       { n: 'Unit 4', t: 'Circular motion and gravity', ids: ['circular', 'gravity'] },
       { n: 'Unit 5', t: 'Work, power and energy', ids: ['skatepark', 'power'] },
       { n: 'Unit 6', t: 'Momentum', ids: ['collisions', 'impulse'] },
@@ -65,6 +65,22 @@ BioLab.COURSES = [
     ],
     further: ['chaos', 'rocket', 'relativity', 'photoelectric'] }
 ];
+
+/* Faith and Physics stories (faith.html), placed in the Physics and Honors Physics units they go with. */
+(function(){
+  const F=(id,t,x)=>({href:'faith.html#'+id,title:t,label:'Faith and Physics',text:x,kind:'Faith and Physics'});
+  const RIC=F('riccioli-g','Two Jesuits measure g','Riccioli and Grimaldi’s 1640s tower drops. Find their g.'),
+    ICE=F('stopping-distance','Friction, ice and your car','Braking on ice and the force a seat belt spreads out.'),
+    MOON=F('moon-names','A Jesuit map of the Moon','Riccioli’s Moon names, then repeat Newton’s Moon test.'),
+    LEM=F('lemaitre-vatt','Lemaître and the Pope’s telescope','The expanding universe and the Vatican telescope in Arizona.'),
+    SUN=F('fratello-sole','Brother Sun','The Vatican’s solar farm: power and energy.'),
+    LIGHT=F('grimaldi-secchi','Grimaldi and Secchi','Diffraction, star colors and E = hf.'),
+    NOB26=F('nobel-2026-icecube','2026 Nobel: IceCube','A telescope made of Antarctic ice.'),
+    NOB25=F('nobel-2025-quantum','2025 Nobel: quantum circuits','Energy comes in packets: E = hf.');
+  const ADD={phys:{0:[RIC],2:[ICE],3:[MOON,LEM],4:[SUN],7:[LIGHT,NOB26]},honors:{0:[RIC],2:[ICE],3:[MOON,LEM],4:[SUN],7:[LIGHT,NOB26],8:[NOB25]}};
+  BioLab.COURSES.forEach(c=>{const a=ADD[c.id];if(!a)return;Object.keys(a).forEach(i=>{const u=c.units[+i];if(u)u.links=(u.links||[]).concat(a[i]);});});
+  const phys=BioLab.COURSES.find(c=>c.id==='phys');if(phys)phys.furtherLinks=(phys.furtherLinks||[]).concat([NOB25]);
+})();
 
 BioLab.TOPIC_ORDER = {
   0: ['linearize'],

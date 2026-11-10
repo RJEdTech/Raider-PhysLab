@@ -29,7 +29,7 @@ function model(p){const m1=p.m1,m2=p.m2,Mp=p.mode==='push'?0:p.Mp,I=Mp/2;
   const a=(m2*G-fmax)/(m1+m2+I);return {a,T1:m1*a+fmax,T2:m2*(G-a),P:NaN,f:fmax,stuck:false};}
 
 function syncMode(sim){const id=sim.def.id,m=sim.p.mode;
-  for(const c of SIM.controls){const el=document.getElementById(id+'-'+c.id)||document.getElementById(id+'-'+c.id+'-l');if(!el)continue;const w=el.closest('.ctl');if(!w)continue;
+  for(const c of SIM.controls){if(c.vlab)continue;const el=document.getElementById(id+'-'+c.id)||document.getElementById(id+'-'+c.id+'-l');if(!el)continue;const w=el.closest('.ctl');if(!w)continue;
     w.hidden=!atLeast(c.lvl)||(MODE_CTL[c.id]&&!MODE_CTL[c.id].includes(m));}
   for(const mt of SIM.metrics){const t=sim.ui.tiles&&sim.ui.tiles[mt.id];if(!t)continue;t.num.closest('.tile').hidden=!atLeast(mt.lvl)||(MODE_TILE[mt.id]&&!MODE_TILE[mt.id].includes(m));}}
 
@@ -235,6 +235,95 @@ function drawFBD(sim,ctx,k,hon){const p=sim.p,X=552,Y=18,W=238,H=296,m=live(sim)
   const a=m.a,dir=p.mode==='push'||p.mode==='table'?'→':(a>0?'m₂ ↓':'m₁ ↓');
   txt(ctx,(Math.abs(a)<1e-6?'a = 0 (balanced)':'a = '+Math.abs(a).toFixed(2)+' m/s²  '+dir),X+12,Y+H-12,{s:12*k,w:700,c:PAL['s5']});}
 function s_f(sim,m){return sim.p.mode==='table'&&sim.st.phase==='run'?m.f:0;}
+
+/* ---------- Virtual lab (Mr. Colella, Physics Unit 3): F = ma Cart and Pulley Lab ----------
+   A dynamics cart (0.300 kg, plus 0.125 kg bars in Part 2) on a level track is pulled by a hanging mass over a light pulley.
+   a = (m g − μ M g) / (M + m), with rolling friction μ = 0.002 to 0.005 (each student's track differs a little).
+   The detector samples velocity at 20 Hz with about 6 mm/s of noise; the hanging mass is caught after falling 0.60 m.
+   Linear fit = least-squares slope of v against t over the run, as the graphing app reports it. Force (handout) = weight of the hanging mass, m g. */
+const RB=window.RJBench,GA=9.8,FA_DT=0.05,FA_DROP=0.60;
+function faRec(sim){const R=RB.rec(sim);if(!R.fa)R.fa={fits:{},n:0};return R.fa;}
+const faMu=sim=>{const R=sim.vlab?sim.vlab.rng(61):RB.rng(61);return 0.002+0.003*R();};
+const faCfg=sim=>sim.p.faPart==='p2'?{M:+sim.p.faC,m:0.020}:{M:0.300,m:+sim.p.faH/1000};
+const faKey=c=>c.M.toFixed(3)+'|'+c.m.toFixed(3);
+function faRun(sim,n){const c=faCfg(sim),mu=faMu(sim),R=sim.vlab?sim.vlab.rng(6100+n):RB.rng(6100+n),a=(c.m*GA-mu*c.M*GA)/(c.M+c.m)*(1+0.012*RB.gauss(R)),T=Math.sqrt(2*FA_DROP/a);
+  const N=Math.floor(T/FA_DT),v=[];for(let i=0;i<=N;i++)v.push(RB.r3(a*i*FA_DT+0.006*RB.gauss(R)));return {c,a,T,v};}
+const FAB={
+  init(sim){return {run:false,t:0,r:null,fit:null};},
+  step(sim,dt){const b=sim.st.B;if(!b.run)return;b.t+=dt;if(b.t>=b.r.T){b.t=b.r.T;b.run=false;}},
+  draw(sim,ctx,vdt,k,t){const b=sim.st.B,K=Math.min(k,1.3),c=faCfg(sim),ppm=380,TX=80,TY=150,PX=TX+1.25*ppm;
+    ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
+    const x=b.r?0.5*b.r.a*Math.pow(Math.min(b.t,b.r.T),2):0;
+    ctx.fillStyle='#9aa3ad';ctx.fillRect(TX-20,TY,1.25*ppm+20,8);ctx.fillStyle=PAL['cv-bench'];ctx.fillRect(TX-40,TY+8,1.25*ppm+60,6);
+    ctx.fillStyle=PAL['cv-ink'];rr(ctx,TX-34,TY-34,22,26,4);ctx.fill();txt(ctx,'motion detector',TX-40,TY-42,{s:12*K,c:PAL['cv-soft']});
+    // pulley clamped to the end of the track, string, hanging mass, floor
+    const R=14,py=TY-8,cx=TX+30+x*ppm,hy=py+20+x*ppm;ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(cx+40,TY-16);ctx.lineTo(PX,TY-16-0);ctx.arc(PX,py,R-6,-Math.PI/2,0);ctx.lineTo(PX+R-6,hy);ctx.stroke();
+    ctx.fillStyle='#b9c1ca';ctx.beginPath();ctx.arc(PX,py,R-4,0,6.29);ctx.fill();ctx.strokeStyle='#4b535c';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#3f6fb0';rr(ctx,cx-40,TY-30,80,24,5);ctx.fill();if(c.M>0.3){const nb=Math.round((c.M-0.3)/0.125);for(let i=0;i<nb;i++){ctx.fillStyle='#6d7682';ctx.fillRect(cx-36+i*24,TY-40,20,10);}}
+    ctx.fillStyle=PAL['cv-ink'];[-24,24].forEach(w=>{ctx.beginPath();ctx.arc(cx+w,TY-4,5,0,6.29);ctx.fill();});txt(ctx,'cart '+c.M.toFixed(3)+' kg',cx,TY-46-(c.M>0.3?6:0),{s:12*K,a:'center',c:PAL['fg']});
+    const hs=10+Math.sqrt(c.m*1000)*1.2;ctx.fillStyle='#b0503f';rr(ctx,PX+R-6-hs/2,hy,hs,hs*1.2,3);ctx.fill();txt(ctx,(c.m*1000).toFixed(0)+' g',PX+R-6-hs/2-6,hy+hs*0.7,{s:12*K,a:'right',c:PAL['fg']});
+    const fl=py+20+FA_DROP*ppm+hs*1.2+6;ctx.fillStyle=PAL['cv-soft'];ctx.fillRect(PX-30,fl,80,5);txt(ctx,'catcher',PX+56,fl+5,{s:12*K,c:PAL['cv-soft']});
+    // velocity graph and linear fit
+    const L=40,Tp=250;RB.panel(ctx,20,Tp-22,470,212);const tmax=b.r?Math.max(1,Math.ceil(b.r.T)):3,vmax=b.r?Math.max(0.5,Math.ceil(b.r.a*b.r.T*5)/5):1;
+    const ax=RB.axes(ctx,{L:L+38,T:Tp,W:390,H:140,cw:800,ch:450},{xmin:0,xmax:tmax,ymin:0,ymax:vmax,xl:'Time (s)',yl:'Velocity (m/s)'});
+    if(b.r){const n=Math.min(b.r.v.length-1,Math.floor(b.t/FA_DT));RB.trace(ctx,ax,b.r.v.slice(0,n+1).map((v,i)=>({t:i*FA_DT,y:v})),'#3f6fb0',{w:1.5,dots:2.5,ymin:0,ymax:vmax});
+      if(b.fit){ctx.strokeStyle='#d9573b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ax.X(0),ax.Y(clamp(b.fit.b,0,vmax)));ctx.lineTo(ax.X(b.r.T),ax.Y(clamp(b.fit.b+b.fit.m*b.r.T,0,vmax)));ctx.stroke();}}
+    RB.lcd(ctx,600,236,184,62,'LINEAR FIT: SLOPE',b.fit?b.fit.m.toFixed(3)+' m/s²':'—',k,24);
+    if(b.fit)RB.lcd(ctx,600,306,184,52,'INTERCEPT',b.fit.b.toFixed(3)+' m/s',k,20);
+    txt(ctx,sim.p.faPart==='p2'?'Part 2: 20 g hanging, cart mass changes':'Part 1: cart 0.300 kg, hanging mass changes',24,34,{s:13*K,w:700,c:PAL['fg']});},
+  narrate(sim){const b=sim.st.B;if(b.run)return 'The hanging mass pulls the cart along the track. The detector records the cart’s velocity 20 times a second.';
+    if(b.r&&!b.fit)return 'Press <b>Linear fit</b> to fit a straight line to the velocity graph. Its slope is the acceleration.';
+    if(b.fit)return 'The slope of the velocity graph is the acceleration: <b>'+b.fit.m.toFixed(3)+' m/s²</b>. Record it as one trial, then collect again for the next trial.';
+    return 'Choose the masses, then press <b>Collect and release</b>. A teammate catches the hanging mass before it hits the floor.';},
+  read(sim){const b=sim.st.B;return {fit:b.fit?RB.r3(b.fit.m):null,run:b.run,key:faKey(faCfg(sim))};}};
+function faGo(sim){const b=RB.B(sim,'fma-cart');if(!b)return;const R=faRec(sim);R.n++;b.r=faRun(sim,R.n);b.t=0;b.run=true;b.fit=null;BioLab.play(sim);}
+function faFit(sim){const b=RB.B(sim,'fma-cart');if(!b||!b.r||b.run)return;const F=RB.fit(b.r.v.map((v,i)=>({x:i*FA_DT,y:v})));b.fit={m:RB.r3(F.m),b:RB.r3(F.b)};
+  const R=faRec(sim),k=faKey(b.r.c);(R.fits[k]=R.fits[k]||[]).push(b.fit.m);if(R.fits[k].length>12)R.fits[k].shift();if(sim.vlab)BioLab.vlab.save(sim);}
+const P1R=[0.02,0.05,0.1,0.2],P2R=[0.3,0.425,0.55,0.675];
+const faTrial=part=>(sim,rv,v)=>{const c=part===1?{M:0.3,m:+rv}:{M:+rv,m:0.02},F=faRec(sim).fits[faKey(c)]||[];
+  if(!F.length)return 'Collect a run with '+(part===1?(c.m*1000).toFixed(0)+' g hanging':'a '+c.M.toFixed(3)+' kg cart')+' and fit its velocity graph first.';
+  return F.some(f=>Math.abs(f-v)<=0.0015)?null:'That isn’t one of your fits for this setup. Your slopes: '+F.slice(-4).map(f=>f.toFixed(3)).join(', ')+' m/s².';};
+const faAvg=tb=>(sim,rv,v)=>{const rows=tb==='p1'?P1R:P2R,r=rows.indexOf(+rv),a=['a1','a2','a3'].map(c=>sim.vlab.val(tb,c,r));if(!a.every(Number.isFinite))return 'Fill in all three trials first.';return Math.abs(v-(a[0]+a[1]+a[2])/3)<=0.002?null:'Add the three accelerations and divide by 3.';};
+const faF=(sim,rv,v)=>Math.abs(v-(+rv)*GA)<=0.002?null:'Force = weight of the hanging mass = m g, with m in kg and g = 9.8 m/s².';
+const faInv=(sim,rv,v)=>Math.abs(v-1/(+rv))<=0.01?null:'1/mass = 1 ÷ the cart’s mass in kg.';
+function faLine(V){const P=P1R.map((x,r)=>({x:V.val('p1','F',r),y:V.val('p1','aavg',r)})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));return P.length>=2?RB.fit(P):null;}
+const kN=(V,id)=>{const s=String(V.raw('k:'+id)||'').trim().replace(/,/,'.');return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN;};
+const trialCols=(part,tb)=>[{id:'a1',label:'Trial 1 accel (m/s²)',input:'number',check:faTrial(part)},{id:'a2',label:'Trial 2 accel (m/s²)',input:'number',check:faTrial(part)},{id:'a3',label:'Trial 3 accel (m/s²)',input:'number',check:faTrial(part)},{id:'aavg',label:'Average accel (m/s²)',input:'number',check:faAvg(tb)}];
+const LAB_FA={id:'fma-cart',title:'F = ma Cart and Pulley Lab',course:'Physics',teachers:'Colella',level:'bio',
+  source:{label:'F = ma Cart and Pulley Lab (Canvas)',href:'https://rjhs.instructure.com/courses/16601/assignments/619753'},
+  purpose:'<p>Determine the relationship between force and acceleration for a given mass, and use this relationship to determine the mass of the object that is being accelerated. Then find how acceleration depends on mass.</p>',
+  background:'<p>Newton’s second law determines the relationship between mass, force and acceleration. It tells us how much acceleration to expect from a given force applied to a given mass.</p>'+
+    '<p>A hanging mass pulls the cart through a string over a pulley. In this lab we call the weight of the hanging mass, <b>F = mg</b>, the force. The motion detector records the cart’s velocity, and the slope of the velocity vs. time graph is the acceleration.</p>'+
+    '<p><b>About the virtual bench.</b> The track is level, with a little rolling friction like a real one; each student’s track is slightly different. The detector’s velocity readings scatter a little, so three trials of the same setup give slightly different slopes. Press <b>Linear fit</b> after each run to fit the velocity graph, as in the graphing app.</p>',
+  materials:['Dynamics cart (0.300 kg) and track','Pulley and track mount','String','Mass set with hanger','0.125 kg mass bars for the cart','Motion detector and graphing app (on the virtual bench)'],
+  setup(sim){},
+  controls:['faPart','faH','faC','fa-go','fa-fit'],
+  steps:[
+    {title:'Part 1: set up',text:'<p>Choose <b>Part 1</b>. The track is level and the cart sits at the far end from the pulley. Start with the <b>20 g</b> mass. Press <b>Collect and release</b>; your teammate catches the mass before it hits the floor. Then press <b>Linear fit</b> and read the slope: that is the acceleration.</p>',setup(sim){BioLab.setValues(sim,{faPart:'p1',faH:20});}},
+    {title:'Part 1: collect',text:'<p>Do three trials with each hanging mass: 20 g, 50 g, 100 g and 200 g. Record each acceleration in the Part 1 table. Work out the force (the weight of the hanging mass, F = mg) and the average acceleration for each mass. Your graph of acceleration against force draws below.</p>',
+      setup(sim){BioLab.setValues(sim,{faPart:'p1'});},done:sim=>P1R.every((x,r)=>['a1','a2','a3','aavg','F'].every(c=>sim.vlab.raw('c:p1:'+c+':'+r).trim()!=='')),doneHint:'Fill in every box in the Part 1 table.'},
+    {title:'Part 2: collect',text:'<p>Choose <b>Part 2</b>. Use the <b>20 g</b> hanging mass every time and add mass bars to the cart one at a time: 0.300, 0.425, 0.550 and 0.675 kg. Do three trials at each cart mass and record them in the Part 2 table, with the average and 1/mass.</p>',
+      setup(sim){BioLab.setValues(sim,{faPart:'p2',faC:'0.300'});},done:sim=>P2R.every((x,r)=>['a1','a2','a3','aavg','inv'].every(c=>sim.vlab.raw('c:p2:'+c+':'+r).trim()!=='')),doneHint:'Fill in every box in the Part 2 table.'},
+    {title:'Analyze',text:'<p>Look at your three graphs. Find the slope of your acceleration vs. force graph with <b>Analyze this table in a spreadsheet</b> (add a linear trendline), use it to find the mass being accelerated, then answer the conclusion questions.</p>'}],
+  tables:[{id:'p1',title:'Part 1: cart 0.300 kg, hanging mass changes',cols:[{id:'m',label:'Hanging mass (kg)',rows:P1R,rowLabels:['0.020','0.050','0.100','0.200']}].concat(trialCols(1,'p1'),[{id:'F',label:'Force F = mg (N)',input:'number',check:faF}])},
+    {id:'p2',title:'Part 2: 20 g hanging, cart mass changes',cols:[{id:'M',label:'Mass of cart (kg)',rows:P2R,rowLabels:['0.300','0.425','0.550','0.675']}].concat(trialCols(2,'p2'),[{id:'inv',label:'1/mass of cart (1/kg)',input:'number',check:faInv}])}],
+  graphs:[{type:'line',title:'Part 1: acceleration vs force',xl:'Force (N)',yl:'Acceleration (m/s²)',xmin:0,ymin:0,series:[{table:'p1',x:'F',y:'aavg',label:'Average acceleration'}]},
+    {type:'line',title:'Part 2: acceleration vs mass of cart',xl:'Mass of cart (kg)',yl:'Acceleration (m/s²)',xmin:0,ymin:0,series:[{table:'p2',x:'M',y:'aavg',label:'Average acceleration'}]},
+    {type:'line',title:'Part 2: acceleration vs 1/mass of cart',xl:'1/mass (1/kg)',yl:'Acceleration (m/s²)',xmin:0,ymin:0,series:[{table:'p2',x:'inv',y:'aavg',label:'Average acceleration'}]}],
+  calcs:[{id:'k',label:'Slope of your acceleration vs. force best-fit line',unit:'1/kg',input:'number',check:(sim,v,V)=>{const F=faLine(V);return !F?'Fill in the Part 1 table first.':RB.rel(v,F.m,0.03)?null:'Your Part 1 data’s best-fit slope is close to '+F.m.toFixed(2)+'. Check your trendline.';}},
+    {id:'mass',label:'Mass being accelerated = 1 ÷ slope',unit:'kg',input:'number',check:(sim,v,V)=>{const s=kN(V,'k');return !Number.isFinite(s)||!s?'Record the slope first.':RB.rel(v,1/s,0.012)?null:'a = F/m, so the slope of a against F is 1/m. Divide 1 by your slope.';}}],
+  questions:[
+    {id:'c1',n:'1',q:'<p>What does the graph tell you about the relationship between force and acceleration? For example, if I double the force, what would you expect to happen to the acceleration for a given mass?</p>'},
+    {id:'c2',n:'2',q:'<p>When increasing the mass of the cart, which graph produced a linear graph? What does this tell you about the relationship between acceleration and mass? For example, if I double the mass of an object, what should happen to its acceleration?</p>'},
+    {id:'c3',n:'3',q:'<p>Based on the two answers above, write an equation that says a = ______ to show the relationship between force, mass and acceleration. Justify your reasoning for writing the equation the way you did.</p>'},
+    {id:'c4',n:'4',q:'<p>Compare the mass you found from your slope with the cart’s mass, 0.300 kg. The hanging mass speeds up too. What does that tell you about the mass the force is really accelerating?</p>'}]};
+SIM.controls.push({id:'faPart',label:'Part',type:'seg',def:'p1',vlab:true,noTrial:true,options:[{v:'p1',l:'Part 1: change the force'},{v:'p2',l:'Part 2: change the cart mass'}],onChange(sim){BioLab.reset(sim);}},
+  {id:'faH',label:'Hanging mass (Part 1)',type:'seg',def:20,vlab:true,noTrial:true,options:[20,50,100,200].map(g=>({v:g,l:g+' g'})),onChange(sim){BioLab.reset(sim);}},
+  {id:'faC',label:'Mass of cart (Part 2)',type:'seg',def:'0.300',vlab:true,noTrial:true,options:['0.300','0.425','0.550','0.675'].map(m=>({v:m,l:m+' kg'})),onChange(sim){BioLab.reset(sim);}});
+(SIM.actions=SIM.actions||[]).push({id:'fa-go',label:'Collect and release',primary:true,vlab:true,enabled:s=>{const b=RB.B(s,'fma-cart');return !!b&&!b.run;},run(sim){faGo(sim);}},
+  {id:'fa-fit',label:'Linear fit',vlab:true,enabled:s=>{const b=RB.B(s,'fma-cart');return !!b&&!!b.r&&!b.run&&!b.fit;},run(sim){faFit(sim);}});
+SIM.labs=(SIM.labs||[]).concat([LAB_FA]);
+RB.attach(SIM,{'fma-cart':FAB});
 
 BioLab.register(SIM);
 })();

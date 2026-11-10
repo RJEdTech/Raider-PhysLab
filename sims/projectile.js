@@ -16,11 +16,11 @@ const f1=v=>fmtNum(v,1),f2=v=>fmtNum(v,2);
 /* ---------- show only what the current mode uses ---------- */
 function sync(sim){if(!sim.ui||!sim.ui.ctl||!sim.ui.sec)return;const p=sim.p,m=p.mode,sec=sim.ui.sec;
   const C={ang:m!=='table',cup:m==='table',cd:!!p.air,dia:!!p.air};
-  SIM.controls.forEach(c=>{const e=sec.querySelector('#'+ID+'-'+c.id+',#'+ID+'-'+c.id+'-l');const w=e&&e.closest('.ctl');if(w)w.hidden=!atLeast(c.lvl||'bio')||C[c.id]===false;});
+  SIM.controls.forEach(c=>{if(c.vlab)return;const e=sec.querySelector('#'+ID+'-'+c.id+',#'+ID+'-'+c.id+'-l');const w=e&&e.closest('.ctl');if(w)w.hidden=!atLeast(c.lvl||'bio')||C[c.id]===false;});
   const M={best:m==='free',twinT:!!p.twin,gate:m==='table',cupOff:m==='table',score:m==='target',tgt:m==='target'};
   SIM.metrics.forEach(mt=>{const t=sim.ui.tiles[mt.id];if(!t)return;const tile=t.num.closest('.tile');if(tile)tile.hidden=!atLeast(mt.lvl||'bio')||M[mt.id]===false;});
   const A={fan:m==='free',newTarget:m==='target'};
-  const btns=[...sec.querySelectorAll('.controls .actions button')];SIM.actions.forEach((a,i)=>{if(btns[i])btns[i].hidden=!atLeast(a.lvl||'bio')||A[a.id]===false;});}
+  const btns=[...sec.querySelectorAll('.controls .actions button')];SIM.actions.forEach((a,i)=>{if(btns[i]&&!a.vlab)btns[i].hidden=!atLeast(a.lvl||'bio')||A[a.id]===false;});}
 
 /* ---------- physics ---------- */
 function objOf(p){return {m:OBJ[p.obj].m,d:p.dia,cd:p.cd};}
@@ -339,5 +339,115 @@ const SIM={
   }
 };
 function serColor6(i){return PAL[['s2','s1','s3','s4','s6','s5'][i%6]];}
+/* ---------- Virtual lab (Mr. Colella, Physics Unit 2): Tennis Ball Launch Lab ----------
+   The launcher's speed grows with how far it is stretched: v₀ = κ(0.30 s − 1.5) m/s for a stretch s in cm (s = 15 to 60 cm),
+   where κ is 0.97 to 1.03 (each student's launcher is a little different) and each launch scatters by about 0.8%.
+   Part 1 launches straight up; the student times the flight by hand, so t includes the student's own reactions; v₀ = gt/2.
+   Part 2 launches at an angle from ground level at a target placed at the range for the assigned angle and speed, R = v₀² sin 2θ / g.
+   Air resistance is left out (for a tennis ball at these speeds it shortens the range by roughly 5 to 10%). */
+const RB=window.RJBench,GT=9.8,TBP={x0:40,gy:410,ppm:25.5};
+function tbRec(sim){const R=RB.rec(sim);if(!R.tb)R.tb={cal:[],aim:[],n:0};return R.tb;}
+function tbKappa(sim){const R=sim.vlab?sim.vlab.rng(51):RB.rng(51);return 0.97+0.06*R();}
+function tbAssign(sim){const R=sim.vlab?sim.vlab.rng(52):RB.rng(52);const A=[30,35,40,50,55,60],V=[8,9,10,11,12];return {ang:A[Math.floor(R()*A.length)],v0:V[Math.floor(R()*V.length)]};}
+const tbV0=(sim,s,n)=>{const R=sim.vlab?sim.vlab.rng(5300+n):RB.rng(5300+n);return tbKappa(sim)*(0.30*s-1.5)*(1+0.008*RB.gauss(R));};
+const tbRange=(v,a)=>v*v*Math.sin(2*a*Math.PI/180)/GT;
+const TBB={
+  init(sim){return {ph:'idle',t0:0,v0:0,ang:90,s:0,w:RB.watchNew(),land:null,lx:null};},
+  step(sim,dt){const b=sim.st.B,now=performance.now();if(b.ph==='count'&&now>=b.t0)b.ph='fly';
+    if(b.ph==='fly'){const tt=(now-b.t0)/1000,vy=b.v0*Math.sin(b.ang*Math.PI/180),T=2*vy/GT;if(tt>=T){b.ph='landed';b.land=now;
+      if(b.ang<89.5){b.lx=RB.r2(b.v0*Math.cos(b.ang*Math.PI/180)*T);const R=tbRec(sim);R.aim.push({s:b.s,a:b.ang,d:b.lx});if(R.aim.length>30)R.aim.shift();if(sim.vlab)BioLab.vlab.save(sim);}}}},
+  draw(sim,ctx,vdt,k,t){const b=sim.st.B,K=Math.min(k,1.3),now=performance.now(),part=sim.p.tbPart,P=TBP,X=m=>P.x0+m*P.ppm,Y=m=>P.gy-m*P.ppm,asg=tbAssign(sim);
+    ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);ctx.fillStyle='#3d8a4f';ctx.fillRect(0,P.gy,800,40);
+    ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1;for(let m=0;m<=29;m++){const x=X(m)+.5;ctx.beginPath();ctx.moveTo(x,P.gy);ctx.lineTo(x,P.gy+(m%5===0?14:7));ctx.stroke();if(m%5===0)txt(ctx,m+' m',x,P.gy+30,{s:12*K,a:'center',c:'#fff'});}
+    const lx=part==='cal'?6:0.6,ang=part==='cal'?90:sim.p.tbA;
+    // target (Part 2)
+    if(part==='aim'){const R=tbRange(asg.v0,asg.ang)+lx;ctx.fillStyle='#d9573b';ctx.beginPath();ctx.ellipse(X(R),P.gy,22,6,0,0,6.29);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(X(R),P.gy,10,3,0,0,6.29);ctx.fill();txt(ctx,'target',X(R),P.gy-14,{s:12*K,a:'center',c:PAL['fg']});}
+    // launcher: a base and a tube at the launch angle, with its stretch scale
+    ctx.save();ctx.translate(X(lx),P.gy);ctx.fillStyle=PAL['cv-ink'];ctx.fillRect(-16,-10,32,10);ctx.rotate(-ang*Math.PI/180);ctx.fillStyle='#6b7480';ctx.fillRect(0,-7,70,14);ctx.fillStyle='#e0b43c';ctx.fillRect(-sim.p.tbS*0.5,-3,sim.p.tbS*0.5,6);ctx.restore();
+    // the ball
+    let bx=lx,by=0;if(b.ph==='fly'||b.ph==='landed'){const tt=b.ph==='fly'?(now-b.t0)/1000:2*b.v0*Math.sin(b.ang*Math.PI/180)/GT,c=Math.cos(b.ang*Math.PI/180),sn=Math.sin(b.ang*Math.PI/180);bx=b.lx0+b.v0*c*tt;by=Math.max(0,b.v0*sn*tt-0.5*GT*tt*tt);}
+    ctx.fillStyle='#c8d84a';ctx.beginPath();ctx.arc(X(bx),Y(by)-7,7,0,6.29);ctx.fill();
+    if(b.ph==='count'){const n=Math.ceil((b.t0-now)/1000);txt(ctx,n>0?String(n):'',X(lx)+40,Y(3),{s:28,w:700,c:'#d9573b'});}
+    // height marks (Part 1)
+    if(part==='cal'){ctx.strokeStyle=PAL['line'];for(let m=2;m<=14;m+=2){ctx.beginPath();ctx.moveTo(X(lx)-60,Y(m));ctx.lineTo(X(lx)-40,Y(m));ctx.stroke();txt(ctx,m+' m',X(lx)-64,Y(m)+4,{s:11*K,a:'right',c:PAL['cv-soft']});}}
+    // instruments
+    RB.drawWatch(ctx,600,20,k,b.w,'YOUR STOPWATCH');
+    RB.lcd(ctx,600,92,170,52,'STRETCH',sim.p.tbS.toFixed(0)+' cm',k,22);
+    if(part==='aim'){RB.lcd(ctx,410,20,180,62,'ASSIGNED',asg.ang+'°  '+asg.v0+' m/s',k,20);
+      if(b.lx!==null&&b.ph==='landed'){ctx.fillStyle='#d9573b';ctx.beginPath();ctx.arc(X(lx+b.lx),P.gy,4,0,6.29);ctx.fill();RB.lcd(ctx,410,92,180,52,'TAPE: LANDED AT',b.lx.toFixed(2)+' m',k,20);}}
+    if(part==='cal'){const C=tbRec(sim).cal.filter(c=>c.s===sim.p.tbS);txt(ctx,'Your times at '+sim.p.tbS+' cm: '+(C.length?C.slice(-4).map(c=>c.t.toFixed(2)).join(', ')+' s':'none yet'),600,170,{s:12*K,c:PAL['fg']});}},
+  narrate(sim){const b=sim.st.B;if(b.ph==='count')return 'Get your finger on the stopwatch: the ball launches at the end of the countdown.';if(b.ph==='fly')return 'The ball is in the air.'+(sim.p.tbPart==='cal'?' Stop the watch when it lands.':'');
+    return sim.p.tbPart==='cal'?'Set the <b>Stretch</b>, press <b>Launch</b>, start the stopwatch when the ball leaves the launcher and stop it when the ball lands.':'Set the <b>Stretch</b> your calibration line predicts and your assigned <b>Angle</b>, then <b>Launch</b> at the target. The tape gives the landing distance from the launcher.';},
+  read(sim){const b=sim.st.B;return {ph:b.ph,watch:RB.watchShown(b.w),lx:b.lx,assign:tbAssign(sim),kappa:tbKappa(sim)};}};
+function tbLaunch(sim){const b=RB.B(sim,'tennis-launch');if(!b)return;const R=tbRec(sim);R.n++;const aim=sim.p.tbPart==='aim';b.s=sim.p.tbS;b.v0=tbV0(sim,b.s,R.n);b.ang=aim?sim.p.tbA:90;b.lx0=aim?0.6:6;b.lx=null;
+  b.ph='count';b.t0=performance.now()+(aim?1000:3000);b.lastS=b.s;BioLab.play(sim);}
+function tbWatch(sim){const b=RB.B(sim,'tennis-launch');if(!b)return;const v=RB.watchToggle(b.w);if(v!==null&&v>0&&b.lastS&&sim.p.tbPart==='cal'){const R=tbRec(sim);R.cal.push({s:b.lastS,t:v});if(R.cal.length>60)R.cal.shift();if(sim.vlab)BioLab.vlab.save(sim);}BioLab.play(sim);}
+const LR=['l1','l2','l3','l4'],LRL=['Launch 1','Launch 2','Launch 3','Launch 4'];
+const tbRow=rv=>LR.indexOf(String(rv));
+const tbS=(sim,rv,v)=>tbRec(sim).cal.some(c=>c.s===v)?null:'Time at least one launch at '+v+' cm on the bench first.';
+const tbT=(sim,rv,v)=>{const s=sim.vlab.val('t1','s',tbRow(rv));if(!Number.isFinite(s))return 'Record the stretch for this launch first.';const C=tbRec(sim).cal.filter(c=>c.s===s);if(!C.length)return 'You have no timed launches at '+s+' cm yet.';
+  return C.some(c=>Math.abs(c.t-v)<=0.006)?null:'That isn’t one of your times at '+s+' cm: '+C.slice(-4).map(c=>c.t.toFixed(2)).join(', ')+' s.';};
+const tbAvg=(sim,rv,v)=>{const r=tbRow(rv),a=['ta','tb','tc'].map(c=>sim.vlab.val('t1',c,r));if(!a.every(Number.isFinite))return 'Fill in the three trial times first.';return Math.abs(v-(a[0]+a[1]+a[2])/3)<=0.006?null:'Add the three times and divide by 3.';};
+const tbVi=(sim,rv,v)=>{const t=sim.vlab.val('t1','avg',tbRow(rv));if(!Number.isFinite(t))return 'Work out the average time first.';return RB.rel(v,GT*t/2,0.012)?null:'The ball lands at the height it left, so Δy = 0: 0 = V₀t − ½gt², which gives V₀ = gt/2. Use your average time.';};
+function tbLine(V){const P=LR.map((x,r)=>({x:V.val('t1','s',r),y:V.val('t1','vi',r)})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));return P.length>=2?RB.fit(P):null;}
+const vN2=s=>{s=String(s||'').trim().replace(/,/,'.');return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN;};
+const kv=(V,id)=>vN2(V.raw('k:'+id));
+const tbAimRow=c=>(sim,rv,v)=>{const r=['a1','a2','a3'].indexOf(String(rv)),V=sim.vlab,A=tbRec(sim).aim;
+  if(c==='s')return A.some(a=>a.s===v)?null:'Launch at '+v+' cm in Part 2 on the bench first.';
+  if(c==='a'){const s=V.val('t2','s',r);return A.some(a=>a.s===s&&a.a===v)?null:'You have no Part 2 launch at '+s+' cm and '+v+'° yet.';}
+  if(c==='d'){const s=V.val('t2','s',r),an=V.val('t2','a',r),M=A.filter(a=>a.s===s&&a.a===an);if(!M.length)return 'Record the stretch and angle of this launch first.';return M.some(a=>Math.abs(a.d-v)<=0.006)?null:'Read the tape: launches at '+s+' cm and '+an+'° landed at '+M.slice(-3).map(a=>a.d.toFixed(2)).join(', ')+' m.';}
+  if(c==='miss'){const d=V.val('t2','d',r),R=kv(V,'R');if(!Number.isFinite(d))return 'Record the landing distance first.';if(!Number.isFinite(R))return 'Work out your predicted distance (Part 2 calculations) first.';return Math.abs(v-Math.abs(d-R))<=0.02?null:'Distance from the target = |landing distance − your predicted distance|.';}
+  return null;};
+const tbA=sim=>tbAssign(sim);
+const LAB_TB={id:'tennis-launch',title:'Tennis Ball Launch Lab',course:'Physics',teachers:'Colella',level:'bio',
+  source:{label:'Tennis Ball Launch Lab, Parts 1 and 2 (Canvas)',href:'https://rjhs.instructure.com/courses/16601/assignments/617694'},
+  purpose:'<p>Collect data on the tennis ball launcher and use the 1D kinematics equations to calibrate it. Then, with an assigned angle and initial velocity, calculate how high and how far the ball will go, and test your prediction at the target.</p>',
+  background:'<p><b>Part 1.</b> Launched straight up, the ball lands at the height it left, so its vertical displacement is zero: Δy = V₀t − ½gt² = 0, which gives <b>V₀ = gt/2</b> for a time in the air t. Timing three launches at each stretch and averaging gives one initial velocity per stretch. A graph of initial velocity against stretch, with a line of best fit, is your <b>calibration line</b>.</p>'+
+    '<p><b>Part 2.</b> At an angle θ, split the launch velocity into V<sub>ix</sub> = V₀cos θ and V<sub>iy</sub> = V₀sin θ. Vertically the ball is in free fall; horizontally it moves at a steady V<sub>ix</sub>. <b>Y:</b> Δy = V<sub>iy</sub>t + ½gt², V<sub>fy</sub> = V<sub>iy</sub> + gt, V<sub>fy</sub>² = V<sub>iy</sub>² + 2gΔy (with g = −9.8 m/s²). <b>X:</b> Δx = V<sub>ix</sub>t.</p>'+
+    '<p><b>About the virtual bench.</b> You time each flight with your own stopwatch, so your reactions are part of every time, as outside. Each student’s launcher is a little different, so calibrate your own. Air resistance is left out; outside, it makes a real tennis ball land a little short. The target is placed where your assigned launch should land.</p>',
+  materials:['Tennis ball launcher with a stretch scale (cm)','Tennis ball','Stopwatch','Tape measure','Target'],
+  setup(sim){},
+  controls:['tbPart','tbS','tbA','tb-launch','tb-watch'],
+  steps:[
+    {title:'Part 1: collect data',text:'<p>Choose <b>Part 1: calibrate</b>. Pick four different stretches (for example 20, 30, 40 and 50 cm). For each stretch, launch three times. Press <b>Launch</b>; after the countdown the ball leaves the launcher. Start the stopwatch when it leaves and stop it when it lands.</p><p>Record each stretch and its three times in Table 1, then work out the average time.</p>',
+      setup(sim){BioLab.setValues(sim,{tbPart:'cal'});},done:sim=>LR.every((x,r)=>['s','ta','tb','tc','avg'].every(c=>sim.vlab.raw('c:t1:'+c+':'+r).trim()!=='')),doneHint:'Fill in the stretch, three times and the average for all four launches.'},
+    {title:'Part 1: initial velocities',text:'<p>Use each average time to work out the initial velocity with GUESS. Write out the full GUESS for Launch 1 in question 1, then fill in the initial velocity for every launch in Table 1. Your graph of initial velocity against stretch draws below as you type.</p>',
+      done:sim=>LR.every((x,r)=>sim.vlab.raw('c:t1:vi:'+r).trim()!==''),doneHint:'Fill in the initial velocity for all four launches.'},
+    {title:'Part 1: calibration line',text:'<p>Find the line of best fit for initial velocity against stretch: use <b>Analyze this table in a spreadsheet</b> under Table 1 and add a linear trendline, as in your teacher’s video. Record its slope and intercept in the calculations.</p>',
+      done:sim=>sim.vlab.raw('k:m').trim()!==''&&sim.vlab.raw('k:b').trim()!=='',doneHint:'Record the slope and intercept of your best-fit line.'},
+    {title:'Part 2: calculate',text:'<p>Your assignment is on the bench when you choose <b>Part 2: hit the target</b>. Draw a picture of the launch (question 2). Break the initial velocity into V<sub>ix</sub> and V<sub>iy</sub>, then calculate the time in the air, the maximum height and the distance. Finally use your calibration line to find the stretch you need.</p>',setup(sim){BioLab.setValues(sim,{tbPart:'aim'});}},
+    {title:'Part 2: test it',text:'<p>Set the <b>Stretch</b> to your calculated value (round to the nearest centimeter) and the <b>Angle</b> to your assigned angle, then press <b>Launch</b>. Record the landing distance on the tape and how far you were from your predicted distance. You get three launches in Table 2: adjust if you need to.</p>',
+      setup(sim){BioLab.setValues(sim,{tbPart:'aim'});},done:sim=>sim.vlab.raw('c:t2:d:0').trim()!=='',doneHint:'Record at least your first launch in Table 2.'},
+    {title:'Finish',text:'<p>Answer the questions and turn in your lab.</p>'}],
+  tables:[{id:'t1',title:'Table 1 (Part 1): time in air and initial velocity',cols:[{id:'l',label:'Launch',rows:LR,rowLabels:LRL},{id:'s',label:'Stretch (cm)',input:'number',check:tbS},
+      {id:'ta',label:'Trial 1 time (s)',input:'number',check:tbT},{id:'tb',label:'Trial 2 time (s)',input:'number',check:tbT},{id:'tc',label:'Trial 3 time (s)',input:'number',check:tbT},
+      {id:'avg',label:'Average time (s)',input:'number',check:tbAvg},{id:'vi',label:'Initial velocity V₀ (m/s)',input:'number',check:tbVi}]},
+    {id:'t2',title:'Table 2 (Part 2): launches at the target',cols:[{id:'l',label:'Launch',rows:['a1','a2','a3'],rowLabels:['Launch 1','Launch 2','Launch 3']},
+      {id:'s',label:'Stretch used (cm)',input:'number',check:tbAimRow('s')},{id:'a',label:'Angle (°)',input:'number',check:tbAimRow('a')},
+      {id:'d',label:'Landing distance (m)',input:'number',check:tbAimRow('d')},{id:'miss',label:'Distance from your prediction (m)',input:'number',check:tbAimRow('miss')}]}],
+  graph:{type:'line',title:'Initial velocity vs stretch',xl:'Stretch (cm)',yl:'Initial velocity V₀ (m/s)',xmin:0,xmax:65,ymin:0,series:[{table:'t1',x:'s',y:'vi',label:'Your launches'}]},
+  calcs:[
+    {id:'m',label:'Part 1: slope of your best-fit line',unit:'(m/s) per cm',input:'number',check:(sim,v,V)=>{const F=tbLine(V);return !F?'Fill in Table 1 first.':RB.rel(v,F.m,0.03)?null:'Your data’s best-fit slope is close to '+F.m.toFixed(3)+'. Check your trendline.';}},
+    {id:'b',label:'Part 1: intercept of your best-fit line',unit:'m/s',input:'number',check:(sim,v,V)=>{const F=tbLine(V);return !F?'Fill in Table 1 first.':Math.abs(v-F.b)<=Math.max(0.3,0.05*Math.abs(F.b))?null:'Your data’s best-fit intercept is close to '+F.b.toFixed(2)+'. Check your trendline.';}},
+    {id:'vix',label:'Part 2: V<sub>ix</sub> = V₀ cos θ',unit:'m/s',input:'number',check:(sim,v)=>{const a=tbA(sim);return RB.rel(v,a.v0*Math.cos(a.ang*Math.PI/180),0.01)?null:'Use your assigned V₀ and angle (shown on the Part 2 bench).';}},
+    {id:'viy',label:'Part 2: V<sub>iy</sub> = V₀ sin θ',unit:'m/s',input:'number',check:(sim,v)=>{const a=tbA(sim);return RB.rel(v,a.v0*Math.sin(a.ang*Math.PI/180),0.01)?null:'Use your assigned V₀ and angle (shown on the Part 2 bench).';}},
+    {id:'T',label:'Part 2: time in the air',unit:'s',input:'number',check:(sim,v,V)=>{const y=kv(V,'viy');return !Number.isFinite(y)?'Work out V<sub>iy</sub> first.':RB.rel(v,2*y/GT,0.015)?null:'The ball lands at launch height, so Δy = 0: t = 2V<sub>iy</sub> ÷ 9.8.';}},
+    {id:'H',label:'Part 2: maximum height',unit:'m',input:'number',check:(sim,v,V)=>{const y=kv(V,'viy');return !Number.isFinite(y)?'Work out V<sub>iy</sub> first.':RB.rel(v,y*y/(2*GT),0.02)?null:'At the top V<sub>fy</sub> = 0, so 0 = V<sub>iy</sub>² + 2gΔy with g = −9.8 m/s².';}},
+    {id:'R',label:'Part 2: distance (range) Δx = V<sub>ix</sub> t',unit:'m',input:'number',check:(sim,v,V)=>{const x=kv(V,'vix'),T=kv(V,'T');return !Number.isFinite(x)||!Number.isFinite(T)?'Work out V<sub>ix</sub> and the time first.':RB.rel(v,x*T,0.015)?null:'Δx = V<sub>ix</sub> × t.';}},
+    {id:'sn',label:'Part 2: stretch needed for your V₀, from your calibration line',unit:'cm',input:'number',check:(sim,v,V)=>{const m=kv(V,'m'),b=kv(V,'b'),a=tbA(sim);return !Number.isFinite(m)||!Number.isFinite(b)||!m?'Record your slope and intercept first.':RB.rel(v,(a.v0-b)/m,0.02)?null:'Solve V₀ = (slope)(stretch) + intercept for the stretch.';}}],
+  questions:[{id:'g1',n:'1',q:'<p><b>GUESS for Launch 1.</b> Find the initial velocity from your average time in the air.</p>',fields:RB.GUESS},
+    {id:'q2',n:'2',q:'<p>Describe your picture of the Part 2 launch: label your assigned angle, V₀, V<sub>ix</sub>, V<sub>iy</sub>, the maximum height and the distance.</p>'},
+    {id:'q3',n:'3',q:'<p>How close did your first launch land to your predicted distance? List two things that could explain the difference.</p>'},
+    {id:'q4',n:'4',q:'<p>Your calibration line probably does not pass through the origin. What would a launch with a very small stretch do, and why might the launcher need some stretch before it launches the ball at all?</p>'},
+    {id:'q5',n:'5',q:'<p>Why did you time three launches at each stretch and average them? How did your own reaction time affect your times?</p>'}],
+  conclusion:{prompt:'<p>Did your calibration and calculations let you hit the target? Use your numbers as evidence and explain the physics that made the prediction possible.</p>'}};
+SIM.controls.push({id:'tbPart',label:'Part',type:'seg',def:'cal',vlab:true,noTrial:true,options:[{v:'cal',l:'Part 1: calibrate'},{v:'aim',l:'Part 2: hit the target'}]},
+  {id:'tbS',label:'Stretch',type:'range',min:15,max:60,step:1,def:30,unit:' cm',vlab:true,noTrial:true},
+  {id:'tbA',label:'Angle',type:'range',min:15,max:75,step:1,def:45,unit:'°',vlab:true,noTrial:true,help:'Part 2 only. Measured up from the ground.'});
+SIM.actions.push({id:'tb-launch',label:'Launch',vlab:true,enabled:s=>{const b=RB.B(s,'tennis-launch');return !!b&&b.ph!=='count'&&b.ph!=='fly';},run(sim){tbLaunch(sim);}},
+  {id:'tb-watch',label:'Start / stop stopwatch',primary:true,vlab:true,enabled:s=>!!RB.B(s,'tennis-launch'),run(sim){tbWatch(sim);}});
+SIM.labs=(SIM.labs||[]).concat([LAB_TB]);
+RB.attach(SIM,{'tennis-launch':TBB});
+
 BioLab.register(SIM);
 })();

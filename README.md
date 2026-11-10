@@ -32,12 +32,26 @@ Each course list ends with **Go further** tools: rocket science, chaos and the d
 
 Link straight to any tool with `#<name>`, e.g. `#projectile`, `#circuit` or `#skatepark`.
 
+## Virtual labs
+A **Virtual lab** view runs an RJ teacher's own handout on a virtual bench: students read the instruments, record their own data, graph it, answer the handout's questions and turn in a PDF or Word report. Physics (Mr. Colella, first semester):
+- **Motion Match Lab, Parts 1 and 2** (`#motion1d`): steer a walker in front of a motion detector to match position and velocity graphs.
+- **Motion Lab: Carts on Ramps** (`#motion1d`): three ramp angles, down only and up-then-down, read from the detector's data.
+- **Free Fall Labs #1 and #2 with GUESS** (`#freefall`): your own reaction time with a meter stick, then a hand-timed balcony drop.
+- **Tennis Ball Launch Lab** (`#projectile`): calibrate the launcher, then hit a target at an assigned angle and speed.
+- **F = ma Cart and Pulley Lab** (`#atwood`): acceleration against force and against mass, from linear fits of the velocity graph.
+
+## Pages
+- `news.html`: In the News, good-news stories with the physics and a math question.
+- `faith.html`: Faith and Physics, true stories where physics meets the Catholic, Jesuit tradition (Riccioli and Grimaldi, the Moon's names, Lemaître, Secchi, this year's Nobel Prizes, the Vatican's solar farm), each with sourced facts, a math question, honest history and an open question for reflection. Also linked from the Physics and Honors Physics course units.
+
 ## Files
 - `index.html`: page shell
 - `biolab.css`: styles (shared with BioLab)
 - `engine.js`: the shared lab bench
 - `courses.js`: topic sections, course pathways and teaching order
+- `bench.js`: shared helpers for the virtual-lab benches (stopwatch, instrument readouts, hooks)
 - `sims/*.js`: one file per tool
+- `faith-data.js`, `news-data.js`: data for the two story pages
 
 See `ENGINE.md` to add a tool.
 

@@ -174,5 +174,115 @@ const SIM={
     if(hon)txt(ctx,'Click the tower to mark A’s position',647,420,{s:11*k,a:'center',c:PAL['muted']});
   }
 };
+/* ---------- Virtual lab (Mr. Colella, Physics Unit 1): Free Fall Labs #1 and #2 with GUESS ----------
+   #1 Reaction time: a partner drops a meter stick at a random moment 1 to 3 s after "Get ready"; the student presses Catch.
+      The real time between the drop and the press is the student's own reaction time t, and the stick falls d = ½gt² (g = 9.8 m/s²).
+   #2 Balcony: a partner counts down and drops a ball from a balcony (height 4.6 to 5.6 m, different for each student).
+      The student starts and stops a stopwatch by hand, so the recorded times include the student's own reaction errors.
+   Air resistance is left out: for a tennis ball falling 5 m it changes the fall time by under 1%. */
+const RB=window.RJBench,GG=9.8,PXCM=3.4;
+function ffRec(sim){const R=RB.rec(sim);if(!R.ff)R.ff={rd:[],bw:[]};return R.ff;}
+const ffH=sim=>{const R=sim.vlab?sim.vlab.rng(41):RB.rng(41);return Math.round((4.6+R())*100)/100;};
+const FFB={
+  init(sim){return {ph:'idle',wait:0,t0:0,cm:null,msg:'',bp:'idle',bt0:0,tc:0,w:RB.watchNew(),H:ffH(sim),land:null};},
+  step(sim,dt){const b=sim.st.B,now=performance.now();
+    if(b.ph==='wait'&&now>=b.wait){b.ph='fall';b.t0=now;}
+    if(b.ph==='fall'){const tt=(now-b.t0)/1000;if(0.5*GG*tt*tt>1.0){b.ph='missed';b.msg='Missed! The stick fell right through. Press Get ready to try again.';}}
+    if(b.bp==='count'&&now>=b.bt0){b.bp='fall';}
+    if(b.bp==='fall'){const tt=(now-b.bt0)/1000;if(0.5*GG*tt*tt>=b.H){b.bp='landed';b.land=now;}}},
+  draw(sim,ctx,vdt,k,t){const b=sim.st.B,K=Math.min(k,1.3);ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
+    if(sim.p.ffPart==='balcony')return ffDrawBalcony(sim,ctx,b,K,k);
+    const now=performance.now(),fy=360;let d=0;if(b.ph==='fall')d=0.5*GG*Math.pow((now-b.t0)/1000,2)*100;else if(b.ph==='caught')d=b.cm;else if(b.ph==='missed')d=110;
+    const top=fy-100*PXCM+d*PXCM,X=230;
+    // partner's hand at the top (opens on the drop)
+    ctx.fillStyle='#c99a74';rr(ctx,X-34,22,68,26,10);ctx.fill();if(b.ph==='idle'||b.ph==='wait'){ctx.fillRect(X-8,44,16,16);}
+    txt(ctx,'partner',X+44,38,{s:12*K,c:PAL['cv-soft']});
+    // the meter stick (0 cm at the bottom, between your fingers)
+    if(b.ph!=='missed'){ctx.fillStyle='#e9d9a6';ctx.fillRect(X-16,top,32,100*PXCM);ctx.strokeStyle='#8a7a4a';ctx.lineWidth=1;ctx.strokeRect(X-16,top,32,100*PXCM);
+      for(let c=0;c<=100;c++){const y=top+(100-c)*PXCM;ctx.beginPath();ctx.moveTo(X-16,y);ctx.lineTo(X-16+(c%10===0?14:c%5===0?9:5),y);ctx.stroke();if(c%10===0&&c<100)txt(ctx,String(c),X+12,y+4,{s:11*K,a:'right',c:'#3a3326'});}}
+    // your fingers
+    ctx.fillStyle='#d8a77e';rr(ctx,X-62,fy-6,40,14,6);ctx.fill();rr(ctx,X+22,fy-6,40,14,6);ctx.fill();if(b.ph==='caught'){rr(ctx,X-24,fy-6,48,14,4);ctx.fill();}
+    txt(ctx,'your fingers',X-70,fy+28,{s:12*K,a:'right',c:PAL['cv-soft']});
+    // the magnifier (read the stick at the top edge of your fingers)
+    RB.panel(ctx,420,40,340,250);txt(ctx,'Magnified: the stick at your fingers',436,62,{s:13*K,w:700,c:PAL['fg']});
+    const mx=520,my=170,S=26;ctx.save();ctx.beginPath();ctx.rect(436,74,308,200);ctx.clip();ctx.fillStyle='#e9d9a6';ctx.fillRect(mx-50,74,100,200);
+    if(b.ph==='caught'||b.ph==='idle'||b.ph==='wait'){const c0=b.ph==='caught'?b.cm:0;ctx.strokeStyle='#5a4c2a';
+      for(let mm=Math.floor((c0-4)*10);mm<=Math.ceil((c0+4)*10);mm++){if(mm<0||mm>1000)continue;const y=my-(mm/10-c0)*S;ctx.lineWidth=mm%10===0?2:1;ctx.beginPath();ctx.moveTo(mx-50,y);ctx.lineTo(mx-50+(mm%10===0?36:mm%5===0?24:14),y);ctx.stroke();
+        if(mm%10===0)txt(ctx,String(mm/10),mx+44,y+6,{s:17,w:700,a:'right',c:'#2a2418'});}}
+    else{txt(ctx,'(moving)',mx,my,{s:15,a:'center',c:'#5a4c2a'});}
+    ctx.restore();ctx.strokeStyle='#d9573b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(436,my);ctx.lineTo(744,my);ctx.stroke();txt(ctx,'top of your fingers',740,my-6,{s:12*K,a:'right',c:'#d9573b'});
+    txt(ctx,'Each small line is 1 mm. Read to 0.1 cm.',436,290-8,{s:12*K,c:PAL['cv-soft']});
+    const st=b.ph==='wait'?'Watch the stick…':b.ph==='fall'?'CATCH!':b.ph==='caught'?'Caught! Read the stick in the magnifier.':b.ph==='missed'?'':'Press Get ready.';
+    txt(ctx,st,420,330,{s:15*K,w:700,c:b.ph==='fall'?'#d9573b':PAL['fg']});if(b.msg)txt(ctx,b.msg,420,356,{s:13*K,c:PAL['cv-soft']});},
+  narrate(sim){const b=sim.st.B;if(sim.p.ffPart==='balcony'){if(b.bp==='count')return 'Your partner is counting down. Be ready to start the stopwatch the moment the ball is let go.';if(b.bp==='fall')return 'The ball is falling: stop the watch the moment it hits the ground.';
+      return 'Press <b>Drop the ball</b>. Start the stopwatch when the ball is let go and stop it when the ball hits the ground. The stopwatch is in your hands, so your reaction time is part of every measurement.';}
+    if(b.ph==='caught')return 'You caught the stick after it fell <b>'+b.cm.toFixed(1)+' cm</b>, so your reaction time was √(2d/g). Record the reading, then press <b>Get ready</b> for the next trial.';
+    return 'Your partner holds the meter stick with 0 cm between your fingers. Press <b>Get ready</b>, then press <b>Catch!</b> (or tap the stage, or press Space on the Catch button) the instant the stick starts to fall.';},
+  onClick(sim,x,y){if(sim.p.ffPart==='ruler')ffCatch(sim);},
+  read(sim){const b=sim.st.B;return {ph:b.ph,cm:b.cm,H:b.H,watch:RB.watchShown(b.w),bp:b.bp};}};
+function ffDrawBalcony(sim,ctx,b,K,k){const now=performance.now(),gy=410,ppm=(gy-80)/b.H,bx=402;
+  ctx.fillStyle=PAL['cv-bg2'];ctx.fillRect(40,40,200,gy-40);ctx.strokeStyle=PAL['line'];ctx.lineWidth=1;for(let y=60;y<gy;y+=30){ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(240,y);ctx.stroke();}
+  const by=gy-b.H*ppm;ctx.fillStyle=PAL['cv-ink'];ctx.fillRect(240,by,150,8);for(let x=250;x<390;x+=14)ctx.fillRect(x,by-28,3,28);ctx.fillRect(240,by-30,150,4);
+  txt(ctx,'balcony',250,by-38,{s:12*K,c:PAL['cv-soft']});
+  ctx.fillStyle=PAL['cv-bench'];ctx.fillRect(20,gy,760,6);
+  // the ball
+  let y=by-12;if(b.bp==='fall'){const tt=(now-b.bt0)/1000;y=by-12+0.5*GG*tt*tt*ppm;}else if(b.bp==='landed')y=gy-10;
+  ctx.fillStyle='#c8d84a';ctx.beginPath();ctx.arc(bx,Math.min(y,gy-10),10,0,6.29);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx-4,Math.min(y,gy-10),7,-1,1);ctx.stroke();
+  if(b.bp==='landed'&&now-b.land<400){ctx.strokeStyle='#d9573b';ctx.lineWidth=2;for(let i=0;i<5;i++){const a=Math.PI+i*Math.PI/4;ctx.beginPath();ctx.moveTo(bx+16*Math.cos(a),gy-4+12*Math.sin(a));ctx.lineTo(bx+28*Math.cos(a),gy-4+22*Math.sin(a));ctx.stroke();}}
+  if(b.bp==='count'){const n=Math.ceil((b.bt0-now)/1000);txt(ctx,n>0?String(n):'',bx+40,by-40,{s:28,w:700,c:'#d9573b'});}else if(b.bp==='fall'&&now-b.bt0<600)txt(ctx,'Drop!',bx+30,by-40,{s:24,w:700,c:'#d9573b'});
+  // tape measure (for the extension)
+  ctx.strokeStyle='#e0b43c';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(436,by);ctx.lineTo(436,gy);ctx.stroke();txt(ctx,'tape measure',446,(by+gy)/2,{s:12*K,c:PAL['cv-soft']});
+  RB.lcd(ctx,550,60,200,62,'TAPE: BALCONY HEIGHT',b.H.toFixed(2)+' m',k,24);
+  RB.drawWatch(ctx,550,150,k,b.w,'YOUR STOPWATCH');
+  const T=ffRec(sim).bw;txt(ctx,'Your stopwatch times:',550,236,{s:12*K,w:700,c:PAL['fg']});txt(ctx,(T.length?T.slice(-4).map(x=>x.toFixed(2)).join(', ')+' s':'none yet'),550,256,{s:12*K,c:PAL['fg']});}
+function ffCatch(sim){const b=RB.B(sim,'free-fall-guess');if(!b)return;const now=performance.now();
+  if(b.ph==='wait'){b.ph='idle';b.msg='Too early! You moved before the stick dropped. Press Get ready again.';return;}
+  if(b.ph!=='fall')return;const rt=(now-b.t0)/1000,d=0.5*GG*rt*rt;if(d>1.0){b.ph='missed';b.msg='Missed! The stick fell right through. Press Get ready to try again.';return;}
+  b.cm=Math.round(d*1000)/10;b.ph='caught';b.msg='';const R=ffRec(sim);R.rd.push(b.cm);if(R.rd.length>30)R.rd.shift();if(sim.vlab)BioLab.vlab.save(sim);}
+function ffReady(sim){const b=RB.B(sim,'free-fall-guess');if(!b)return;b.ph='wait';b.msg='';b.cm=null;b.wait=performance.now()+1000+2000*Math.random();BioLab.play(sim);}
+function ffDrop(sim){const b=RB.B(sim,'free-fall-guess');if(!b)return;b.bp='count';b.bt0=performance.now()+3000;b.land=null;BioLab.play(sim);}
+function ffWatch(sim){const b=RB.B(sim,'free-fall-guess');if(!b)return;const v=RB.watchToggle(b.w);if(v!==null&&v>0){const R=ffRec(sim);R.bw.push(v);if(R.bw.length>30)R.bw.shift();if(sim.vlab)BioLab.vlab.save(sim);}BioLab.play(sim);}
+const TR=['t1','t2','t3'],TRL=['Trial 1','Trial 2','Trial 3'];
+const ffCm=(sim,rv,v)=>{const R=ffRec(sim).rd;if(!R.length)return 'Catch the stick on the bench first, then read it at the top of your fingers.';return R.some(c=>Math.abs(c-v)<=0.15)?null:'That isn’t one of your catches. Your recent catches: '+R.slice(-4).map(c=>c.toFixed(1)).join(', ')+' cm. Read the magnified stick to 0.1 cm.';};
+const ffM=(sim,rv,v)=>{const r=TR.indexOf(String(rv)),c=sim.vlab.val('rt','cm',r);if(!Number.isFinite(c))return 'Record the reading in centimeters first.';return Math.abs(v-c/100)<=0.0006?null:'1 m = 100 cm, so divide the centimeters by 100.';};
+const ffSec=(sim,rv,v)=>{const R=ffRec(sim).bw;if(!R.length)return 'Time a drop on the bench first.';return R.some(x=>Math.abs(x-v)<=0.006)?null:'That isn’t one of your stopwatch times. Your recent times: '+R.slice(-4).map(x=>x.toFixed(2)).join(', ')+' s.';};
+const avg3=(V,tb,c)=>{const a=[0,1,2].map(r=>V.val(tb,c,r));return a.every(Number.isFinite)?(a[0]+a[1]+a[2])/3:NaN;};
+const LAB_FF={id:'free-fall-guess',title:'Free Fall Labs #1 and #2 with GUESS',course:'Physics',teachers:'Colella',level:'bio',
+  source:{label:'Free Fall Labs (2) (Canvas)',href:'https://rjhs.instructure.com/courses/16601/assignments/614631'},
+  purpose:'<p><b>Lab #1:</b> How long does it take for a meter stick to fall the distance you measure? <b>Lab #2:</b> How far does an object fall in the free-fall time you measure? Collect your own data, then use your average as the GIVEN in a GUESS problem.</p>',
+  background:'<p>An object in free fall speeds up at g = 9.8 m/s² (we ignore air resistance). Dropped from rest, it falls a distance <b>d = ½gt²</b> in a time t, so the time to fall a distance d is <b>t = √(2d/g)</b>.</p>'+
+    '<p><b>GUESS</b> is how you set up every problem: <b>G</b>ivens, <b>U</b>nknown, <b>E</b>quation, <b>S</b>ubstitute, <b>S</b>olve (with units).</p>'+
+    '<p><b>About the virtual bench.</b> In Lab #1 your partner drops the stick at a random moment, and the bench times <b>your real reaction</b> when you press Catch. Keep your eyes on the stick and try not to guess. In Lab #2 you start and stop the stopwatch yourself, so your reactions are part of every time, just as in class. Each student gets a slightly different balcony height. The tape measure is there for the extension question.</p>',
+  materials:['Meter stick','A partner','A ball and a balcony','Stopwatch','Tape measure'],
+  setup(sim){},
+  controls:['ffPart','ff-ready','ff-catch','ff-drop','ff-watch'],
+  steps:[
+    {title:'Lab #1: practice',text:'<p>Choose <b>Lab #1: meter stick</b>. Your partner holds the stick with the 0 cm mark between your open fingers. Press <b>Get ready</b>, then press <b>Catch!</b> the instant the stick starts to fall. You can also tap the stage, or keep the Catch button selected and press Space. Practice once or twice.</p>',setup(sim){BioLab.setValues(sim,{ffPart:'ruler'});}},
+    {title:'Lab #1: three trials',text:'<p>Do three trials. After each catch, read the stick at the top of your fingers in the magnifier, to 0.1 cm. Record each reading in centimeters and in meters in Table 1, then work out the average in meters.</p>',
+      setup(sim){BioLab.setValues(sim,{ffPart:'ruler'});},done:sim=>TR.every((x,r)=>sim.vlab.raw('c:rt:m:'+r).trim()!=='')&&sim.vlab.raw('k:avg1').trim()!=='',doneHint:'Fill in Table 1 and the average distance.'},
+    {title:'Lab #1: GUESS',text:'<p>Use your average distance as the GIVEN: how long does it take for a meter stick to fall that far? Fill in G, U, E, S, S in question 1 and record your answer in the calculations.</p>'},
+    {title:'Lab #2: three trials',text:'<p>Choose <b>Lab #2: balcony</b>. Press <b>Drop the ball</b>. Your partner counts down from 3 and lets go. Press <b>Start / stop stopwatch</b> when the ball is let go and again when it hits the ground. Do three trials and record each time in Table 2, then work out the average time.</p>',
+      setup(sim){BioLab.setValues(sim,{ffPart:'balcony'});},done:sim=>TR.every((x,r)=>sim.vlab.raw('c:bt:s:'+r).trim()!=='')&&sim.vlab.raw('k:avg2').trim()!=='',doneHint:'Fill in Table 2 and the average time.'},
+    {title:'Lab #2: GUESS',text:'<p>Use your average time as the GIVEN: how far does an object fall in that time? Fill in G, U, E, S, S in question 2 and record your answer in the calculations. Then try the extension.</p>'}],
+  tables:[{id:'rt',title:'Table 1 (Lab #1): reaction time data (1 m = 100 cm)',cols:[{id:'tr',label:'Trial',rows:TR,rowLabels:TRL},{id:'cm',label:'Distance the stick fell (cm)',input:'number',check:ffCm},{id:'m',label:'Distance (m)',input:'number',check:ffM}]},
+    {id:'bt',title:'Table 2 (Lab #2): fall time from the balcony',cols:[{id:'tr',label:'Trial',rows:TR,rowLabels:TRL},{id:'s',label:'Fall time (s)',input:'number',check:ffSec}]}],
+  calcs:[
+    {id:'avg1',label:'Lab #1: average distance the stick fell',unit:'m',input:'number',check:(sim,v,V)=>{const a=avg3(V,'rt','m');return !Number.isFinite(a)?'Fill in all three trials in meters first.':Math.abs(v-a)<=0.0006?null:'Add your three distances in meters and divide by 3.';}},
+    {id:'tg',label:'Lab #1 GUESS answer: time for the stick to fall your average distance',unit:'s',input:'number',check:(sim,v,V)=>{const d=vN(V.raw('k:avg1'));return !Number.isFinite(d)?'Work out your average distance first.':RB.rel(v,Math.sqrt(2*d/GG),0.012)?null:'From d = ½gt², t = √(2d/g). Use your average distance and g = 9.8 m/s².';}},
+    {id:'avg2',label:'Lab #2: average fall time',unit:'s',input:'number',check:(sim,v,V)=>{const a=avg3(V,'bt','s');return !Number.isFinite(a)?'Fill in all three trials first.':Math.abs(v-a)<=0.006?null:'Add your three times and divide by 3.';}},
+    {id:'dg',label:'Lab #2 GUESS answer: how far an object falls in your average time',unit:'m',input:'number',check:(sim,v,V)=>{const t=vN(V.raw('k:avg2'));return !Number.isFinite(t)?'Work out your average time first.':RB.rel(v,0.5*GG*t*t,0.012)?null:'d = ½gt². Use your average time and g = 9.8 m/s².';}},
+    {id:'pd',label:'Extension: percent difference between your GUESS answer and the tape-measure height, |d − h| ÷ h × 100',unit:'%',input:'number',check:(sim,v,V)=>{const d=vN(V.raw('k:dg')),b=RB.B(sim),h=b?b.H:ffH(sim);return !Number.isFinite(d)?'Work out your Lab #2 GUESS answer first.':Math.abs(v-Math.abs(d-h)/h*100)<=0.6?null:'Read the tape measure on the Lab #2 bench, then use |d − h| ÷ h × 100.';}}],
+  questions:[{id:'g1',n:'1',q:'<p><b>Lab #1 GUESS.</b> How long does it take for a meter stick to fall your average distance?</p>',fields:RB.GUESS},
+    {id:'g2',n:'2',q:'<p><b>Lab #2 GUESS.</b> How far does an object fall if the amount of time it free falls is your average time?</p>',fields:RB.GUESS},
+    {id:'x1',n:'Ext',q:'<p>Compare your Lab #2 GUESS answer with the tape-measure height. Your Lab #1 answer is your reaction time. How could reaction time make a hand-timed fall time too long or too short? Why does averaging three trials help?</p>'}]};
+function vN(s){s=String(s||'').trim().replace(/,/,'.');return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN;}
+SIM.controls.push({id:'ffPart',label:'Which lab',type:'seg',def:'ruler',vlab:true,noTrial:true,options:[{v:'ruler',l:'Lab #1: meter stick'},{v:'balcony',l:'Lab #2: balcony'}]});
+SIM.actions.push({id:'ff-ready',label:'Get ready',vlab:true,enabled:s=>{const b=RB.B(s,'free-fall-guess');return !!b&&s.p.ffPart==='ruler'&&b.ph!=='wait'&&b.ph!=='fall';},run(sim){ffReady(sim);}},
+  {id:'ff-catch',label:'Catch!',primary:true,vlab:true,enabled:s=>{const b=RB.B(s,'free-fall-guess');return !!b&&s.p.ffPart==='ruler';},run(sim){ffCatch(sim);}},
+  {id:'ff-drop',label:'Drop the ball',vlab:true,enabled:s=>{const b=RB.B(s,'free-fall-guess');return !!b&&s.p.ffPart==='balcony'&&b.bp!=='count'&&b.bp!=='fall';},run(sim){ffDrop(sim);}},
+  {id:'ff-watch',label:'Start / stop stopwatch',primary:true,vlab:true,enabled:s=>{const b=RB.B(s,'free-fall-guess');return !!b&&s.p.ffPart==='balcony';},run(sim){ffWatch(sim);}});
+SIM.labs=(SIM.labs||[]).concat([LAB_FF]);
+RB.attach(SIM,{'free-fall-guess':FFB});
+
 BioLab.register(SIM);
 })();
