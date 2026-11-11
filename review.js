@@ -163,7 +163,17 @@ freefall:{
     q:'A diver steps off a 10 m platform. Ignoring air, about how fast is she moving when she hits the water?',
     choices:['About 14 m/s','About 98 m/s','About 9.8 m/s','About 4.9 m/s'],correct:0,
     steps:['Use v² = 2gh, since she starts from rest.','v = √(2 × 9.8 × 10) = √196 = 14 m/s.','That is about 31 mph, and it would be the same for any diver, whatever she weighs.'],
-    lab:{set:{h:10},look:'Read <b>A impact speed</b> after the ball lands.'}}
+    lab:{set:{h:10},look:'Read <b>A impact speed</b> after the ball lands.'}},
+  {id:'knife',kind:'real',lvl:'bio',
+    q:'A knife slides off the counter. Your reaction time is 0.2 s. Why is “step back, don’t catch it” the right move?',
+    choices:['By the time you react it has already fallen about 20 cm and is moving about 2 m/s, so you would grab it blade first','A knife falls slower than other objects because it is thin','Your hand would push it faster toward the floor','Knives are too heavy to stop'],correct:0,
+    steps:['In 0.2 s a falling object drops d = ½gt² = ½ × 9.8 × 0.2² ≈ 0.2 m.','It is already moving v = gt = 9.8 × 0.2 ≈ 2 m/s.','From counter height (about 0.9 m) it lands in about 0.4 s, so there is no safe moment to grab it.'],
+    lab:{set:{h:1},look:'Drop from 1 m and read <b>A hit the ground at</b>.'}},
+  {id:'helmet',kind:'real',lvl:'bio',
+    q:'Bike helmets are tested by dropping them so they hit at 6.2 m/s. From about what height does a head fall to reach that speed?',
+    choices:['About 2 m, about from a bike seat to the road','About 20 m','About 0.2 m','About 6 m'],correct:0,
+    steps:['Starting from rest, v² = 2gh, so h = v² ÷ (2g).','h = 6.2² ÷ (2 × 9.8) = 38.4 ÷ 19.6 ≈ 2.0 m.','A fall from a bike puts your head about that high, which is why the test uses it (CPSC).'],
+    lab:{set:{h:2},look:'Drop from 2 m. With honors on, read <b>A impact speed</b>.'}}
   ]},
 vectors2d:{
   questions:[
