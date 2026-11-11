@@ -13,6 +13,17 @@ const L=20,PX0=40,PXW=720,SX=m=>PX0+m/L*PXW,DUR=10;
 const MODES={explore:'Cart',race:'Billiard race',match:'Graph matching'};
 const PANELS=[{x:62,y:236,w:200,h:150},{x:322,y:236,w:200,h:150},{x:582,y:236,w:200,h:150}];
 const CA='#3f6fb0',CB='#d9573b',CT='#7a7f87';
+const PXM=PXW/L; // pixels per metre
+/* A person drawn to scale (about 1.7 m tall). swing: leg swing for walking; lean: forward tilt (radians); skate: standing on a board. */
+function person(ctx,X,base,col,swing,lean,skate){const h=1.7*PXM,head=h*0.1,hip=base-h*0.47,sh=base-h*0.8;ctx.save();ctx.translate(X,base);ctx.rotate(lean||0);ctx.translate(-X,-base);
+  ctx.strokeStyle=col;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();
+  if(skate){ctx.moveTo(X-8,base);ctx.lineTo(X-3,hip+8);ctx.lineTo(X,hip);ctx.moveTo(X+8,base);ctx.lineTo(X+3,hip+8);ctx.lineTo(X,hip);}
+  else{ctx.moveTo(X,hip);ctx.lineTo(X-9*swing,base);ctx.moveTo(X,hip);ctx.lineTo(X+9*swing,base);}
+  ctx.moveTo(X,hip);ctx.lineTo(X,sh);
+  if(skate){ctx.moveTo(X,sh+4);ctx.lineTo(X-15,sh+12);ctx.moveTo(X,sh+4);ctx.lineTo(X+15,sh+10);}else{ctx.moveTo(X,sh+4);ctx.lineTo(X-8*swing,hip-4);ctx.moveTo(X,sh+4);ctx.lineTo(X+8*swing,hip-4);}
+  ctx.stroke();ctx.beginPath();ctx.arc(X,sh-head,head,0,6.29);ctx.stroke();ctx.restore();ctx.lineCap='butt';}
+/* A skateboard, 0.8 m long, to scale. */
+function board(ctx,X,base){const w=0.8*PXM;ctx.fillStyle='#8a5a2b';rr(ctx,X-w/2,base-6,w,4,2);ctx.fill();ctx.fillStyle='#333';[X-w/2+5,X+w/2-5].forEach(wx=>{ctx.beginPath();ctx.arc(wx,base-1,2.6,0,6.29);ctx.fill();});}
 
 function makeTarget(seed){const r=rng(seed),segs=[];let x=2+r()*6,t=0;const xs0=x;
   while(t<DUR-1e-9){const d=Math.min(DUR-t,2+Math.floor(r()*3));let v=[-1.5,-1,-0.5,0,0.5,1,1.5][Math.floor(r()*7)];
@@ -33,13 +44,14 @@ function record(sim){const s=sim.st,q=state(sim);s.h.push({t:sim.t,x:q.x,v:q.v,a
 function markNow(sim){const q=state(sim);sim.st.marks.push({t:sim.t,x:q.x});if(sim.st.marks.length>8)sim.st.marks.shift();}
 
 const SIM={
+  art:{SX,ty:136,P:PANELS,L,PXM},
   id:'motion1d',hash:'motion1d',apUnit:1,order:1,tab:'Motion in one dimension',kind:'Simulation',next:['freefall','linearize'],
-  card:'A cart, two racing billiard balls and a walker you steer, with live position, velocity and acceleration graphs and a motion diagram.',
+  card:'A skateboarder, two racing billiard balls and a walker you steer, with live position, velocity and acceleration graphs and a motion diagram.',
   title:'Motion in one dimension',
-  lede:{bio:'Watch a cart roll along a track while three graphs draw themselves. Learn to read where it is, how fast it goes and whether it is speeding up.',
+  lede:{bio:'Watch a skateboarder roll along a track while three graphs draw themselves. Learn to read where it is, how fast it goes and whether it is speeding up.',
         honors:'Connect the motion diagram, the x–t graph and the v–t graph: slope of x–t is velocity, area under v–t is displacement.',
         ap:'Model constant-acceleration motion with x = x₀ + v₀t + ½at², solve for meeting times, and treat velocity as the derivative of position.'},
-  scale:'Track 20 m long, marked every metre. Speeds up to 4 m/s, about a fast walk. The dots are 0.5 s apart.',
+  scale:'Drawn to scale: a 20 m track, marked every metre, with a 1.7 m skateboarder on a 0.8 m board. Speeds up to 4 m/s, about a fast walk. The dots are 0.5 s apart.',
   timeScale:1,dtMax:0.01,window:12,unit:'s',timeLabel:'Time',sampleDt:0.1,
   controls:[
     {id:'mode',label:'Activity',type:'seg',def:'explore',lvl:'bio',options:[{v:'explore',l:'Cart'},{v:'race',l:'Billiard race'},{v:'match',l:'Match the graph'}],onChange(sim){applyMode(sim);BioLab.reset(sim);}},
@@ -78,7 +90,7 @@ const SIM={
     {id:'score',label:'Match score',unit:'/ 100',min:0,max:100,d:0,mode:['match'],noTrial:true,get:s=>s.st.errN>0.2?Math.max(0,100-25*s.st.err/s.st.errN):NaN},
     {id:'disp',label:'Displacement since start',unit:'m',min:-20,max:20,d:2,mode:['explore'],get:s=>s.st.x-s.st.xStart},
     {id:'dist',label:'Distance traveled',unit:'m',min:0,max:40,d:2,mode:['explore'],get:s=>s.st.dist},
-    {id:'motion',label:'The cart is',unit:'',text:true,mode:['explore'],noTrial:true,get:s=>motionText(s)}
+    {id:'motion',label:'The skateboarder is',unit:'',text:true,mode:['explore'],noTrial:true,get:s=>motionText(s)}
   ],
   graphs:[{id:'x',label:'Position vs time (x–t)',custom:true},{id:'v',label:'Velocity vs time (v–t)',custom:true},{id:'a',label:'Acceleration vs time (a–t)',custom:true}],
   defaultGraph:'x',
@@ -106,40 +118,40 @@ const SIM={
     if(p.mode==='match'){if(sim.t<0.05)return 'Press <b>Play</b>, then drag <b>Walking velocity</b> to make the blue trace follow the dashed target. '+(p.tgt==='x'?'A flat target means stand still; a steeper target means walk faster.':'A target above zero means walk right; below zero means walk left.');
       if(sim.t>=DUR)return '<b>Time!</b> Final score '+Math.round(Math.max(0,100-25*s.err/Math.max(s.errN,1e-6)))+' / 100. Press <b>New target graph</b> to try another.';
       const g=tgtAt(s.T,sim.t);return 'Target right now: '+(p.tgt==='x'?'x = '+g.x.toFixed(1)+' m, sloping at '+g.v.toFixed(1)+' m/s':'v = '+g.v.toFixed(1)+' m/s')+'. You: x = '+s.x.toFixed(1)+' m, v = '+s.v.toFixed(1)+' m/s.';}
-    if(s.hit!==null)return 'The cart hit the '+(s.x<=0?'left':'right')+' bumper at t = '+s.hit.toFixed(2)+' s and stopped. Press <b>Reset</b> to run it again.';
+    if(s.hit!==null)return 'The skateboarder hit the '+(s.x<=0?'left':'right')+' bumper at t = '+s.hit.toFixed(2)+' s and stopped. Press <b>Reset</b> to run it again.';
     const v=s.v,a=s.aEff;let how;if(Math.abs(a)<1e-9)how=Math.abs(v)<1e-9?'is at rest':'moves at a steady '+Math.abs(v).toFixed(2)+' m/s to the '+(v>0?'right':'left')+': equal spacing between dots, zero acceleration';
     else if(Math.abs(v)<0.05)how='is momentarily at rest and about to move '+(a>0?'right':'left');else how=(v*a>0?'is speeding up':'is slowing down')+' while moving '+(v>0?'right':'left')+(v*a>0?': the dots spread out':': the dots bunch together');
-    return 'The cart '+how+'.'+(ap?' x(t) = '+fmtNum(p.x0,1)+' + ('+fmtNum(p.v0,1)+')t + ½('+fmtNum(p.a,1)+')t², so v = dx/dt = '+fmtNum(p.v0,1)+' + ('+fmtNum(p.a,1)+')t.':hon?' Slope of x–t = velocity; slope of v–t = acceleration.':'');},
+    return 'The skateboarder '+how+'.'+(ap?' x(t) = '+fmtNum(p.x0,1)+' + ('+fmtNum(p.v0,1)+')t + ½('+fmtNum(p.a,1)+')t², so v = dx/dt = '+fmtNum(p.v0,1)+' + ('+fmtNum(p.a,1)+')t.':hon?' Slope of x–t = velocity; slope of v–t = acceleration.':'');},
   tour:[
-    {title:'The track',text:'A cart on a 20 m track. The ruler is marked every metre. Position x is measured from the left end.',focus:[20,30,770,150],pause:true,setup(sim){BioLab.setValues(sim,{mode:'explore',x0:2,v0:1.5,a:0});BioLab.reset(sim);}},
-    {title:'Motion diagram',text:'Every half second the cart leaves a dot. Equal spacing means steady speed.',focus:[20,150,770,52],speed:1},
-    {title:'Position vs time',text:{bio:'This graph plots where the cart is at each moment. A steady speed makes a straight, sloped line.',honors:'Slope of x–t = Δx/Δt = velocity. Steeper means faster; downward means moving left.'},focus:[20,212,256,206],speed:1},
+    {title:'The track',text:'A skateboarder on a 20 m track. The ruler is marked every metre. Position x is measured from the left end.',focus:[20,30,770,150],pause:true,setup(sim){BioLab.setValues(sim,{mode:'explore',x0:2,v0:1.5,a:0});BioLab.reset(sim);}},
+    {title:'Motion diagram',text:'Every half second the skateboarder leaves a dot. Equal spacing means steady speed.',focus:[20,150,770,52],speed:1},
+    {title:'Position vs time',text:{bio:'This graph plots where the skateboarder is at each moment. A steady speed makes a straight, sloped line.',honors:'Slope of x–t = Δx/Δt = velocity. Steeper means faster; downward means moving left.'},focus:[20,212,256,206],speed:1},
     {title:'Velocity vs time',text:{bio:'Velocity stays the same, so this line is flat.',honors:'Flat line at 1.5 m/s. The area under it, velocity × time, is the displacement.'},focus:[280,212,256,206],pause:true},
     {title:'Acceleration vs time',text:'No speeding up or slowing down: acceleration is zero.',focus:[540,212,256,206],pause:true},
     {title:'Now add acceleration',text:{bio:'With a = 0.5 m/s² the dots spread apart, the x–t line curves upward and the v–t line slopes up.',honors:'v = v₀ + at climbs steadily; x = x₀ + v₀t + ½at² is a parabola.'},focus:[20,30,770,390],speed:1,setup(sim){BioLab.setValues(sim,{a:0.5,v0:0});BioLab.reset(sim);}},
-    {title:'Negative acceleration, speeding up',text:{bio:'Now the cart starts at 18 m moving left (v₀ = −1 m/s) with a = −0.5 m/s². Both are negative, so it speeds up to the left. A negative acceleration does not always mean slowing down: compare the signs of v and a.',honors:'v and a are both negative, so |v| grows: speeding up. The x–t curve bends downward and gets steeper; the v–t line slopes down from −1 m/s.'},focus:[20,30,770,390],speed:1,setup(sim){BioLab.setValues(sim,{x0:18,v0:-1,a:-0.5});BioLab.reset(sim);}},
+    {title:'Negative acceleration, speeding up',text:{bio:'Now the skateboarder starts at 18 m moving left (v₀ = −1 m/s) with a = −0.5 m/s². Both are negative, so it speeds up to the left. A negative acceleration does not always mean slowing down: compare the signs of v and a.',honors:'v and a are both negative, so |v| grows: speeding up. The x–t curve bends downward and gets steeper; the v–t line slopes down from −1 m/s.'},focus:[20,30,770,390],speed:1,setup(sim){BioLab.setValues(sim,{x0:18,v0:-1,a:-0.5});BioLab.reset(sim);}},
     {title:'Billiard race',text:'Ball A rolls faster but starts behind. Where the x–t lines cross, the balls are side by side.',focus:[20,30,770,390],speed:1.5,setup(sim){BioLab.setValues(sim,{mode:'race',vA:1.5,vB:0.5,gap:4});}},
     {title:'Match the graph',text:'Your turn: steer a walker in front of a motion detector so your graph traces the dashed target.',focus:[20,30,770,390],pause:true,setup(sim){BioLab.setValues(sim,{mode:'match',tgt:'x'});}}
   ],
   onTourExit(sim){BioLab.setValues(sim,{mode:'explore',x0:2,v0:1.5,a:0});BioLab.reset(sim);},
   onLevel(sim){applyMode(sim);},
-  lab:{bio:'<p><b>Question:</b> How does a cart’s speed show up on each graph?</p><ol><li>Run the cart at 1 m/s, then at 3 m/s. Sketch both x–t graphs.</li><li>Set a = 0.5 m/s² and v₀ = 0. Describe the dots and the x–t shape.</li><li>Play Match the graph three times and record your best score.</li></ol>',
-       honors:'<p><b>Question:</b> Does the area under v–t equal the displacement?</p><ol><li>Choose v₀ and a, run for 4 s, and record the shaded area.</li><li>Use Mark position at t = 0 and t = 4 s to measure the actual displacement.</li><li>Repeat with a negative acceleration so the cart turns around.</li></ol>',
-       ap:'<p><b>Question:</b> When and where do two objects meet?</p><ol><li>In Billiard race, write x_A(t) and x_B(t) and solve x_A = x_B.</li><li>Test three combinations of speeds and head starts; compare prediction with the meeting readout.</li><li>For the cart, derive v(t) from x(t) and check the turnaround time v = 0.</li></ol>'},
+  lab:{bio:'<p><b>Question:</b> How does a skateboarder’s speed show up on each graph?</p><ol><li>Run the skateboarder at 1 m/s, then at 3 m/s. Sketch both x–t graphs.</li><li>Set a = 0.5 m/s² and v₀ = 0. Describe the dots and the x–t shape.</li><li>Play Match the graph three times and record your best score.</li></ol>',
+       honors:'<p><b>Question:</b> Does the area under v–t equal the displacement?</p><ol><li>Choose v₀ and a, run for 4 s, and record the shaded area.</li><li>Use Mark position at t = 0 and t = 4 s to measure the actual displacement.</li><li>Repeat with a negative acceleration so the skateboarder turns around.</li></ol>',
+       ap:'<p><b>Question:</b> When and where do two objects meet?</p><ol><li>In Billiard race, write x_A(t) and x_B(t) and solve x_A = x_B.</li><li>Test three combinations of speeds and head starts; compare prediction with the meeting readout.</li><li>For the skateboarder, derive v(t) from x(t) and check the turnaround time v = 0.</li></ol>'},
   terms:[{t:'Position',d:'Where an object is, measured from a chosen origin (here, the left end).'},{t:'Velocity',d:'How fast and in which direction position changes. Negative means moving left.'},{t:'Acceleration',d:'How fast velocity changes. Zero acceleration means steady velocity.'},{t:'Distance vs. displacement',d:'Distance is the total path length, always positive. Displacement is final position minus starting position, and can be negative or zero.'},{t:'Speeding up or slowing down',d:'Speeding up when v and a have the same sign; slowing down when they have opposite signs.'},{t:'Motion diagram',d:'Dots showing the object’s position at equal time intervals.'},
     {lvl:'honors',t:'Displacement',d:'Change in position, Δx = x_final − x_initial. Equals the area under the v–t graph.'},{lvl:'honors',t:'Slope',d:'On an x–t graph the slope is velocity; on a v–t graph it is acceleration.'},
     {lvl:'ap',t:'Derivative',d:'v = dx/dt and a = dv/dt: the instantaneous slopes.'},{lvl:'ap',t:'Integral',d:'Δx = ∫v dt: the signed area under the v–t curve.'}],
-  about:'<p>Constant-acceleration kinematics integrated in 0.01 s steps: v += a·dt, x += v·dt. The bumpers at 0 and 20 m stop the cart. Billiard balls roll at constant velocity with no friction and pass in separate lanes rather than colliding. In Match the graph the walker’s velocity is whatever the slider says, so velocity can change instantly (real walkers need a moment to speed up). Graphs record every 0.05 s.</p>',
+  about:'<p>Constant-acceleration kinematics integrated in 0.01 s steps: v += a·dt, x += v·dt. The bumpers at 0 and 20 m stop the skateboarder. Billiard balls roll at constant velocity with no friction and pass in separate lanes rather than colliding. In Match the graph the walker’s velocity is whatever the slider says, so velocity can change instantly (real walkers need a moment to speed up). Graphs record every 0.05 s.</p>',
   challenges:[
-    {lvl:'bio',baseline:{mode:'explore',x0:2,v0:2,a:0},watch:'a',reveal:3,q:'The cart rolls at a steady 2 m/s. What will the acceleration graph show?',choices:['A flat line at zero','A flat line at 2 m/s²','A line that climbs'],correct:0,explain:'Acceleration measures how fast velocity changes. The velocity stays 2 m/s, so the acceleration is zero the whole time.'},
-    {lvl:'bio',baseline:{mode:'explore',x0:0,v0:3,a:0},watch:'x',reveal:3,q:'Compared with a cart at 1.5 m/s, what will the position graph look like for a cart at 3 m/s?',choices:['A steeper straight line','A line that curves upward','The same slope, just higher'],correct:0,explain:'Faster means more metres every second, so the x–t line rises more steeply. It stays straight because the speed does not change.'},
-    {lvl:'bio',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'x',reveal:4,q:'The cart starts at rest and speeds up steadily. What happens to the gaps between the motion-diagram dots?',choices:['They get wider','They stay equal','They get narrower'],correct:0,explain:'Each half second the cart is moving faster than the last, so it covers more distance: the dots spread out and the x–t graph curves upward.'},
-    {lvl:'bio',baseline:{mode:'explore',x0:19,v0:-2,a:-1},watch:'v',reveal:2,q:'The cart moves left at 2 m/s (v₀ = −2 m/s), and its acceleration is −1 m/s². Is it speeding up or slowing down?',choices:['Slowing down, because the acceleration is negative','Speeding up, because v and a point the same way','Neither: it moves at a steady speed'],correct:1,explain:'Negative only means “toward the left.” Velocity and acceleration both point left, so the cart gets faster: after 2 s its velocity is −4 m/s. An object slows down only when v and a point opposite ways.'},
-    {lvl:'bio',baseline:{mode:'explore',x0:4,v0:2,a:-1},watch:'x',reveal:4,q:'The cart starts at 4 m moving right at 2 m/s with a = −1 m/s². After 4 s, what are its displacement and the distance it traveled?',choices:['Displacement 0 m, distance 4 m','Displacement 4 m, distance 4 m','Displacement 0 m, distance 0 m'],correct:0,explain:'It rolls right for 2 s, reaching 6 m, then turns around and rolls back to 4 m. Distance counts every metre of the trip: 2 + 2 = 4 m. Displacement is only final minus start: 4 − 4 = 0 m.'},
-    {lvl:'honors',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'x',reveal:4,q:'Starting from rest with a = 1 m/s², where will the cart be after 4 s?',choices:['4 m','8 m','16 m'],correct:1,explain:'x = ½at² = ½(1)(4²) = 8 m. Distance grows with t², not t.'},
-    {lvl:'honors',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'v',reveal:3,q:'Velocity climbs from 0 to 3 m/s in 3 s. What is the area under the v–t graph, and what does it tell you?',choices:['4.5 m: the displacement','9 m: the displacement','1 m/s²: the acceleration'],correct:0,explain:'The area is a triangle: ½ × 3 s × 3 m/s = 4.5 m. Area under v–t is displacement; check the cart’s position readout.'},
+    {lvl:'bio',baseline:{mode:'explore',x0:2,v0:2,a:0},watch:'a',reveal:3,q:'The skateboarder rolls at a steady 2 m/s. What will the acceleration graph show?',choices:['A flat line at zero','A flat line at 2 m/s²','A line that climbs'],correct:0,explain:'Acceleration measures how fast velocity changes. The velocity stays 2 m/s, so the acceleration is zero the whole time.'},
+    {lvl:'bio',baseline:{mode:'explore',x0:0,v0:3,a:0},watch:'x',reveal:3,q:'Compared with a skateboarder at 1.5 m/s, what will the position graph look like for a skateboarder at 3 m/s?',choices:['A steeper straight line','A line that curves upward','The same slope, just higher'],correct:0,explain:'Faster means more metres every second, so the x–t line rises more steeply. It stays straight because the speed does not change.'},
+    {lvl:'bio',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'x',reveal:4,q:'The skateboarder starts at rest and speeds up steadily. What happens to the gaps between the motion-diagram dots?',choices:['They get wider','They stay equal','They get narrower'],correct:0,explain:'Each half second the skateboarder is moving faster than the last, so it covers more distance: the dots spread out and the x–t graph curves upward.'},
+    {lvl:'bio',baseline:{mode:'explore',x0:19,v0:-2,a:-1},watch:'v',reveal:2,q:'The skateboarder moves left at 2 m/s (v₀ = −2 m/s), and its acceleration is −1 m/s². Is it speeding up or slowing down?',choices:['Slowing down, because the acceleration is negative','Speeding up, because v and a point the same way','Neither: it moves at a steady speed'],correct:1,explain:'Negative only means “toward the left.” Velocity and acceleration both point left, so the skateboarder gets faster: after 2 s its velocity is −4 m/s. An object slows down only when v and a point opposite ways.'},
+    {lvl:'bio',baseline:{mode:'explore',x0:4,v0:2,a:-1},watch:'x',reveal:4,q:'The skateboarder starts at 4 m moving right at 2 m/s with a = −1 m/s². After 4 s, what are its displacement and the distance it traveled?',choices:['Displacement 0 m, distance 4 m','Displacement 4 m, distance 4 m','Displacement 0 m, distance 0 m'],correct:0,explain:'It rolls right for 2 s, reaching 6 m, then turns around and rolls back to 4 m. Distance counts every metre of the trip: 2 + 2 = 4 m. Displacement is only final minus start: 4 − 4 = 0 m.'},
+    {lvl:'honors',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'x',reveal:4,q:'Starting from rest with a = 1 m/s², where will the skateboarder be after 4 s?',choices:['4 m','8 m','16 m'],correct:1,explain:'x = ½at² = ½(1)(4²) = 8 m. Distance grows with t², not t.'},
+    {lvl:'honors',baseline:{mode:'explore',x0:0,v0:0,a:1},watch:'v',reveal:3,q:'Velocity climbs from 0 to 3 m/s in 3 s. What is the area under the v–t graph, and what does it tell you?',choices:['4.5 m: the displacement','9 m: the displacement','1 m/s²: the acceleration'],correct:0,explain:'The area is a triangle: ½ × 3 s × 3 m/s = 4.5 m. Area under v–t is displacement; check the skateboarder’s position readout.'},
     {lvl:'ap',baseline:{mode:'race',vA:1.5,vB:0.5,gap:4},watch:'x',reveal:6,q:'Ball A (1.5 m/s) starts 4 m behind ball B (0.5 m/s). When does A catch B?',choices:['t = 4 s','t = 2 s','t = 8 s','Never'],correct:0,explain:'x_A = 1.5t and x_B = 4 + 0.5t. Setting them equal: t = 4 / (1.5 − 0.5) = 4 s, at x = 6 m. On the x–t graph that is where the lines cross.'},
-    {lvl:'ap',baseline:{mode:'explore',x0:2,v0:3,a:-1},watch:'v',reveal:5,q:'The cart starts at x = 2 m moving right at 3 m/s with a = −1 m/s². When and where does it turn around?',choices:['t = 3 s at x = 6.5 m','t = 3 s at x = 11 m','It never turns around'],correct:0,explain:'v = 3 − t = 0 at t = 3 s. Then x = 2 + 3(3) − ½(1)(3²) = 6.5 m. The x–t graph peaks there: zero slope means zero velocity.'},
+    {lvl:'ap',baseline:{mode:'explore',x0:2,v0:3,a:-1},watch:'v',reveal:5,q:'The skateboarder starts at x = 2 m moving right at 3 m/s with a = −1 m/s². When and where does it turn around?',choices:['t = 3 s at x = 6.5 m','t = 3 s at x = 11 m','It never turns around'],correct:0,explain:'v = 3 − t = 0 at t = 3 s. Then x = 2 + 3(3) − ½(1)(3²) = 6.5 m. The x–t graph peaks there: zero slope means zero velocity.'},
     {lvl:'ap',instant:true,q:'x(t) = 2 + 3t − 0.5t² (metres, seconds). What are v(t) and a?',choices:['v = 3 − t, a = −1 m/s²','v = 3 − 0.5t, a = −0.5 m/s²','v = 2 + 3t, a = 3 m/s²'],correct:0,explain:'Differentiate: v = dx/dt = 3 − t, then a = dv/dt = −1 m/s². The ½ in ½at² is why the coefficient −0.5 means a = −1.'}
   ],
   onClick(sim,x,y){if(y<210)markNow(sim);},
@@ -147,7 +159,8 @@ const SIM={
   draw(sim,ctx,vdt,k,t){const s=sim.st,p=sim.p,race=p.mode==='race',match=p.mode==='match',hon=atLeast('honors');k=Math.min(k,1.3);
     ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
     // table / floor
-    if(race){ctx.fillStyle='#2f7d55';rr(ctx,24,48,752,100,10);ctx.fill();ctx.strokeStyle='#6b4a2b';ctx.lineWidth=6;rr(ctx,24,48,752,100,10);ctx.stroke();}
+    const walk=race&&sim.lnKey==='race';
+    if(race&&!walk){ctx.fillStyle='#2f7d55';rr(ctx,24,48,752,100,10);ctx.fill();ctx.strokeStyle='#6b4a2b';ctx.lineWidth=6;rr(ctx,24,48,752,100,10);ctx.stroke();}
     else{ctx.fillStyle=PAL['cv-bg2'];rr(ctx,24,48,752,100,10);ctx.fill();}
     const ty=136;ctx.fillStyle=PAL['cv-bench'];ctx.fillRect(PX0,ty,PXW,6);
     // ruler
@@ -160,7 +173,9 @@ const SIM={
       s.dots.forEach(d=>{ctx.fillStyle=CA;ctx.beginPath();ctx.arc(SX(d.x),dy+(race?0:6),4,0,6.29);ctx.fill();if(race){ctx.fillStyle=CB;ctx.beginPath();ctx.arc(SX(d.xb),dy+14,4,0,6.29);ctx.fill();}
         if(Math.abs(d.t-Math.round(d.t))<1e-6&&d.t>0&&d.t%2===0)txt(ctx,d.t+'s',SX(d.x),dy-6+(race?0:6),{s:9*k,a:'center',c:PAL['muted']});});}
     // objects
-    if(race){[[s.xa,CA,'A',100],[s.xb,CB,'B',122]].forEach(([x,c,l,y])=>{const X=SX(x);ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(X+3,y+9,10,4,0,0,6.29);ctx.fill();
+    if(walk){[[s.xb,CB,'Friend',p.vB],[s.xa,CA,'You',p.vA]].forEach(([x,c,l,v])=>{const X=SX(x),sw=x<L&&!RM?Math.sin(sim.t*v*5):0;person(ctx,X,ty,c,sw,0,false);txt(ctx,l,X,ty-74,{s:12*k,w:700,a:'center',c});});
+      if(s.meet){const X=SX(s.meet.x);pill(ctx,'Side by side: '+s.meet.t.toFixed(2)+' s',clamp(X,90,710),62,'#ffd23f','#222',11*k);}}
+    else if(race){[[s.xa,CA,'A',100],[s.xb,CB,'B',122]].forEach(([x,c,l,y])=>{const X=SX(x);ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(X+3,y+9,10,4,0,0,6.29);ctx.fill();
         const gr=ctx.createRadialGradient(X-4,y-4,2,X,y,11);gr.addColorStop(0,'#fff');gr.addColorStop(0.35,c);gr.addColorStop(1,c);ctx.fillStyle=gr;ctx.beginPath();ctx.arc(X,y,10,0,6.29);ctx.fill();txt(ctx,l,X,y+1,{s:10,w:700,c:'#fff',a:'center',b:'middle'});});
       if(s.meet){const X=SX(s.meet.x);ctx.strokeStyle='#ffd23f';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(X,56);ctx.lineTo(X,140);ctx.stroke();ctx.setLineDash([]);pill(ctx,'Meet: '+s.meet.t.toFixed(2)+' s',clamp(X,90,710),62,'#ffd23f','#222',11*k);}}
     else if(match){const X=SX(s.x);ctx.fillStyle=PAL['cv-ink'];rr(ctx,PX0-8,ty-44,22,22,4);ctx.fill();txt(ctx,'detector',PX0-8,ty-50,{s:10*k,c:PAL['cv-soft']});
@@ -168,15 +183,14 @@ const SIM={
       const sw=Math.sin(sim.t*8)*(Math.abs(s.v)>0.05?1:0);ctx.strokeStyle=CA;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.arc(X,ty-66,7,0,6.29);ctx.stroke();ctx.beginPath();ctx.moveTo(X,ty-58);ctx.lineTo(X,ty-30);ctx.moveTo(X,ty-30);ctx.lineTo(X-8*sw,ty-4);ctx.moveTo(X,ty-30);ctx.lineTo(X+8*sw,ty-4);ctx.moveTo(X,ty-50);ctx.lineTo(X+10,ty-38);ctx.moveTo(X,ty-50);ctx.lineTo(X-10,ty-38);ctx.stroke();ctx.lineCap='butt';
       if(p.tgt==='x'){const g=tgtAt(s.T,Math.min(sim.t,DUR));ctx.strokeStyle=CT;ctx.setLineDash([3,3]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(SX(g.x),ty-80);ctx.lineTo(SX(g.x),ty);ctx.stroke();ctx.setLineDash([]);txt(ctx,'target',SX(g.x),ty-84,{s:10*k,a:'center',c:CT});}
       const left=Math.max(0,DUR-sim.t);pill(ctx,left>0?left.toFixed(1)+' s left':'Done',700,64,left>0?CA:PAL['s3'],'#fff',12*k);}
-    else{const X=SX(s.x);ctx.fillStyle=CA;rr(ctx,X-26,ty-30,52,22,5);ctx.fill();ctx.fillStyle=PAL['cv-ink'];[X-15,X+15].forEach(wx=>{ctx.beginPath();ctx.arc(wx,ty-6,6,0,6.29);ctx.fill();});
-      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X,ty-30);ctx.lineTo(X,ty-8);ctx.stroke();
+    else{const X=SX(s.x);board(ctx,X,ty);person(ctx,X,ty-6,CA,0,clamp(s.aEff*0.12,-0.25,0.25),true);
       const arrow=(v,c,y,lab)=>{if(Math.abs(v)<0.02)return;const len=v*28,x1=X+len;ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X,y);ctx.lineTo(x1,y);ctx.stroke();const dir=Math.sign(len);ctx.beginPath();ctx.moveTo(x1+dir*7,y);ctx.lineTo(x1-dir*2,y-6);ctx.lineTo(x1-dir*2,y+6);ctx.closePath();ctx.fill();txt(ctx,lab,x1+dir*12,y+4,{s:11*k,w:700,c,a:dir>0?'left':'right'});};
-      arrow(s.v,PAL['s2'],ty-44,'v');arrow(s.aEff*2,PAL['s3'],ty-60,'a');}
+      arrow(s.v,PAL['s2'],ty-80,'v');arrow(s.aEff*2,PAL['s3'],ty-94,'a');}
     // marks
     s.marks.forEach(m=>{const X=SX(m.x);ctx.strokeStyle=PAL['s4'];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X,ty+6);ctx.lineTo(X,ty-6-(race?20:40));ctx.stroke();ctx.fillStyle=PAL['s4'];ctx.beginPath();ctx.moveTo(X,ty-6-(race?20:40));ctx.lineTo(X+14,ty-(race?22:42));ctx.lineTo(X,ty-(race?18:38));ctx.fill();});
     // stopwatch
     ctx.fillStyle=PAL['card'];rr(ctx,30,8,150,32,8);ctx.fill();ctx.strokeStyle=PAL['line'];ctx.lineWidth=1;ctx.stroke();txt(ctx,'⏱ '+Math.max(0,sim.t).toFixed(2)+' s',105,25,{s:15*k,w:700,a:'center',b:'middle',c:PAL['fg']});
-    txt(ctx,MODES[p.mode].toUpperCase()+(p.strobe?'   ·   dots below the ruler: one every 0.5 s':''),196,25,{s:12*k,w:700,c:PAL['cv-soft'],b:'middle'});
+    txt(ctx,(walk?'CATCH-UP: YOU AND A FRIEND':MODES[p.mode].toUpperCase())+(p.strobe?'   ·   dots below the ruler: one every 0.5 s':''),196,25,{s:12*k,w:700,c:PAL['cv-soft'],b:'middle'});
     if(s.marks.length&&hon){let mx=40;txt(ctx,'Marks:',mx,64,{s:11*k,w:700,c:race?'#fff':PAL['cv-soft'],b:'middle'});mx+=46;s.marks.slice(-3).forEach(m=>{txt(ctx,m.t.toFixed(1)+' s, '+m.x.toFixed(1)+' m',mx,64,{s:11*k,c:race?'#fff':PAL['fg'],b:'middle'});mx+=104;});}
     // three live mini-graphs
     const tmax=Math.max(DUR,Math.ceil(sim.t)),H=s.h;
