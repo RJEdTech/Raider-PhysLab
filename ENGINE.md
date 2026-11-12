@@ -118,3 +118,13 @@ Add AP-style written questions in `frq.js` with `BioLab.addFRQ({<id>:[{id,kind,t
 - **Figures:** use the theme classes so dark mode works: `ln` (ink line), `lt` (muted line), `dash`, `sf` (filled shape), `gnd` (ground), `ac`/`acf` (accent line/fill), `hf`/`mf` (ink/muted arrowheads), `tx`/`tm` (ink/muted text). Keep labels off lines and paths, and check them at 400 px.
 - **Home, course view and unit paths** pick FRQs up automatically: a “Free response” tag on the card, a “Free-response practice” row in each course unit, and a “Free-response practice” step in `#u-<course>-<n>`. `#c-<courseId>` opens the course view, the same as `#path-<courseId>`.
 - `verify:[{set,act,run,runPhase,m,v,tol}]` on a question is read only by the test script: it sets the controls, runs the action, steps the model `run` seconds (or until `sim.st.phase==='run'`), and compares metric `m` with `v`.
+
+## Reading pace (Nov 12, 2026)
+The first time a student meets a step, its Next / Finish / answer buttons wait 3–5 s (3 s, plus more for long text, capped at 5 s).
+While they wait, a cue above the buttons says what to look at ("Watch the model", "Read why") with a small fill bar, and the step's `focus` box pulses.
+- Gated: walkthrough Next (Guided and Learn it), prediction choices, the Next/Finish after a prediction result, review choices and Next after feedback, virtual-lab step Next, and (math engine) the reveal's Next.
+- Never gated: Back, Skip to the full lab, the mode bar, Run it again, steps already seen this visit, the gut answer, typed answers, games, FRQ.
+- Buttons are blocked with the `pace-wait` class and `aria-disabled`, not `disabled`, so the virtual lab's own `disabled` checks keep working. A capture-phase click listener on `document` swallows early clicks and nudges the cue.
+- `?pace=off` turns it off in that browser for every Raider Labs site (shared `raider-labs-pace` key in localStorage); `?pace=on` turns it back on.
+- Hooks are wrappers on `tourGo`, `renderChallenge`, `renderReview`, `vlGo` (and `guideReveal` in the math engine), so a step that renders through those gets the wait with no change to the sim.
+- Playwright treats `aria-disabled` buttons as disabled and waits; use `click(force=True)` to test an early click.
