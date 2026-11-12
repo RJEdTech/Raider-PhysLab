@@ -29,6 +29,28 @@ function syncMode(sim){const id=sim.def.id,m=sim.p.mode;
 const pl=p=>PLANETS[p.planet]||PLANETS.earth;
 const gAt=(p,r)=>9.82*pl(p).M/(r*r*pl(p).R*pl(p).R);   // N/kg at r planet radii
 
+/* Step "Newton's cannon": a 400 km drop is only about 11 px at the full-Earth scale, so a zoomed circle at the right shows the
+   tower and the ball falling, with a dot every 40 s (the gaps grow as it speeds up). It drops again 1.5 s after it lands. */
+function zoomDrop(sim,ctx,LH,k){const p=sim.p,s=sim.st,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc)return;
+  if(s.done==='crash'){if(!sim._zdT)sim._zdT=performance.now();else if(performance.now()-sim._zdT>1500){launch(s,p);sim._zdT=0;}}else sim._zdT=0;
+  if(!sim._zd||s.tt<sim._zd.t)sim._zd={t:s.tt,pts:[[0,p.h*1000]],next:40};
+  const alt=Math.max(0,Math.hypot(s.x,s.y)-RE);while(s.tt>=sim._zd.next&&!s.done){sim._zd.pts.push([sim._zd.next,alt]);sim._zd.next+=40;}sim._zd.t=s.tt;
+  const cx=650,cy=300,R=100,gY=cy+72,kpx=140/Math.max(1,p.h*1000);
+  // dashed link from the real tower top to the zoom circle
+  const tx=300,ty=236-(RE+p.h*1000)*sc;ctx.save();ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(tx+8,ty);ctx.lineTo(cx-R*0.9,cy-R*0.45);ctx.stroke();ctx.restore();
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,6.29);ctx.fillStyle=SPACE;ctx.fill();ctx.clip();
+  ctx.fillStyle='rgba(120,180,255,.25)';ctx.fillRect(cx-R,gY-14,2*R,14);
+  ctx.fillStyle='#3f8a4a';ctx.fillRect(cx-R,gY,2*R,R);
+  const topY=gY-p.h*1000*kpx;ctx.fillStyle='#d8c3a0';ctx.beginPath();ctx.moveTo(cx-20,gY+1);ctx.lineTo(cx-10,topY);ctx.lineTo(cx,gY+1);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-36,topY);ctx.lineTo(cx-36,gY);ctx.moveTo(cx-40,topY);ctx.lineTo(cx-32,topY);ctx.moveTo(cx-40,gY);ctx.lineTo(cx-32,gY);ctx.stroke();
+  txt(ctx,Math.round(p.h)+' km',cx-42,(topY+gY)/2+4,{s:11*k,w:700,c:SINK,a:'right'});
+  const bx=cx+18;sim._zd.pts.forEach(([t,a])=>{ctx.fillStyle='rgba(255,179,71,.45)';ctx.beginPath();ctx.arc(bx,gY-a*kpx,4,0,6.29);ctx.fill();});
+  const by=gY-alt*kpx-(s.done?6:0);if(!s.done)arrow(ctx,bx+16,by,0,26,'#ff6b6b',3);
+  ctx.fillStyle='#ffb347';ctx.beginPath();ctx.arc(bx,by,7,0,6.29);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.restore();ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,R,0,6.29);ctx.stroke();
+  pill(ctx,'Zoomed in',cx,cy-R-2,'#33415a','#fff',11*k);
+  txt(ctx,'dot every 40 s',cx+R*0.05,cy+R+16*k,{s:11*k,w:600,c:SSOFT,a:'center'});}
+
 const SIM={
   id:'gravity',hash:'gravity',apUnit:2,order:6,tab:'Gravity and orbits',kind:'Simulation',
   card:'Fire Newton’s cannon until the ball falls, orbits or escapes, test the inverse-square law, pull two masses together and see how the Moon raises tides.',
@@ -133,7 +155,7 @@ const SIM={
     return 'Too slow to orbit ('+p.v0.toFixed(1)+' km/s, but '+vc.toFixed(1)+' km/s is needed). The ball falls toward Earth faster than the surface curves away, so it will hit the ground.';},
   tour:[
     {title:'Newton’s cannon',text:'Isaac Newton imagined a cannon on a mountain so tall it sticks out of the air. With no launch speed, the ball just falls straight down.',
-     focus:[[100,20,400,420],[560,14,230,140]],pause:true,setup(sim){BioLab.setValues(sim,{mode:'cannon',v0:0,h:400});syncMode(sim);}},
+     focus:[[100,20,400,420],[540,180,220,250]],speed:0.25,overlay:zoomDrop,setup(sim){BioLab.setValues(sim,{mode:'cannon',v0:0,h:400});syncMode(sim);}},
     {title:'A slow shot',text:'At 3 km/s the ball curves and hits the ground a short distance away. Gravity bends its path toward Earth’s center the whole time.',
      focus:[100,20,400,420],speed:0.5,setup(sim){BioLab.setValues(sim,{v0:3});}},
     {title:'Faster: it lands farther',text:'At 6.5 km/s it lands much farther away, because the round Earth curves away beneath the falling ball.',
@@ -159,6 +181,31 @@ const SIM={
     {lvl:'ap',t:'Escape speed',d:'v = √(2GM/r): the launch speed that gives zero total energy, so the object never returns.'},{lvl:'ap',t:'Kepler’s third law',d:'T² = (4π²/GM)·a³ for any orbit around the same central body.'},
     {lvl:'ap',t:'Specific orbital energy',d:'E/m = v²/2 − GM/r. Negative means bound (ellipse); zero or positive means escape.'}],
   about:'<p><b>Newton’s cannon:</b> the ball moves under Earth’s gravity alone, a = −GM r̂/r², with GM = 3.986×10¹⁴ m³/s² and R = 6371 km, integrated with velocity-Verlet steps of 3 s. There is no air drag and Earth does not rotate. The tower is imaginary: a real 400 km tower is impossible.</p><p><b>Inverse-square law:</b> g = 9.82 × (M/M_E)/(r·R/R_E)². Planet data: Moon 0.0123 M_E, 0.273 R_E; Mars 0.107, 0.532; Jupiter 317.8, 11.21 (Jupiter’s “surface” is its cloud tops). Planets are treated as uniform spheres.</p>',
+  /* The opening question, drawn: three throws from the tower trace out one after another (falls back, goes around,
+     leaves Earth), each with its speed hidden as "? km/s". It covers the speed-check panel, which would give the answer away. */
+  hookOverlay(sim,ctx,LH,k,tau){const p=sim.p,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc)return;const CX=300,CY=236,r0=RE+p.h*1000;
+    const key=p.h+':'+sc.toPrecision(3);
+    if(!sim._hk||sim._hk.key!==key){
+      const run=(v,tmax)=>{let x=0,y=r0,vx=v,vy=0;const pts=[[CX,CY-y*sc]],dt=10;
+        for(let t=0;t<tmax;t+=dt){let r=Math.hypot(x,y),q=-GME/(r*r*r);const ax=q*x,ay=q*y;x+=vx*dt+0.5*ax*dt*dt;y+=vy*dt+0.5*ay*dt*dt;
+          r=Math.hypot(x,y);q=-GME/(r*r*r);vx+=0.5*(ax+q*x)*dt;vy+=0.5*(ay+q*y)*dt;
+          if(r<RE){pts.push([CX+x*RE/r*sc,CY-y*RE/r*sc]);pts.land=true;break;}
+          const X=CX+x*sc,Y=CY-y*sc;pts.push([X,Y]);if(X<-20||X>820||Y<-20||Y>LH+20)break;}
+        return pts;};
+      const T=2*Math.PI*Math.sqrt(r0*r0*r0/GME);
+      sim._hk={key,paths:[{pts:run(6000,4*3600),c:'#ffb347',l:'Falls back to the ground'},{pts:run(vcirc(r0),T+20),c:'#7cf0a0',l:'Goes all the way around'},{pts:run(11000,6*3600),c:'#ff8fa3',l:'Leaves Earth for good'}]};}
+    const P=sim._hk.paths,DUR=2.2,GAP=0.5,CYC=P.length*(DUR+GAP)+2.5,tl=RM?CYC:tau%CYC;
+    ctx.lineCap='round';ctx.lineJoin='round';
+    P.forEach((pa,i)=>{const f=clamp((tl-i*(DUR+GAP))/DUR,0,1);pa.f=f;if(f<=0)return;const n=Math.max(1,Math.round(f*(pa.pts.length-1)));
+      ctx.strokeStyle=pa.c;ctx.lineWidth=3;ctx.globalAlpha=f<1?1:0.85;ctx.beginPath();for(let j=0;j<=n;j++){const [X,Y]=pa.pts[j];j?ctx.lineTo(X,Y):ctx.moveTo(X,Y);}ctx.stroke();ctx.globalAlpha=1;
+      const [hx,hy]=pa.pts[n];if(f<1){ctx.fillStyle=pa.c;ctx.beginPath();ctx.arc(hx,hy,7,0,6.29);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
+      else if(pa.pts.land){ctx.fillStyle=pa.c;ctx.beginPath();ctx.arc(hx,hy,5,0,6.29);ctx.fill();}});
+    const X=560,Y=16,W=226,rowH=30*k,H=Math.max(14+118*k,40*k+P.length*rowH);
+    rr(ctx,X,Y,W,H,10);ctx.fillStyle='rgb(16,26,42)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.stroke();
+    txt(ctx,'Three throws from the tower',X+12,Y+22*k,{s:12.5*k,w:700,c:SINK});
+    P.forEach((pa,i)=>{const y=Y+34*k+i*rowH+rowH/2,on=pa.f>0,cur=pa.f>0&&pa.f<1;ctx.globalAlpha=on?1:0.35;
+      ctx.strokeStyle=pa.c;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(X+12,y);ctx.lineTo(X+32,y);ctx.stroke();
+      txt(ctx,pa.l,X+40,y-2*k,{s:11.5*k,w:cur?700:600,c:SINK,b:'middle'});txt(ctx,'? km/s',X+40,y+11*k,{s:11*k,w:700,c:pa.c,b:'middle'});ctx.globalAlpha=1;});},
   initVis(sim){sim.vis.ppm=0;},
   draw(sim,ctx,vdt,k,t){const p=sim.p;if(p.mode==='cannon')drawCannon(sim,ctx,vdt,k);else drawForce(sim,ctx,k);},
   thumbSetup(sim){BioLab.setValues(sim,{v0:9.5});}

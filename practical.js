@@ -200,8 +200,8 @@ circular: {
 },
 gravity: {
   hookSet: {mode:'cannon',v0:0,h:400},
-  hook: 'The International Space Station flies about 400 km up. If you could fire a ball sideways from a tower that tall, how fast would it have to go to never come down, and how fast to leave Earth for good?',
-  answer: 'About 7.7 km/s, roughly 17,000 mph. Slower and the ball curves back to the ground; at 7.7 km/s the ground curves away as fast as the ball falls, so it circles Earth in about an hour and a half. Above 10.85 km/s it escapes and never returns.',
+  hook: 'Three balls are fired sideways from a tower 400 km tall, as high as the space station flies. One falls back, one goes all the way around, one leaves Earth. How fast is each one going?',
+  answer: 'The one that falls back: 6 km/s. The one that goes around: about 7.7 km/s, roughly 17,000 mph. Anything slower curves back to the ground; at 7.7 km/s the ground curves away as fast as the ball falls, so it circles Earth in about an hour and a half. Above 10.85 km/s it escapes and never returns.',
   uses: [
     'The space station: at about 7.7 km/s it goes around Earth about 16 times a day, so the crew sees about 16 sunrises every 24 hours.',
     'Floating astronauts: gravity 400 km up is still almost 90% as strong as on the ground. Astronauts float because they and the station are falling together.',
@@ -209,7 +209,7 @@ gravity: {
   ],
   takeaway: 'An orbit is falling sideways fast enough that the ground curves away beneath you, about 7.7 km/s near Earth. Gravity does not switch off in space. It weakens with distance, to a quarter at twice the distance from Earth’s center.',
   tour: [
-    'Isaac Newton imagined a cannon on a mountain so tall it sticks out of the air. This tower is 400 km tall, as high as the space station flies. With no launch speed, the ball just falls straight down.',
+    'Isaac Newton imagined a cannon on a mountain so tall it sticks out of the air. This tower is 400 km tall, as high as the space station flies. With no launch speed, the ball just falls straight down. The circle zooms in so you can see it fall.',
     'At 3 km/s, about ten times as fast as a fast jet, the ball curves and hits the ground a short distance away. Gravity bends its path toward Earth’s center the whole time.',
     'At 6.5 km/s it lands much farther away. The ball is falling the whole time, but the round Earth curves away beneath it.',
     'At 7.7 km/s, about 17,000 mph, the ground curves away exactly as fast as the ball falls. It keeps falling and never lands. That is an orbit, and it is how the space station stays up.',
