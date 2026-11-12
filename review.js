@@ -276,7 +276,22 @@ friction:{
     q:'A block slides across wood (μk = 0.30) at 2.0 m/s and coasts to a stop. How far does it slide? Use g = 9.8 m/s².',
     num:{ans:0.68,tol:.02,unit:'m'},
     steps:['Friction is the only horizontal force, so a = μk g = 0.30 × 9.8 = 2.94 m/s², backward.','v² = v₀² − 2ad gives 0 = 2.0² − 2(2.94)d.','d = 4.0 ÷ 5.88 = 0.68 m.'],
-    lab:{set:{method:'slide',surface:'wood',v0:2},act:'again',look:'Read <b>Stopping distance</b> when the block stops.'}}
+    lab:{set:{method:'slide',surface:'wood',v0:2},act:'again',look:'Read <b>Stopping distance</b> when the block stops.'}},
+  {id:'dresser',kind:'real',lvl:'bio',
+    q:'A full dresser has a mass of 60 kg. Sliding it across a wood floor takes a steady push of 176 N. You take out the drawers and everything in them, 20 kg in all. About what push keeps it sliding now?',
+    choices:['About 117 N','Still 176 N, because weight doesn’t matter','About 59 N','About 264 N'],correct:0,
+    steps:['Sliding friction is proportional to how hard the dresser presses on the floor, its weight.','The mass drops from 60 kg to 40 kg, so the weight and the friction drop to 40 ÷ 60 = 2/3 of what they were.','176 N × 2/3 ≈ 117 N. That is why movers empty the drawers first.'],
+    lab:{set:{surface:'wood',added:1},act:'again',look:'Read <b>Force to keep it moving</b> with 1.0 kg added, then set the added mass to 0.5 kg and pull again. Less weight, less friction, in proportion.'}},
+  {id:'icewalk',kind:'real',lvl:'bio',
+    q:'Safety groups tell people to “walk like a penguin” on ice: short, flat-footed steps. Why does that help?',
+    choices:['Each short step needs only a small sideways push from the ground, which ice’s small grip can still supply','Short steps make you heavier, so you press down harder','Flat feet melt the ice','Short steps get rid of friction completely'],correct:0,
+    steps:['To walk, your foot pushes back and sideways on the ground, and static friction pushes you forward.','Ice can only supply a small static friction before your foot slips: in this lab, less than a quarter of what wood gives.','A long stride needs a big sideways push and slips. Short, flat steps keep the push small enough for ice to hold.'],
+    lab:{set:{surface:'ice'},act:'again',look:'Read <b>Force to get it started</b> on ice, then switch to wood and compare.'}},
+  {id:'abs',kind:'real',lvl:'honors',
+    q:'In a hard stop, why do anti-lock brakes (ABS) help a driver more than wheels that lock and skid?',
+    choices:['Rolling tires grip with static friction, which is larger than the kinetic friction of a skid, and they can still steer','ABS makes the car lighter','ABS adds friction by heating the tires','A skidding tire has more friction because it rubs harder'],correct:0,
+    steps:['A locked wheel slides over the road, so only kinetic friction acts, and a sliding tire cannot steer.','ABS eases the brake many times a second so the tires keep rolling. The rubber touching the road isn’t sliding, so static friction, with its larger μs, holds the car.','NHTSA says the main benefit is keeping steering control, and that drivers should press firmly and not pump the pedal.'],
+    lab:{set:{surface:'rubber'},act:'again',look:'On rubber, compare <b>Force to get it started</b> (static) with <b>Force to keep it moving</b> (kinetic).'}}
   ]},
 incline:{
   questions:[

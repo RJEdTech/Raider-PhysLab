@@ -341,4 +341,85 @@ forces: {
 }
 });
 
+/* ---------- friction lab ---------- */
+const frN=v=>Number.isFinite(v)?v.toFixed(2)+' N':'…';
+const frG=(sim,id)=>{sim.gMetric=id;if(sim.ui&&sim.ui.gm){const o=[...sim.ui.gm.options].some(x=>x.value===id);if(o)sim.ui.gm.value=id;}};
+const FRB={method:'pull',surface:'wood',added:0,face:'large'};
+const frCard=(ctx,k,lines)=>{const f=Math.min(1,1.1/Math.min(k,1.3));foCard(ctx,k,lines.map(l=>{const o=typeof l==='string'?[l,500]:l.slice();o[2]=(o[2]||12.5)*f;return o;}),282,18,258);};
+const frPull=sim=>{const s=sim.st;return s.phase==='ramp'||s.phase==='wait'?'not moving':s.phase==='slide'?'sliding':'done';};
+
+BioLab.addLearn({
+friction: {
+  goals: {
+    bio: ['Why it takes more force to get something sliding than to keep it sliding', 'Why a heavier object has more friction', 'Why some surfaces grip and others are slippery', 'How to use this on icy sidewalks and when a car brakes hard'],
+    honors: ['The difference between static and kinetic friction', 'How to calculate friction with f = μN', 'Why contact area barely matters', 'How to find μ from your own spring-scale data'],
+    ap: ['The difference between static and kinetic friction', 'How to calculate friction with f = μN', 'How to find μk from the slope of friction vs. normal force', 'How to check μk with a slide-to-stop measurement']
+  },
+  matters: 'Friction is what lets your shoes push you forward, your car’s tires stop you, and a heavy couch stay put. Knowing what it depends on tells you how to move heavy things, how to walk on ice, and why anti-lock brakes work.',
+  question: 'You pull a 0.50 kg wooden block, about the weight of a water bottle, across a wooden table with a spring scale. Then you stack 1.0 kg on top and pull again. What does the scale read while it slides each time?',
+  startKey: 'setup', startRun: false,
+  startOverlay(sim,ctx,LH,k){frCard(ctx,k,[['0.50 kg block, about a water bottle',700],'The scale shows the pull in newtons (N)','1 N ≈ the weight of a small apple']);},
+  steps: [
+    { key: 'ramp', title: 'Pulling, but it doesn’t move', base: FRB, fresh: true, speed: 0.2,
+      run(sim){frG(sim,'force');},
+      see: 'The hand pulls harder and harder. The scale climbs, but the block sits still. On the force diagram, a friction arrow grows to match the pull exactly.',
+      why: '<b>Static friction</b> is the grip between two surfaces that are not sliding. It pushes back exactly as hard as you pull, so the forces balance and nothing moves. But it can only grow so far.',
+      overlay(sim,ctx,LH,k){const s=sim.st,F=s.phase==='ramp'?s.F:(Number.isFinite(s.peak)?s.peak:0);frCard(ctx,k,[['Pull: '+frN(F)+' →',700],['Static friction: '+frN(F)+' ←',700,12.5,PAL['s4']],s.phase==='ramp'||s.phase==='wait'?'Net force 0, so it stays still':['It broke free!',800,12.5,'#c8102e']]);} },
+    { key: 'peak', title: 'It breaks free, then the pull drops', base: FRB, fresh: true, speed: 0.6,
+      run(sim){frG(sim,'force');},
+      see: 'Watch the scale and the graph below. The pull rises to a peak near 2.2 N, the block jumps forward, and the reading drops to a steady 1.5 N while it slides.',
+      why: 'At the peak, static friction has hit its limit. Once the block slides, the bumps on the two surfaces don’t have time to settle into each other, so <b>kinetic friction</b> (sliding friction) is smaller. That’s why the first tug on anything heavy is the hardest.',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,[['To get it started: '+frN(s.peak),700],['To keep it moving: '+frN(s.kin),700,12.5,PAL['s4']],'Block: '+frPull(sim)]);} },
+    { key: 'mass', title: 'Stack 1.0 kg on top', base: FRB, set: { added: 1 }, fresh: true, speed: 0.7,
+      run(sim){frG(sim,'force');},
+      see: 'Now 1.0 kg of masses sit on the block, 1.50 kg in all. The table pushes up three times as hard, and the scale reads about 4.4 N while it slides, three times as much. Look in the microscope box: the bumps are pressed together harder.',
+      why: 'Friction depends on how hard the surfaces press together, the <b>normal force</b>. On a level table that is the weight: 4.9 N alone, 14.7 N stacked. Three times the press, three times the friction: 1.5 N becomes 4.4 N, and the starting peak goes from 2.2 N to about 6.6 N.',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,[['Table pushes up: 4.9 N → 14.7 N',700],'That is 3 times as hard',['Keep it moving: 1.5 N → '+frN(s.kin),700,12.5,PAL['s4']],'Get it started: 2.2 N → '+frN(s.peak)]);} },
+    { key: 'sand', title: 'A grippy surface: sandpaper', base: FRB, set: { surface: 'sandpaper' }, fresh: true, speed: 0.7,
+      run(sim){frG(sim,'force');},
+      see: 'The same 0.50 kg block on sandpaper. The microscope shows big, sharp bumps, and the scale reads about 3.2 N while it slides, more than twice the 1.5 N on wood.',
+      why: 'The surfaces themselves set how grippy they are. Sandpaper’s bumps catch and dig into the wood, so the same press gives much more friction.',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,[['Sandpaper, same 0.50 kg block',700],['Keep it moving: '+frN(s.kin),700,12.5,PAL['s4']],'Wood was 1.5 N']);} },
+    { key: 'ice', title: 'A slippery surface: ice', base: FRB, set: { surface: 'ice' }, fresh: true, speed: 0.7,
+      run(sim){frG(sim,'force');},
+      see: 'Now the table is ice. The bumps in the microscope are tiny, the pull never gets past about half a newton, and the block slides with only about 0.25 N.',
+      why: 'Ice is smooth and has a thin wet layer on top, so it barely grips. The most static friction it can give here is about 0.5 N, less than a quarter of wood’s 2.2 N. Anything that needs more sideways push than that, like a long stride, slips.',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,[['Ice, same 0.50 kg block',700],'Get it started: '+frN(s.peak)+' (wood: 2.2 N)',['Keep it moving: '+frN(s.kin)+' (wood: 1.5 N)',700,12.5,PAL['s4']]]);} },
+    { lvl: 'honors', key: 'area', title: 'Does contact area matter?', base: FRB, set: { face: 'narrow' }, fresh: true, speed: 0.7,
+      run(sim){frG(sim,'force');},
+      see: 'The block is flipped onto its narrow face, so much less of it touches the table. The sliding reading stays about 1.5 N, the same as the wide face.',
+      why: 'Less area touches, but each square centimeter presses down harder, because the same weight is spread over less area. The two effects nearly cancel, so friction depends on the normal force and the surfaces, not on the area. (Here it changed about 2 %, within the scale’s noise.)',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,[['Narrow face, same 0.50 kg',700],['Keep it moving: '+frN(s.kin),700,12.5,PAL['s4']],'Wide face was 1.47 N']);} },
+    { lvl: 'honors', key: 'mu', title: 'μ = friction ÷ normal force', base: FRB, set: { surface: 'rubber', added: 1 }, fresh: true, speed: 0.7,
+      run(sim){frG(sim,'force');},
+      see: 'A 1.50 kg stack on a rubber mat. The card divides the sliding friction by the normal force to get the coefficient of kinetic friction.',
+      why: 'Friction is proportional to the normal force, f = μN, where <b>μ</b> (mu) depends only on the two surfaces. Rubber’s μk is about 0.80, wood’s 0.30, ice’s 0.05. μ has no units: it is newtons divided by newtons. On wood, 1.47 ÷ 4.9 and 4.41 ÷ 14.7 both give 0.30, so adding mass does not change μ.',
+      overlay(sim,ctx,LH,k){const s=sim.st;frCard(ctx,k,['N = 1.50 × 9.8 = 14.7 N',['Sliding friction: '+frN(s.kin),700,12.5,PAL['s4']],['μk = '+(Number.isFinite(s.kin)?(s.kin/14.7).toFixed(2):'…')+' (rubber ≈ 0.80)',800,12.5,'#c8102e']]);} },
+    { lvl: 'ap', key: 'slope', title: 'μk from the slope of a graph', base: FRB, set: { added: 2 }, fresh: true, speed: 0.8,
+      run(sim){sim.fit=[];const again=sim.def.actions.find(a=>a.id==='again');
+        for(const m of [0,0.5,1,1.5]){BioLab.setValues(sim,{added:m});again.run(sim);for(let i=0;i<6000&&sim.st.phase!=='done';i++)sim.def.step(sim,0.005);}
+        BioLab.setValues(sim,{added:2});again.run(sim);frG(sim,'fit');},
+      see: 'Four pulls on wood, with 0, 0.5, 1.0 and 1.5 kg added, are already on the “Kinetic friction vs. normal force” graph below. The 2.0 kg pull is running now and adds the fifth point when it finishes.',
+      why: 'Since f_k = μk·N, the points fall on a straight line through the origin, and the slope is μk. A best-fit line through five trials averages out the scale’s random noise, so it gives a better μk than any single pull.',
+      overlay(sim,ctx,LH,k){const m=foM(sim,'slope');frCard(ctx,k,[['f_k = μk · N: a line through 0',700],'Points so far: '+(sim.fit||[]).length,['Slope = μk ≈ '+(Number.isFinite(m)?m.toFixed(3):'…'),800,12.5,'#c8102e']]);} },
+    { lvl: 'ap', key: 'stop', title: 'Check it: slide to a stop', base: { method: 'slide', surface: 'wood', added: 0, v0: 2 }, fresh: true, speed: 0.5,
+      run(sim){frG(sim,'vel');},
+      see: 'Now the block is launched at 2.0 m/s and coasts to a stop. The speed graph is a straight line down, and the block stops about 0.68 m away.',
+      why: 'Friction is the only sideways force, so a = μk·g, the same for any mass. From v² = v₀² − 2ad, the stopping distance is d = v₀² ÷ (2μk g) = 4 ÷ 5.88 = 0.68 m. Working backward from a measured d gives μk, a second, independent check on the slope.',
+      overlay(sim,ctx,LH,k){const d=foM(sim,'dist'),m=foM(sim,'mukslide');frCard(ctx,k,['a = μk g = 0.30 × 9.8 = 2.94 m/s²',['Stopped after: '+(Number.isFinite(d)?d.toFixed(3)+' m':'sliding…'),700],['μk = v₀² ÷ (2gd) = '+(Number.isFinite(m)?m.toFixed(3):'…'),800,12.5,'#c8102e']]);} }
+  ],
+  useIt: [
+    { do: 'On an icy sidewalk, “walk like a penguin”: take short, slow steps, keep your feet flat, point your toes out a little, and keep your hands out of your pockets.',
+      why: 'Every step pushes sideways on the ground, and ice can only push back a tiny bit before it slips, like the block that broke free at half a newton. Short, flat steps keep that sideways push small. The tip comes from SAIF, Oregon’s workplace-safety insurer, and Utah State University Extension.' },
+    { do: 'If your car has anti-lock brakes (ABS) and you must stop hard, press the brake firmly and hold it. Don’t pump it, and steer around the danger.',
+      why: 'A locked, skidding tire slides with kinetic friction and cannot steer. ABS keeps the tires rolling, so they still grip the road with static friction. NHTSA, the federal highway-safety agency, says ABS lets you keep steering control and tells drivers not to pump the pedal.' }
+  ],
+  tryIt: [
+    { title: 'the rubber-band spring scale (5 minutes)',
+      steps: ['Tie a rubber band to a shoe’s lace loop. Lay the shoe on a table or a hard floor, next to a ruler.', 'Pull the rubber band slowly and steadily. Note how long it stretches just before the shoe starts to slide, and how long it stays while the shoe keeps sliding.', 'Put a second shoe inside the first (or a heavy book on top) and pull again.', 'Try the same shoe on a carpet or a rug.'],
+      look: 'The band stretches more just before the shoe starts than while it slides: static friction beats kinetic. More weight stretches it more. Carpet and rubber soles stretch it more than a smooth floor.' }
+  ]
+}
+});
+
 })();
