@@ -267,4 +267,78 @@ projectile: {
 }
 });
 
+/* ---------- forces and motion ---------- */
+const foM=(sim,id)=>{const m=sim.def.metrics.find(x=>x.id===id);return m?m.get(sim):NaN;};
+function foCard(ctx,k,lines,x,y,w){x=x||506;y=y||240;w=w||286;const kk=Math.min(k,1.3),lh=18*kk,h=10+lines.length*lh;ctx.save();ctx.globalAlpha=0.97;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,x,y,w,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+  lines.forEach((l,j)=>{const o=typeof l==='string'?[l]:l;H.txt(ctx,o[0],x+10,y+lh*0.95+j*lh,{s:(o[2]||12.5)*kk,w:o[1]||500,c:o[3]||PAL['cv-ink']});});}
+const fo1=x=>(Math.round(x*10)/10).toFixed(1).replace('-','−');
+const FOPUSH={mode:'push',applied:0,mass:50,surface:'wood'};
+
+BioLab.addLearn({
+forces: {
+  goals: {
+    bio: ['What a force is, and how to show all the forces on an object with arrows', 'Why a gentle push does not move a heavy crate (static friction)', 'Why an object keeps moving at a steady speed when the forces balance', 'Why the same push speeds up a light cart more than a heavy one (a = F ÷ m)'],
+    honors: ['How to draw a free-body diagram and find the net force', 'How to calculate static and kinetic friction from μ and the normal force', 'How to use F_net = ma', 'Why third-law pairs never cancel'],
+    ap: ['How to draw a free-body diagram and find the net force', 'How to calculate static and kinetic friction from μ and the normal force', 'How to use F_net = ma and test it with a photogate', 'Why third-law pairs never cancel']
+  },
+  matters: 'Every time you push a door, brake a bike or feel a car stop, forces are deciding what happens. Newton’s laws tell you when something will start moving, how fast it will speed up, and why loose things in a car keep going when the car stops.',
+  question: 'You push a 50 kg crate across a wood floor. Why doesn’t a small push move it at all, why does it slide once you push harder, and what happens when you let go?',
+  startKey: 'forces', startRun: true, startSpeed: 0.5,
+  startOverlay(sim,ctx,LH,k){tag(ctx,'Arrows = forces on the crate',671,250,k,{s:12.5});tag(ctx,'50 kg crate, about 110 lb',330,110,k,{s:12.5});},
+  steps: [
+    { key: 'forces', title: 'Forces on a crate at rest', base: FOPUSH, fresh: true, speed: 0.5,
+      see: 'A 50 kg crate (about 110 lb) sits on a wood floor. The box on the right is a free-body diagram: gravity pulls down with 490 N and the floor pushes up with 490 N. The net force at the bottom is 0, balanced.',
+      why: 'A force is a push or a pull, measured in newtons (N). Gravity on 50 kg is 50 × 9.8 = 490 N. The floor pushes back up just as hard, so the up and down forces cancel and the crate stays put.',
+      overlay(sim,ctx,LH,k){tag(ctx,'arrows = forces on the crate',671,248,k,{s:12.5,hi:true});tag(ctx,'50 kg, about 110 lb',330,110,k,{s:12.5});} },
+    { key: 'static', title: 'A gentle push: nothing moves', set: { applied: 100 }, speed: 0.5,
+      see: 'A person pushes right with 100 N. The crate does not move. A friction arrow appears on the floor pointing left, and the card shows it is exactly 100 N.',
+      why: '<b>Static friction</b> pushes back against your push, as hard as needed to stop the crate sliding, up to a limit. Here 100 N right and 100 N left cancel, so the net force is 0 and the crate stays at rest.',
+      overlay(sim,ctx,LH,k){const f=foM(sim,'fric');foCard(ctx,k,[['Push: 100 N →',700],['Static friction: '+Math.abs(f).toFixed(0)+' N ←',700,12.5,PAL['s4']],'Net force: 0 N','So the crate stays still']);} },
+    { key: 'slide', title: 'Push harder: it breaks free', set: { applied: 250 }, speed: 0.5,
+      see: 'The push goes up to 250 N. The crate starts sliding to the right and speeds up. The friction arrow shrinks to 147 N, and the card works out the net force and the acceleration.',
+      why: 'Static friction on wood can only reach 0.40 × 490 = 196 N. A 250 N push beats that, so the crate breaks free. Once it slides, friction drops to the smaller <b>kinetic</b> value, 0.30 × 490 = 147 N. The extra 103 N makes it speed up: a = F ÷ m = 103 ÷ 50 ≈ 2.1 m/s².',
+      overlay(sim,ctx,LH,k){foCard(ctx,k,['Max static: 0.40 × 490 = 196 N','Sliding friction: 0.30 × 490 = 147 N','Net: 250 − 147 = 103 N →',['a = 103 ÷ 50 = '+fo1(foM(sim,'acc'))+' m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'steady', title: 'Balanced forces, steady speed', set: { applied: 147 }, speed: 0.5,
+      see: 'The push drops to 147 N, exactly the sliding friction. The crate keeps sliding, and the card shows its speed holding steady.',
+      why: 'Net force 0 does <b>not</b> mean stopped. It means no <b>change</b> in motion. A moving object with balanced forces keeps the same speed in the same direction. That is Newton’s first law.',
+      overlay(sim,ctx,LH,k){foCard(ctx,k,['Push 147 N →, friction 147 N ←',['Net force: 0 N',700],['Speed: '+foM(sim,'vel').toFixed(2)+' m/s, not changing',800,12.5,'#c8102e']]);} },
+    { key: 'letgo', title: 'Let go', set: { applied: 0 }, speed: 0.5,
+      see: 'The person lets go. Now only friction acts sideways, pointing backward. The crate slows down and stops, and the friction arrow disappears when it does.',
+      why: 'With no push, the 147 N of friction is the net force, backward: a = −147 ÷ 50 ≈ −2.9 m/s². Without friction, on a perfectly slick floor, the crate would slide on forever. Friction, not “running out of force,” is what stops things.',
+      overlay(sim,ctx,LH,k){const v=foM(sim,'vel');foCard(ctx,k,[['Only friction: 147 N ←',700],'a = −147 ÷ 50 ≈ −2.9 m/s²',['Speed: '+v.toFixed(2)+' m/s'+(Math.abs(v)<0.005?', stopped':''),800,12.5,'#c8102e']]);} },
+    { key: 'ice', title: 'The same push on ice', base: FOPUSH, set: { surface: 'ice', applied: 100 }, fresh: true, speed: 0.5,
+      see: 'Same 50 kg crate and the same gentle 100 N push, but the floor is now ice. This time the crate slides away and speeds up.',
+      why: 'On ice, static friction can only reach 0.10 × 490 = 49 N, less than the push, and sliding friction is just 0.05 × 490 ≈ 25 N. The net force is about 75 N, so a ≈ 1.5 m/s². Low friction is why cars take so much longer to stop on ice.',
+      overlay(sim,ctx,LH,k){foCard(ctx,k,['Max static on ice: 0.10 × 490 = 49 N','Sliding friction: 0.05 × 490 ≈ 25 N','Net: 100 − 25 ≈ 75 N →',['a ≈ 75 ÷ 50 = '+fo1(foM(sim,'acc'))+' m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'fan', title: 'A fan cart: a = F ÷ m', base: { mode: 'fan', fans: 2, cartmass: 0, strobe: true }, fresh: true, speed: 0.4,
+      see: 'A 0.50 kg cart on a low-friction track with 2 fans pushing it, 0.40 N each. The strobe images get farther apart as the cart speeds up, and a photogate times it.',
+      why: 'With almost no friction, the fans’ 0.80 N is the net force. Newton’s second law: a = F ÷ m = 0.80 ÷ 0.50 = 1.6 m/s². The cart gains 1.6 m/s of speed every second.',
+      overlay(sim,ctx,LH,k){foCard(ctx,k,['Force: 2 × 0.40 = 0.80 N','Mass: 0.50 kg',['a = 0.80 ÷ 0.50 = 1.6 m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'heavier', title: 'Double the mass', base: { mode: 'fan', fans: 2, cartmass: 0.5, strobe: true }, fresh: true, speed: 0.4,
+      see: 'Same two fans, but 0.50 kg is added, so the cart is now 1.00 kg. The strobe images are closer together, and the cart takes longer to reach the photogate.',
+      why: 'Same force, twice the mass, half the acceleration: a = 0.80 ÷ 1.00 = 0.80 m/s². Mass is how much an object resists changes in its motion.',
+      overlay(sim,ctx,LH,k){foCard(ctx,k,['Force: 0.80 N (same)','Mass: 1.00 kg (doubled)',['a = 0.80 ÷ 1.00 = 0.80 m/s²',800,12.5,'#c8102e'],'Half the acceleration']);} },
+    { lvl: 'honors', key: 'third', title: 'Equal and opposite, on different objects', base: FOPUSH, set: { applied: 200 }, fresh: true, speed: 0.5,
+      see: 'The person pushes the crate with 200 N. Arrow A is the hands pushing the crate; arrow B is the crate pushing back on the hands, also 200 N.',
+      why: 'Newton’s third law: forces come in pairs, equal in size and opposite in direction. They never cancel each other, because they act on <b>different</b> objects. Only A is on the crate’s free-body diagram, and the crate breaks free because 200 N beats the 196 N static limit.',
+      overlay(sim,ctx,LH,k){tag(ctx,'A acts on the crate; B acts on the person',300,190,k,{s:12.5,hi:true});} },
+    { lvl: 'ap', key: 'gate', title: 'Test F = ma with the photogate', base: { mode: 'fan', fans: 4, cartmass: 0.5, strobe: true }, fresh: true, speed: 0.6,
+      see: 'Four fans (1.60 N) push a 1.00 kg cart. The photogate 1.00 m down the track times each run, and the card compares the measured acceleration with F ÷ m.',
+      why: 'Starting from rest, d = ½at², so a = 2d ÷ t². If the measured a matches F ÷ m = 1.60 m/s², the second law predicted the motion. Small differences come from rounding the timer.',
+      overlay(sim,ctx,LH,k){const m=foM(sim,'meas');foCard(ctx,k,['Predicted: 1.60 ÷ 1.00 = 1.60 m/s²','Measured: a = 2d ÷ t²',[Number.isFinite(m)?'= '+m.toFixed(2)+' m/s²':'waiting for the photogate…',800,12.5,'#c8102e']]);} }
+  ],
+  useIt: [
+    { do: 'On icy or snowy roads, leave at least 5 to 6 seconds between your car and the one ahead, and brake gently and early.',
+      why: 'Low friction means a much smaller backward force, so the same car takes far longer to stop, just like the crate on ice. AAA recommends stretching the normal 3 to 4 second following gap to at least 5 to 6 seconds on slick roads.' },
+    { do: 'Put water bottles, backpacks and other loose things in the trunk, a closed console or the floor before you drive.',
+      why: 'When a car stops suddenly, nothing pushes back on a loose object, so it keeps moving at the car’s old speed (the first law) until it hits something. The Canada Safety Council warns that a 1-liter water bottle can strike like a 20 kg weight in a hard stop.' }
+  ],
+  tryIt: [
+    { title: 'the book push (2 minutes)',
+      steps: ['Lay a heavy book on a table. Push it with one finger, very gently, then a little harder, until it starts to slide.', 'Once it is sliding, notice how much push it takes to keep it moving.', 'Now stack a second book on top and try again.'],
+      look: 'It takes more push to start the book than to keep it sliding: static friction is bigger than kinetic friction. Two books need about twice the push, because the normal force doubled.' }
+  ]
+}
+});
+
 })();

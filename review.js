@@ -239,7 +239,16 @@ forces:{
     q:'In a tug-of-war, the left team pulls with 200 N and the right team with 300 N on a 100 kg cart. What happens?',
     choices:['The cart speeds up to the right with a = 1 m/s²','It moves right at a steady speed','It doesn’t move, because both teams pull','It speeds up to the left'],correct:0,
     steps:['Net force = 300 − 200 = 100 N to the right.','a = 100 N ÷ 100 kg = 1 m/s² to the right.','A net force means the cart keeps speeding up, not a steady speed.'],
-    lab:{set:{mode:'tug',left:200,right:300},look:'Read <b>Net force</b> and <b>Acceleration</b>, and look at the free-body diagram.'},verify:[['fnet',100,.01],['acc',1,.001]],wait:3}
+    lab:{set:{mode:'tug',left:200,right:300},look:'Read <b>Net force</b> and <b>Acceleration</b>, and look at the free-body diagram.'},verify:[['fnet',100,.01],['acc',1,.001]],wait:3},
+  {id:'ice',kind:'real',lvl:'bio',
+    q:'AAA says to leave at least 5 to 6 seconds behind the car ahead on icy roads, instead of the usual 3 to 4. In terms of forces, why?',
+    choices:['Ice gives the tires much less friction, so the backward force is smaller and the car takes longer to stop','Cars are heavier in winter','Ice makes the engine push harder','Gravity is weaker on ice'],correct:0,
+    steps:['Stopping needs a backward force, and on a road that force is friction from the tires.','Ice has a much lower coefficient of friction, so the backward force, and the slowing, are much smaller.','Smaller acceleration means a longer stopping distance, so you need more room.'],
+    lab:{set:{mode:'push',surface:'ice',applied:0,mass:50},look:'Compare how quickly a sliding crate stops on ice and on wood.'}},
+  {id:'bottle',kind:'real',lvl:'bio',
+    q:'A water bottle sits loose on the back seat. The driver slams on the brakes. Why does the bottle fly forward?',
+    choices:['Nothing pushes back on it, so it keeps moving at the car’s old speed until it hits something','The brakes push the bottle forward','The bottle gets heavier when the car stops','Air pushes it forward'],correct:0,
+    steps:['Before braking, the bottle moves forward at the same speed as the car.','The brakes slow the car, but nothing grips the bottle firmly enough to slow it.','So it keeps going (Newton’s first law) until the front seat or a person stops it, which is why loose items should be stowed.']}
   ]},
 friction:{
   questions:[
