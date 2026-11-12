@@ -182,4 +182,89 @@ freefall: {
   ]
 }
 });
+/* ---------- projectile motion ---------- */
+const PJGY=386;
+const pjS=sim=>{const st=sim.st;return st&&st.main>=0&&st.main<st.shots.length?st.shots[st.main]:null;};
+const pjX=(sim,x)=>{const v=sim.vis.v;return v?v.ox+x*v.s:100+x*20;};
+const pjY=(sim,y)=>{const v=sim.vis.v;return PJGY-y*(v?v.s:20);};
+function pjAct(sim,id){const a=sim.def.actions.find(x=>x.id===id);if(a)a.run(sim);}
+function pjClear(sim){const st=sim.st;st.shots=[];st.main=-1;st.twin=null;st.probe=-1;}
+function pjCard(ctx,k,lines,x,y,w){x=x||520;y=y||48;w=w||268;const h=12+lines.length*20;ctx.save();ctx.globalAlpha=0.97;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,x,y,w,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+  lines.forEach((l,j)=>{const o=typeof l==='string'?[l]:l;H.txt(ctx,o[0],x+10,y+22+j*20,{s:(o[2]||13)*Math.min(k,1.3),w:o[1]||500,c:o[3]||PAL['cv-ink']});});}
+/* a 1.8 m person drawn to the scene's scale */
+function pjPerson(ctx,sim,xm){const s=sim.vis.v?sim.vis.v.s:20,x=pjX(sim,xm),y=PJGY,h=1.8*s;ctx.save();ctx.strokeStyle=PAL['cv-ink'];ctx.fillStyle=PAL['cv-ink'];ctx.lineWidth=Math.max(1.5,h*0.06);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y-h*0.92,h*0.08,0,6.29);ctx.fill();ctx.beginPath();ctx.moveTo(x,y-h*0.83);ctx.lineTo(x,y-h*0.45);ctx.moveTo(x,y-h*0.45);ctx.lineTo(x-h*0.12,y);ctx.moveTo(x,y-h*0.45);ctx.lineTo(x+h*0.12,y);ctx.moveTo(x-h*0.18,y-h*0.62);ctx.lineTo(x,y-h*0.75);ctx.lineTo(x+h*0.18,y-h*0.62);ctx.stroke();ctx.restore();}
+const pjDeg=a=>a*Math.PI/180;
+
+BioLab.addLearn({
+projectile: {
+  goals: {
+    bio: ['Why a thrown or launched object follows a curved path', 'Why its sideways motion stays steady while its up-and-down motion changes', 'Why a ball dropped and a ball thrown sideways land at the same time', 'Which launch angle goes farthest, and why athletes often use a different one'],
+    honors: ['How to split a launch velocity into horizontal and vertical parts', 'Why v<sub>x</sub> stays constant and v<sub>y</sub> changes by 9.8 m/s every second', 'How to use R = v²sin2θ/g on level ground', 'Which launch angle goes farthest, and why athletes often use a different one'],
+    ap: ['How to treat horizontal and vertical motion as two separate problems linked by time', 'How to use R = v²sin2θ/g on level ground', 'How air resistance changes the path and the best angle', 'Why athletes often launch below 45°']
+  },
+  matters: 'Every ball you throw, kick or shoot, every jump and every stream of water from a hose follows the same rule: steady sideways, falling up and down. Once you can split a motion into those two parts, you can predict where things land, from a free throw to a long jump.',
+  question: 'You get one throw to clear a creek 15 m wide, and you can throw at 15 m/s. Why does the ball’s path curve, where is it moving slowest, and what angle should you pick?',
+  startKey: 'launch', startRun: true, startSpeed: 0.35,
+  startOverlay(sim,ctx,LH,k){pjPerson(ctx,sim,-1.6);tag(ctx,'A 1.8 m person, to scale',pjX(sim,-1.6)+70,pjY(sim,1.8)-14,k,{s:12});tag(ctx,'Ruler in meters',400,PJGY+52,k,{s:12});},
+  steps: [
+    { key: 'launch', title: 'The launch', base: { mode: 'free', ang: 40, v0: 18, h0: 0, obj: 'cannon', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.35,
+      see: 'A cannonball leaves the ground at 18 m/s (about 40 mph), aimed 40° above level. Its path is a smooth curve. The person next to the cannon is 1.8 m tall and drawn to the same scale as the ruler, so the ball flies about 33 m, about a third of a football field.',
+      why: 'Once the ball leaves the cannon, the only force on it (ignoring air) is gravity, pulling straight down. Nothing pushes it forward any more, and nothing holds it up. The ball itself is drawn bigger than scale so you can see it; a real cannonball is 18 cm across.',
+      overlay(sim,ctx,LH,k){pjPerson(ctx,sim,-1.6);tag(ctx,'18 m/s at 40°',pjX(sim,0)+40,pjY(sim,0)-60,k,{s:12.5,hi:true});tag(ctx,'1.8 m person, to scale',pjX(sim,-1.6)+18,pjY(sim,1.8)-60,k,{s:12});} },
+    { key: 'dots', title: 'Steady sideways', speed: 0.35,
+      see: 'A dot marks the ball every 0.25 s. The red ticks on the ground under each dot are evenly spaced: the ball moves the same distance sideways in every 0.25 s.',
+      why: 'Gravity pulls down, not sideways, so nothing changes the ball’s forward speed. At 18 m/s and 40°, the forward part of the velocity is 18 × cos 40° ≈ 13.8 m/s, so every 0.25 s the ball moves about 3.4 m to the right.',
+      overlay(sim,ctx,LH,k){const s=pjS(sim);if(!s)return;ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=2.5;s.dots.forEach(d=>{const x=pjX(sim,d.x);ctx.beginPath();ctx.moveTo(x,PJGY-12);ctx.lineTo(x,PJGY+4);ctx.stroke();ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pjY(sim,d.y));ctx.lineTo(x,PJGY-12);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=2.5;});ctx.restore();
+        tag(ctx,'same step sideways every 0.25 s: 13.8 m/s × 0.25 s ≈ 3.4 m',400,PJGY-30,k,{s:12.5,hi:true});} },
+    { key: 'vert', title: 'Falling up and down', speed: 0.35,
+      see: 'Now the same dots are slid onto the left edge, keeping only their height. Going up, they get closer together; near the top they bunch up; coming down they spread out again.',
+      why: 'Up and down, the ball behaves exactly like a ball thrown straight up: gravity slows it by 9.8 m/s every second on the way up, and speeds it up by the same amount on the way down. The up-and-down part starts at 18 × sin 40° ≈ 11.6 m/s, which runs out after about 1.2 s.',
+      overlay(sim,ctx,LH,k){const s=pjS(sim);if(!s)return;const x=Math.max(24,pjX(sim,0)-60);ctx.save();ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,PJGY);ctx.lineTo(x,40);ctx.stroke();
+        s.dots.forEach(d=>{const y=pjY(sim,d.y);ctx.fillStyle='#c8102e';ctx.beginPath();ctx.arc(x,y,5,0,6.29);ctx.fill();ctx.strokeStyle='rgba(200,16,46,0.35)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(pjX(sim,d.x),y);ctx.stroke();ctx.setLineDash([]);});ctx.restore();
+        tag(ctx,'heights only: bunched near the top',x+120,52,k,{s:12.5,hi:true});} },
+    { key: 'arrows', title: 'Velocity arrows', set: { vecs: true }, speed: 0.35, run(sim){pjClear(sim);pjAct(sim,'fire');},
+      see: 'Arrows now show the velocity at each dot. They tilt up at the start, lie flat at the top and tilt down at the end, and they are shortest at the top.',
+      why: 'Each arrow combines the steady forward part with the changing up-and-down part. The up-and-down part shrinks to zero at the top and grows again on the way down, so the arrow tips over, while its forward reach never changes.',
+      overlay(sim,ctx,LH,k){tag(ctx,'velocity arrows: forward part constant, up/down part changing',400,30,k,{s:12.5,hi:true});} },
+    { key: 'top', title: 'At the top it is still moving', set: { vecs: true }, speed: 0.35, run(sim){pjClear(sim);pjAct(sim,'fire');},
+      see: 'The red ring marks the highest point. The card shows the ball’s velocity there: zero up-and-down, but still 13.8 m/s forward.',
+      why: 'A common mistake is to think the ball stops at the top. It only stops going <b>up</b>. Its forward speed is the same as at launch, so at the top its speed is 13.8 m/s, the slowest point of the whole flight but not zero.',
+      overlay(sim,ctx,LH,k,tau){const s=pjS(sim);if(!s)return;if(s.tPeak!==null&&s.tPeak>0&&(s.done||s.vy<=0)){const a=0.5+0.5*Math.sin(tau*4);ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=3;ctx.globalAlpha=0.55+0.45*a;ctx.beginPath();ctx.arc(pjX(sim,s.peakX),pjY(sim,s.peakY),16,0,6.29);ctx.stroke();ctx.restore();}
+        const vx=18*Math.cos(pjDeg(40));pjCard(ctx,k,[['At the top',700,13],'up-and-down: 0 m/s','forward: '+vx.toFixed(1)+' m/s',['speed: '+vx.toFixed(1)+' m/s, not zero',800,13,'#c8102e']]);} },
+    { key: 'twin', title: 'Thrown sideways vs dropped', base: { mode: 'free', ang: 0, v0: 12, h0: 10, obj: 'cannon', twin: true, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.3,
+      see: 'From 10 m up, one ball is fired straight sideways at 12 m/s while a twin is dropped at the same instant. The dashed lines join the two at each tick: they are always at the same height, and they hit the ground together after 1.43 s.',
+      why: 'Firing a ball sideways gives it no up-and-down speed at all, so it falls exactly like the dropped one: 10 m takes 1.43 s either way. The sideways speed only decides <b>where</b> it lands (12 × 1.43 ≈ 17 m out), not <b>when</b>.',
+      overlay(sim,ctx,LH,k){const s=pjS(sim);if(!s)return;ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);s.dots.forEach(d=>{const y=pjY(sim,d.y);ctx.beginPath();ctx.moveTo(pjX(sim,0),y);ctx.lineTo(pjX(sim,d.x),y);ctx.stroke();});ctx.restore();
+        tag(ctx,'same height at every tick',pjX(sim,8),pjY(sim,10)-20,k,{s:12.5,hi:true});} },
+    { key: 'fan', title: 'Which angle goes farthest?', base: { mode: 'free', ang: 40, v0: 18, h0: 0, obj: 'cannon', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 1, run(sim){pjClear(sim);pjAct(sim,'fan');},
+      see: 'Eleven balls leave at the same 18 m/s, at angles from 20° to 70°. The 45° shot lands farthest, about 33 m. The 30° and 60° shots land in the same place, about 28.6 m, but the 60° one is in the air much longer.',
+      why: 'A low shot moves forward fast but falls back down quickly. A high shot stays up a long time but barely moves forward. On level ground with no air, 45° is the best balance between the two. Pairs that add to 90° (30° and 60°, 20° and 70°) land in the same spot.',
+      overlay(sim,ctx,LH,k){const R=a=>18*18*Math.sin(2*pjDeg(a))/9.8;tag(ctx,'45°: '+R(45).toFixed(1)+' m',pjX(sim,R(45)),PJGY-26,k,{s:12.5,hi:true});tag(ctx,'30° and 60°: '+R(30).toFixed(1)+' m',pjX(sim,R(30))-70,PJGY-62,k,{s:12});} },
+    { lvl: 'honors', key: 'range', title: 'The range equation', base: { mode: 'free', ang: 40, v0: 18, h0: 0, obj: 'cannon', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.6, run(sim){pjClear(sim);pjAct(sim,'fire');},
+      see: 'One 40° shot again. The card works out its landing distance with R = v²sin2θ/g, and the ruler and the distance readout show the same answer when it lands.',
+      why: 'Time in the air comes from the vertical part: t = 2v sinθ / g. Distance is the horizontal part times that time: R = v cosθ × 2v sinθ / g = v² sin 2θ / g. It only works when the ball lands at the height it left from, with no air.',
+      overlay(sim,ctx,LH,k){const s=pjS(sim),R=18*18*Math.sin(2*pjDeg(40))/9.8;pjCard(ctx,k,[['R = v² sin 2θ ÷ g',700,13],'= 18² × sin 80° ÷ 9.8',['= '+R.toFixed(1)+' m',800,14,'#c8102e'],[s&&s.done?'landed at '+s.x.toFixed(1)+' m':'in flight…',600,12,PAL['cv-soft']]]);} },
+    { lvl: 'ap', key: 'air', title: 'Add air resistance', base: { mode: 'free', ang: 35, v0: 35, h0: 0, obj: 'baseball', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 1,
+      run(sim){pjClear(sim);BioLab.setValues(sim,{air:false});pjAct(sim,'fire');BioLab.setValues(sim,{air:true});pjAct(sim,'fire');},
+      see: 'Two baseballs leave at 35 m/s (78 mph) and 35°: one with no air, one through real air. The path through air is lower, shorter and lopsided, falling more steeply at the end.',
+      why: 'Drag pushes against the velocity and grows with speed squared, so it robs the ball of forward speed the whole way. The no-air ball would go about 117 m. Because drag hurts high, long flights most, the best angle with air is below 45°.',
+      overlay(sim,ctx,LH,k){const s=pjS(sim),R=35*35*Math.sin(2*pjDeg(35))/9.8;pjCard(ctx,k,[['Baseball, 35 m/s at 35°',700,13],'no air: '+R.toFixed(0)+' m',['with air: '+(s&&s.done?s.x.toFixed(0)+' m':'in flight…'),800,13,'#c8102e']]);} }
+  ],
+  useIt: [
+    { do: 'On a free throw, aim for an arc whose top is about level with the top of the backboard, and aim toward the back of the rim.',
+      why: 'NC State engineers simulated hundreds of thousands of free throws and found a launch angle of about 52° (for a 7-foot release height) needs the least speed and forgives small mistakes best. A higher arc than a line drive gives the ball a bigger opening to drop through.' },
+    { do: 'In the long jump, focus on running fast and taking off at a fairly low angle instead of trying to jump high.',
+      why: 'People can’t take off as fast when they jump upward, so the textbook 45° does not apply. Linthorne and colleagues (Journal of Sports Sciences, 2005) found the best takeoff angle for long jumpers is only about 20° to 25°, matching what athletes actually do.' },
+    { do: 'For a long soccer throw-in, release the ball lower than 45°, closer to 30°.',
+      why: 'Like jumpers, throwers lose speed as they aim higher. Linthorne’s research found long-throw specialists do best at about 30°, and the ball also starts about 2 m up, which lowers the best angle further.' }
+  ],
+  tryIt: [
+    { title: 'the coin drop race (2 minutes)',
+      steps: ['Put two coins near the edge of a table, one hanging just over the edge and one behind it.', 'With a ruler held flat on the table, sweep it quickly so it flicks the back coin straight off sideways at the same moment it knocks the front coin to drop almost straight down.', 'Listen as they hit the floor.'],
+      look: 'You hear one click, not two. The flicked coin lands farther out, but both fall the same height in the same time, just like the twin balls.' }
+  ]
+}
+});
+
 })();

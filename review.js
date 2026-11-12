@@ -71,7 +71,17 @@ projectile:{
     q:'A ball is launched from a 10 m cliff at 15 m/s and 30° above level. Ignoring air, how far from the base of the cliff does it land?',
     num:{ans:31.0,tol:.5,unit:'m'},
     steps:['v<sub>x</sub> = 15 cos 30° = 13.0 m/s and v<sub>y</sub> = 15 sin 30° = 7.5 m/s.','Solve 0 = 10 + 7.5t − 4.9t²: t = (7.5 + √(7.5² + 4 × 4.9 × 10)) ÷ 9.8 = 2.39 s.','x = 13.0 × 2.39 = 31.0 m. Use the quadratic formula when the landing is lower than the launch.'],
-    lab:{set:{ang:30,v0:15,h0:10},act:'fire',look:'Read <b>Horizontal distance</b> and <b>Time in the air</b>.'},verify:[['dist',31.0,.1],['tof',2.39,.01]],wait:4}
+    lab:{set:{ang:30,v0:15,h0:10},act:'fire',look:'Read <b>Horizontal distance</b> and <b>Time in the air</b>.'},verify:[['dist',31.0,.1],['tof',2.39,.01]],wait:4},
+  {id:'freethrow',kind:'real',lvl:'bio',
+    q:'Engineers at NC State found the best free throw leaves the hand at about 52°, with the top of its arc near the top of the backboard. Why not shoot a flat line drive at the rim?',
+    choices:['A higher arc drops into the hoop more steeply, so the hoop looks bigger to the ball and small errors still go in','A flat shot is faster, so it always goes in','Gravity does not act on a flat shot','The angle does not matter at all'],correct:0,
+    steps:['A flat shot arrives almost sideways, so the 46 cm hoop is a narrow target.','A ball coming down at a steeper angle sees more of the hoop’s opening.','The study found about 52° also needs the least launch speed for that distance, which makes the shot easier to repeat.'],
+    lab:{set:{mode:'free',ang:52,v0:9,h0:2.1},look:'Fire at 52° and watch the ball come down steeply at the end.'}},
+  {id:'longjump',kind:'real',lvl:'honors',
+    q:'Physics says 45° gives the longest range. Studies of long jumpers find their best takeoff angle is only about 20° to 25°. What explains the difference?',
+    choices:['Jumpers take off much faster when they jump at a low angle, and that extra speed matters more than the angle','Long jumpers are not affected by gravity','45° only works for balls','Jumpers land higher than they take off'],correct:0,
+    steps:['R = v²sin2θ/g assumes the launch speed stays the same at every angle.','A jumper running at full speed can take off at about 10 m/s at a low angle, but much slower when driving upward.','Because range grows with v², keeping the speed beats getting the angle to 45°.'],
+    lab:{set:{mode:'free',ang:22,v0:10,h0:0},look:'Compare the distance at 22° and 10 m/s with 45° and 8 m/s.'}}
   ]},
 motion1d:{
   apNote:'Released questions from College Board. Ask your teacher which ones fit this unit.',
