@@ -319,7 +319,17 @@ incline:{
     q:'A 5 kg block rests on a 20° wooden ramp (μs = 0.45) and does not slide. How big is the static friction force?',
     choices:['16.8 N, equal to the part of gravity along the ramp','20.7 N, which is μs times the normal force','49 N, its weight','0 N, because it isn’t moving'],correct:0,
     steps:['The block isn’t moving, so friction balances gravity along the ramp exactly: mg sin θ = 5 × 9.8 × sin 20° = 16.8 N.','μs × N = 0.45 × 46.0 = 20.7 N is only the most static friction can give.','Static friction matches what is needed, up to that maximum.'],
-    lab:{set:{angle:20,mass:5,surface:'wood'},look:'Read <b>Friction</b> and <b>Gravity along the ramp</b>.'},verify:[['fric',16.76,.02],['par',16.76,.02]],wait:1}
+    lab:{set:{angle:20,mass:5,surface:'wood'},look:'Read <b>Friction</b> and <b>Gravity along the ramp</b>.'},verify:[['fric',16.76,.02],['par',16.76,.02]],wait:1},
+  {id:'avalanche',kind:'real',lvl:'bio',
+    q:'Avalanche forecasters say most avalanches release on slopes of 30° to 45°. Why is a 38° snow slope more likely to slide than a 20° one?',
+    choices:['On the steeper slope, more of the snow’s weight pulls it downhill and less presses it into the slope, so the downhill pull can beat the grip','The snow on the steeper slope is heavier','Gravity is stronger on steep slopes','Steep slopes have no friction at all'],correct:0,
+    steps:['Gravity on the snow splits into a downhill part, mg sin θ, and a part pressing into the slope, mg cos θ.','From 20° to 38°, the downhill part almost doubles (sin 20° = 0.34, sin 38° = 0.62) while the press into the slope drops.','Less press means less grip, so the downhill pull wins more easily. That is why the Colorado Avalanche Information Center tells travelers to watch slope angle.'],
+    lab:{set:{angle:20,mass:5,surface:'wood'},look:'Read <b>Gravity along the ramp</b> and <b>Normal force</b>, then tilt to 38° and compare.'}},
+  {id:'ada',kind:'real',lvl:'honors',
+    q:'ADA rules limit a wheelchair ramp to a 1:12 slope (1 inch of rise per 12 inches of run), so θ = tan⁻¹(1/12) ≈ 4.8°. A rider and chair have a combined mass of 100 kg. How big is the part of gravity pulling them down the ramp?',
+    num:{ans:81,tol:2,unit:'N'},
+    steps:['The part of gravity along a ramp is mg sin θ.','mg = 100 × 9.8 = 980 N, and sin 4.8° = 0.083.','980 × 0.083 ≈ 81 N, less than a tenth of the weight. A steeper ramp would make every push uphill harder, and every roll downhill faster.'],
+    lab:{set:{angle:5,mass:20,surface:'none'},look:'At 5° with 20 kg, read <b>Gravity along the ramp</b> and compare it with <b>Weight (mg)</b>: less than a tenth.'}}
   ]}
 
 });

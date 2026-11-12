@@ -422,4 +422,75 @@ friction: {
 }
 });
 
+/* ---------- inclined plane ---------- */
+const inCard=(ctx,k,lines)=>{const f=Math.min(1,1.1/Math.min(k,1.3));foCard(ctx,k,lines.map(l=>{const o=typeof l==='string'?[l,500]:l.slice();o[2]=(o[2]||12.5)*f;return o;}),16,16,290);};
+const in1=v=>Number.isFinite(v)?(Math.round(v*10)/10).toFixed(1):'…';
+const INB={angle:20,mass:5,surface:'wood',push:0,phi:0,strobe:true};
+const inGrip=(sim,mus)=>mus*foM(sim,'normal');
+
+BioLab.addLearn({
+incline: {
+  goals: {
+    bio: ['Why gravity on a slope splits into a downhill part and a part that presses into the slope', 'Why a steeper slope makes things slide', 'Why a heavy box and a light box start sliding at the same angle', 'How this explains avalanches, wheelchair ramps and steep roads'],
+    honors: ['How to split gravity into mg sinθ and mg cosθ', 'How to find the angle of repose and use μs = tanθ', 'How to find the acceleration on a ramp with friction', 'What it takes to pull something up a ramp'],
+    ap: ['How to apply Newton’s second law with axes tilted along the ramp', 'How to use μs = tanθ and a = g(sinθ − μk cosθ)', 'Why mass cancels out of the slipping angle', 'How a rope pulling at an angle changes the normal force']
+  },
+  matters: 'Every ramp, ski slope, steep road and snowy mountainside is an inclined plane. The same split of gravity decides whether a box stays on a loading ramp, how hard a wheelchair user has to push, and which slopes can avalanche.',
+  question: 'You set a 5 kg box on a wooden loading ramp. How steep can you tilt the ramp before the box slides on its own, and would a heavier 18 kg box start sliding at a lower angle?',
+  startKey: 'ramp', startRun: false,
+  startOverlay(sim,ctx,LH,k){inCard(ctx,k,[['5 kg block, about a bag of flour',700],'Ramp: 3.7 m long, about a small car','Wood surface, tilted 20°']);},
+  steps: [
+    { key: 'split', title: 'Gravity splits in two on a slope', base: INB, fresh: true, speed: 0.6,
+      see: 'The 5 kg block sits on the ramp tilted 20°. In the force box, gravity (49 N) points straight down, and two dashed arrows show its parts: one down the ramp and one pressing into it.',
+      why: 'On a slope, only part of your weight pulls you downhill; the rest presses you into the surface. At 20° the downhill part is about 17 N and the part into the ramp is about 46 N. Friction pushes up the ramp with exactly 17 N, so the block holds.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,['Weight: 49 N, straight down',['Down the ramp: '+in1(foM(sim,'par'))+' N',700],'Into the ramp: '+in1(foM(sim,'normal'))+' N',['Friction holds it: '+in1(foM(sim,'fric'))+' N',700,12.5,PAL['s4']]]);} },
+    { key: 'edge', title: 'Tilt to 24°: it barely holds', base: INB, set: { angle: 24 }, fresh: true, speed: 0.6,
+      see: 'The ramp tilts up to 24°. The downhill arrow grows, the into-the-ramp arrow shrinks, and the block still sits still, just barely.',
+      why: 'A steeper slope makes the downhill part bigger (now about 19.9 N) and the press into the ramp smaller. Less press means less grip: the most the wood can hold is now about 20.1 N. The downhill pull is right at the limit.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: '+in1(foM(sim,'par'))+' N',700],['Most grip the wood can give: '+in1(inGrip(sim,0.45))+' N',700,12.5,PAL['s4']],'Still holding, just barely']);} },
+    { key: 'slip', title: 'Tilt to 25°: it slides', base: INB, set: { angle: 25 }, fresh: true, speed: 0.6,
+      see: 'One more degree. Now the block slides down the ramp, and the strobe images spread out as it speeds up.',
+      why: 'At 25° the downhill pull, about 20.7 N, is more than the 20.0 N of grip the wood can give. Once it slides, sliding friction is even smaller, so the block speeds up at about 1.5 m/s². This is the answer to the question: the 5 kg box holds up to 24° and slides at 25°.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: '+in1(foM(sim,'par'))+' N',700],['Most grip: '+in1(inGrip(sim,0.45))+' N, not enough',700,12.5,PAL['s4']],['It slides: a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'heavy', title: 'An 18 kg box at the same angle', base: INB, set: { angle: 25, mass: 18 }, fresh: true, speed: 0.6,
+      see: 'Same ramp, same 25°, but the block is 18 kg, 3.6 times as heavy. The force box keeps the same shape, because every force grew by the same factor, and the block slides with the same acceleration and the same time to the bottom.',
+      why: 'More weight means a bigger downhill pull, but it also presses into the ramp harder, so the grip grows by the same factor. The downhill pull and the grip go up together, so the heavy box slips at exactly the same angle. Weight doesn’t decide when things slide; the angle and the surfaces do.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: 20.7 → '+in1(foM(sim,'par'))+' N',700],['Most grip: 20.0 → '+in1(inGrip(sim,0.45))+' N',700,12.5,PAL['s4']],'Both grew 3.6 times',['Same a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'steep', title: 'Steeper still: 40°', base: INB, set: { angle: 40 }, fresh: true, speed: 0.6,
+      see: 'The 5 kg block on a 40° ramp. The downhill arrow is now almost as long as the into-the-ramp arrow, and the block races down in about half the time.',
+      why: 'At 40°, about 31.5 N pulls downhill and only 37.5 N presses into the ramp, so the grip is weak and the downhill pull wins by a lot: a ≈ 4.1 m/s². Most avalanches release on slopes of 30° to 45° for the same reason: the downhill pull on the snow beats its grip.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: '+in1(foM(sim,'par'))+' N (17 at 20°)',700],'Into the ramp: '+in1(foM(sim,'normal'))+' N (46 at 20°)',['a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
+    { key: 'nofric', title: 'Take away friction', base: INB, set: { angle: 40, surface: 'none' }, fresh: true, speed: 0.6,
+      see: 'Same 40° ramp with no friction at all. The friction arrow is gone and the block reaches the bottom faster still; the strobe images spread out more.',
+      why: 'With no friction, the whole downhill part of gravity speeds the block up: a = 9.8 × sin 40° ≈ 6.3 m/s². A steeper ramp gets closer to free fall (9.8 m/s² at 90°); a flat one gives 0.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,['No friction: only the downhill pull',['a = 9.8 × sin 40° = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e'],'With wood it was 4.05 m/s²']);} },
+    { lvl: 'honors', key: 'repose', title: 'Angle of repose: μs = tanθ', base: INB, set: { surface: 'ice', angle: 6 }, fresh: true, speed: 0.6,
+      see: 'An icy ramp at just 6°. Even this gentle slope is enough: the block slides.',
+      why: 'Right at the slipping angle, mg sinθ = μs·mg cosθ, so <b>μs = tanθ</b> and the mass cancels. Ice has μs ≈ 0.10, so it slips above tan⁻¹(0.10) = 5.7°. Wood (0.45) holds to 24.2°, rubber (1.0) to 45°. Tilting until something slips is a quick way to measure μs.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,['Slips when tanθ > μs',['Ice: tan⁻¹(0.10) = 5.7°, so 6° slides',700,12.5,PAL['s4']],'Wood: 24.2°   Rubber: 45°',['a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
+    { lvl: 'honors', key: 'pull', title: 'Pull it up the ramp', base: INB, set: { push: 50 }, fresh: true, speed: 0.35,
+      run(sim){sim.st.s=2.4;sim.st.inTop=0;},
+      see: 'Back to wood at 20°, with a rope pulling the block up the ramp with 50 N. The block speeds up the slope, and now friction points down the ramp.',
+      why: 'Friction always opposes the sliding. Going up, both the downhill part of gravity (16.8 N) and sliding friction (0.30 × 46 = 13.8 N) point down the ramp. Net force = 50 − 16.8 − 13.8 ≈ 19.4 N up, so a = 19.4 ÷ 5 ≈ 3.9 m/s² up the slope.',
+      overlay(sim,ctx,LH,k){const st=sim.st,now=performance.now();if(st.stuckTop){if(!st.inTop)st.inTop=now;else if(now-st.inTop>1500){st.s=2.4;st.v=0;st.strobe=[];st.rt=0;st.moved=false;st.inTop=0;}}else st.inTop=0;
+        inCard(ctx,k,['Pull up the ramp: 50 N',['Down the ramp: gravity 16.8 N',700,12.5,PAL['s2']],['+ sliding friction 13.8 N',700,12.5,PAL['s4']],['Net ≈ 19.4 N up, a ≈ 3.9 m/s² up',800,12.5,'#c8102e']]);} },
+    { lvl: 'ap', key: 'rope', title: 'A rope at an angle lifts some of the load', base: { angle: 30, mass: 10, surface: 'rubber', push: 50, phi: 0, strobe: true }, set: { phi: 30 }, fresh: true, speed: 0.6,
+      see: 'A 10 kg block on a 30° rubber ramp, held by a 50 N rope. The rope is tilted 30° above the ramp, and the normal-force arrow is shorter than mg cosθ.',
+      why: 'With axes along and perpendicular to the ramp, the rope has two parts: F cosφ = 43.3 N up the ramp and F sinφ = 25 N away from it. Perpendicular: N = mg cosθ − F sinφ = 84.9 − 25 = 59.9 N. Along: mg sinθ = 49 N down, 43.3 N up, so static friction supplies 5.7 N up the ramp, well under μs·N = 59.9 N.',
+      overlay(sim,ctx,LH,k){inCard(ctx,k,['mg cosθ = 84.9 N',['N = 84.9 − 50 sin30° = '+in1(foM(sim,'normal'))+' N',700],['Static friction: '+in1(foM(sim,'fric'))+' N up the ramp',700,12.5,PAL['s4']],'Max: μs·N = '+in1(inGrip(sim,1.0))+' N, so it holds']);} }
+  ],
+  useIt: [
+    { do: 'Before you ski, snowboard or snowshoe off-trail in Colorado, check the Colorado Avalanche Information Center forecast and stay off slopes steeper than 30° when the danger is up. A phone app or an inclinometer can measure the angle.',
+      why: 'Steeper slopes pull harder downhill on the snowpack while pressing it into the slope less, just like the block. The CAIC’s guide reports that about 90% of avalanches release on slopes of 30° to 45°.' },
+    { do: 'If you build a ramp for a wheelchair, a stroller or a hand truck, make it no steeper than 1 inch of rise for every 12 inches of length, and gentler if you have the room.',
+      why: 'The 2010 ADA Standards (section 405.2) cap ramps at 1:12, about 4.8°. At that angle the downhill pull on a 100 kg rider and chair is about 81 N, less than a tenth of their weight. The U.S. Access Board recommends going gentler where space allows.' }
+  ],
+  tryIt: [
+    { title: 'the book-ramp angle of repose (5 minutes)',
+      steps: ['Lay a coin or an eraser near the end of a hardcover book on a table.', 'Slowly lift that end of the book until the object just starts to slide. Hold it there and measure the height of the raised end and the length of the book.', 'Divide height by length. That is tanθ, which equals μs for those two surfaces.', 'Stack two coins and try again. Then try a different object, like a rubber eraser.'],
+      look: 'The stacked coins slip at about the same height as one coin: weight doesn’t change the angle. The rubber eraser needs a much steeper book, because its μs is bigger.' }
+  ]
+}
+});
+
 })();
