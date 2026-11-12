@@ -477,3 +477,55 @@ twobody:{
     lab:{set:{mode:'pull',boxes:'two',F:150,angle:30,m1:20,m2:20,surface:'wood'},act:'again',look:'Read <b>Acceleration</b>, then set both boxes to 10 kg and compare.'},verify:[['acc',0.870,.005],['inner',76.2,.05]],wait:0.5}
   ]}
 });
+/* Gravity and orbits (Nov 12, 2026): why questions for Test yourself, including real-life ones. */
+BioLab.addReview({
+gravity:{
+  apNote:'Released questions from College Board. Ask your teacher which ones match what you have covered.',
+  ap:[{title:'All released AP Physics 1 exam questions',url:'https://apcentral.collegeboard.org/courses/ap-physics-1/exam/past-exam-questions',note:'Free-response questions by year, with scoring guidelines. Look for gravitation and circular orbits.'}],
+  questions:[
+  {id:'nofall',kind:'test',lvl:'bio',
+    q:'The space station is 400 km up and moving at 7.7 km/s. Why doesn’t it fall down?',
+    choices:['It is falling the whole time, but it moves sideways so fast that the ground curves away as fast as it falls','There is no gravity 400 km up','Its engines push it up','The air holds it up'],correct:0,
+    steps:['Gravity at 400 km is still 8.7 m/s², 89% as strong as on the ground.','The station falls toward Earth every moment, just like the cannonball.','At 7.7 km/s, Earth’s round surface curves away beneath it exactly as fast as it falls, so it never lands.'],
+    lab:{set:{mode:'cannon',v0:7.7,h:400},act:'fire',look:'Watch the red gravity arrow: it always points at Earth’s center, yet the ball never lands.'}},
+  {id:'float',kind:'real',lvl:'bio',
+    q:'On the space station, a water bottle floats in the air next to an astronaut. What is really happening?',
+    choices:['The bottle, the astronaut and the station are all falling around Earth together, so nothing falls toward the floor','Gravity is turned off inside the station','The bottle is too light for gravity to pull','The station spins to cancel gravity'],correct:0,
+    steps:['Everything inside falls with the station at the same rate.','Nothing presses down on the floor, so things seem weightless.','You feel the same for a moment at the top of a drop ride, when you and your seat fall together.']},
+  {id:'heavysat',kind:'test',lvl:'bio',
+    q:'A small satellite and a heavy satellite, 100 times its mass, are put in orbits at the same height. Which one needs to go faster to stay in orbit?',
+    choices:['They need the same speed','The heavy one','The small one','The heavy one can’t orbit at all'],correct:0,
+    steps:['Gravity pulls the heavy one 100 times harder, but it is also 100 times harder to turn.','The two effects cancel, just like a bowling ball and a tennis ball falling together.','The orbit speed depends only on Earth’s mass and the distance: about 7.7 km/s at 400 km.']},
+  {id:'land',kind:'test',lvl:'bio',
+    q:'From the 400 km tower, a ball fired at 3 km/s lands about 1,000 km away. Why does a ball fired at 6.5 km/s land much more than twice as far?',
+    choices:['Earth curves away beneath it, so the faster ball has farther to fall before it reaches the ground','Faster balls fall more slowly','Gravity is weaker on fast objects','The faster ball goes up first'],correct:0,
+    steps:['Both balls fall toward Earth at the same rate.','The faster one gets farther around the planet, where the ground has curved away below its path.','So it stays in the air longer, and that time carries it even farther. At 7.7 km/s it never lands.'],
+    lab:{set:{mode:'cannon',v0:6.5,h:400},act:'fire',look:'Read how far away it landed, then try 3 km/s.'}},
+  {id:'gps',kind:'real',lvl:'bio',
+    q:'Your map app shows you a block away from where you really are, downtown between tall buildings. What should you do?',
+    choices:['Move into the open: buildings block and bounce the signals from GPS satellites orbiting 20,200 km up','Restart your phone: GPS satellites only pass overhead twice a day','Wait: the satellites are on the other side of Earth','Nothing: GPS doesn’t use satellites'],correct:0,
+    steps:['GPS satellites orbit about 20,200 km up, and several are above you at any time.','Your phone needs a clear line to at least four of them.','Buildings, bridges and trees block or reflect the signals. Under open sky a phone is usually accurate to about 5 m (GPS.gov).']},
+  {id:'quarter',kind:'test',lvl:'honors',
+    q:'A satellite weighs 1,000 N on the ground. What is gravity’s pull on it at 2 Earth radii from Earth’s center (6,371 km up)?',
+    num:{ans:250,tol:1,unit:'N'},
+    steps:['Gravity weakens with the square of the distance from the center: F ∝ 1/r².','Twice the distance: 1/2² = 1/4.','1,000 N × 1/4 = 250 N. A common mistake is 500 N, half instead of a quarter.'],
+    lab:{set:{mode:'force',planet:'earth',r:2,m:100},look:'Compare <b>Pull of gravity on the object</b> at 1 and 2 radii.'}},
+  {id:'dish',kind:'real',lvl:'honors',
+    q:'A satellite TV dish in Colorado is aimed at one spot in the southern sky and never moves. How can it keep pointing at a satellite that is orbiting?',
+    choices:['The satellite is 35,786 km up over the equator, where one orbit takes exactly one day, so it stays over the same spot as Earth turns','TV satellites don’t move','The dish follows the satellite with a motor','The satellite is so far away that it looks still'],correct:0,
+    steps:['Higher orbits are slower and take longer: T² ∝ r³.','At 35,786 km above the equator, one orbit takes the same time as one turn of the Earth.','So the satellite stays above the same point on the equator, which is to the south of Colorado (NOAA).']},
+  {id:'higher',kind:'test',lvl:'honors',
+    q:'Why does a satellite in a higher circular orbit move more slowly than one in a lower orbit?',
+    choices:['Gravity is weaker farther out, so less speed is needed for gravity to bend the path into a circle: v = √(GM/r)','Higher satellites have less mass','There is more air higher up','Higher satellites are pulled harder'],correct:0,
+    steps:['In a circle, gravity supplies the centripetal force: GMm/r² = mv²/r.','So v² = GM/r: larger r means smaller v.','400 km up: 7.67 km/s. GPS, 20,200 km up: 3.87 km/s.'],
+    lab:{set:{mode:'cannon',h:2000,v0:6.9},act:'fire',look:'At 2000 km, 6.9 km/s is enough to circle Earth.'}},
+  {id:'escground',kind:'ap',lvl:'ap',
+    q:'Ignoring air, what launch speed from Earth’s surface gives a total energy of exactly zero, so the object just escapes? (GM = 3.986×10¹⁴ m³/s², R = 6371 km)',
+    num:{ans:11.2,tol:0.05,unit:'km/s'},
+    steps:['Escape means E = ½v² − GM/R = 0.','v = √(2GM/R) = √(2 × 3.986×10¹⁴ ÷ 6.371×10⁶).','= √(1.251×10⁸) = 11,190 m/s ≈ 11.2 km/s. Mass cancels.']},
+  {id:'lower',kind:'ap',lvl:'ap',
+    q:'Drag lowers a satellite slowly from one circular orbit to a smaller one. What happens to its speed and its total energy?',
+    choices:['Speed goes up, total energy goes down','Speed goes down, total energy goes down','Both go up','Speed goes down, total energy goes up'],correct:0,
+    steps:['v = √(GM/r): a smaller r means a larger speed.','Total energy E = −GMm/(2r) becomes more negative as r shrinks.','Drag removes energy, but gravity does more work as the satellite drops, so it ends up faster. On an FRQ, show both expressions.']}
+  ]}
+});

@@ -562,4 +562,109 @@ vectors2d: {
 }
 });
 
+
+/* ---------- Gravity and orbits (Nov 12, 2026) ----------
+   Gravity's sim (sims/gravity.js) has no art export; these helpers re-use its camera:
+   CX = 300 − x·zb·sc, CY = (236 − 36·zb) + y·zb·sc, with sc = sim.vis.ppm and zb = sim.vis.zb (0 = whole Earth, 1 = following the ball). */
+const GV_GM=3.986e14,GV_RE=6.371e6,GV_R0=GV_RE+400e3;
+function gvXY(sim,x,y){const V=sim.vis,s=sim.st,sc=V.ppm||0.03,zb=V.zb||0;return [300-s.x*zb*sc+x*sc,(236-36*zb)+s.y*zb*sc-y*sc];}
+function gvBall(sim){return gvXY(sim,sim.st.x,sim.st.y);}
+/* cards sit under the speed-check panel (14 + 118k tall) on the right; they grow with k on phones (up to 1.45×) */
+function gvCard(ctx,k,lines,x,y,w){const kk=Math.min(k,1.45);w=(w||268)*Math.min(kk,1.12);x=x==null?792-w:Math.min(x,792-w);y=y==null?26+118*k:y;const h=12+lines.length*20*kk;ctx.save();ctx.globalAlpha=0.96;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,x,y,w,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+  lines.forEach((l,j)=>{const o=typeof l==='string'?[l]:l;H.txt(ctx,o[0],x+10,y+22*kk+j*20*kk,{s:(o[2]||13)*kk,w:o[1]||500,c:o[3]||PAL['cv-ink']});});}
+/* fire again 1.6 s after the ball lands, so a step keeps showing its motion */
+function gvLoop(sim,ms){const s=sim.st;if(s.done==='crash'||s.done==='escape'){if(!sim._gvT)sim._gvT=performance.now();else if(performance.now()-sim._gvT>(ms||1600)){const a=sim.def.actions.find(x=>x.id==='fire');if(a)a.run(sim);sim._gvT=0;}}else sim._gvT=0;}
+function gvDash(ctx,pts,col,w){ctx.save();ctx.setLineDash([7,6]);ctx.strokeStyle=col;ctx.lineWidth=w||2;ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();ctx.restore();}
+/* cycle the force-mode distance through a list while a step is showing */
+function gvCycle(sim,key,list){clearInterval(sim._gvC);let i=0;sim._gvC=setInterval(()=>{if(sim.lnKey!==key||!sim.tour||!sim.tour.on){clearInterval(sim._gvC);return;}i=(i+1)%list.length;BioLab.setValues(sim,{r:list[i]});},2400);}
+const gvKm=v=>Math.round(v).toLocaleString();
+
+BioLab.addLearn({
+gravity: {
+  goals: {
+    bio: ['Why a ball fired sideways from a tall tower curves down to the ground', 'What an orbit really is: falling all the way around', 'How fast you have to go to orbit, and to leave Earth for good', 'Why astronauts float even though gravity is still strong up there'],
+    honors: ['What an orbit really is: falling all the way around', 'Why the circular orbit speed is v = √(GM/r), and why higher orbits are slower', 'How gravity weakens with distance: the inverse-square law', 'Why your weight changes from planet to planet'],
+    ap: ['What an orbit really is: falling all the way around', 'How the total energy per kilogram decides between an ellipse and escape', 'Kepler’s third law: T² is proportional to r³', 'How gravity weakens with distance: the inverse-square law']
+  },
+  matters: 'Every weather picture, every map on your phone and every live sports broadcast from overseas depends on something falling around the Earth without landing. The same gravity that drops your phone keeps the space station up.',
+  startKey: 'start', startRun: false,
+  startOverlay(sim,ctx,LH,k,tau){if(sim.def.hookOverlay)sim.def.hookOverlay(sim,ctx,LH,k,tau);},
+  steps: [
+    { key: 'drop', title: 'Drop it from the tower', set: { v0: 0, zoom: '12' }, fresh: true, speed: 0.25,
+      see: 'Zoomed in 12 times. The ball sits on top of a tower 400 km tall, as high as the space station flies, and then drops. The red arrow is gravity.',
+      why: 'With no sideways speed, gravity pulls the ball straight toward Earth’s center. Up here gravity is still 8.7 m/s², 89% as strong as on the ground. Space is not “zero gravity”.',
+      overlay(sim,ctx,LH,k){gvLoop(sim);const [tx,ty]=gvXY(sim,0,GV_R0),[gx,gy]=gvXY(sim,0,GV_RE);tag(ctx,'400 km tower',tx-80,(ty+gy)/2,k,{s:12});
+        if(!sim.st.done){const [bx,by]=gvBall(sim);tag(ctx,'gravity: toward Earth’s center',bx,by-34,k,{s:12,c:'#c8102e'});}
+        gvCard(ctx,k,[['Gravity 400 km up',700],['8.7 m/s², 89% of the 9.8 m/s²'],['you feel on the ground']]);} },
+    { key: 'slow', title: 'Fire it sideways', set: { v0: 3, zoom: '4' }, fresh: true, speed: 0.25,
+      see: 'Fired sideways at 3 km/s, about ten times as fast as a jet. The dashed line is the path it would take with no gravity. The red bracket shows how far gravity has pulled it below that line.',
+      why: 'The ball does two things at once. It keeps moving sideways, and it falls, exactly as if it had been dropped. Falling bends the straight path into a curve that hits the ground.',
+      overlay(sim,ctx,LH,k){gvLoop(sim);const s=sim.st,a=gvXY(sim,0,GV_R0),b=gvXY(sim,3.5e6,GV_R0);gvDash(ctx,[a,b],'#7fd6ff',2);tag(ctx,'with no gravity',Math.min(760,a[0]+150),a[1]-16,k,{s:12,c:'#1b6fb3'});
+        if(s.x>2e4){const [bx,by]=gvBall(sim),[lx,ly]=gvXY(sim,s.x,GV_R0),f=(GV_R0-s.y)/1e3;if(by-ly>8){ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(bx-14,ly);ctx.lineTo(bx-14,by);ctx.moveTo(bx-20,ly);ctx.lineTo(bx-8,ly);ctx.moveTo(bx-20,by);ctx.lineTo(bx-8,by);ctx.stroke();ctx.restore();
+          tag(ctx,'fallen '+gvKm(f)+' km',bx-90,(ly+by)/2,k,{s:12,hi:true});}}} },
+    { key: 'curve', title: 'Faster: the ground curves away', set: { v0: 6.5 }, fresh: true, speed: 0.6,
+      see: 'Back to the whole Earth, fired at 6.5 km/s. It lands much farther around the planet. The dashed line goes straight ahead from the tower; watch Earth’s surface drop away beneath it.',
+      why: 'The ball falls just as before, but Earth is round. The farther sideways the ball gets, the more the ground has curved away below it, so it has farther to fall before it lands. Earth’s surface drops about 5 m below “straight ahead” for every 8 km you travel.',
+      overlay(sim,ctx,LH,k){gvLoop(sim);const a=gvXY(sim,-4e6,GV_R0),b=gvXY(sim,9e6,GV_R0);gvDash(ctx,[a,b],'#7fd6ff',2);tag(ctx,'straight ahead',Math.min(700,b[0]-70),b[1]-16,k,{s:12,c:'#1b6fb3'});
+        const g=gvXY(sim,GV_RE*Math.sin(0.9),GV_RE*Math.cos(0.9));tag(ctx,'the ground curves away',g[0]+90,g[1]+30,k,{s:12,hi:true});} },
+    { key: 'orbit', title: 'Fast enough: it never lands', set: { v0: 7.7 }, fresh: true, speed: 0.6,
+      see: 'At 7.7 km/s the ball goes all the way around and passes the tower again. The blue arrow, its motion, always points sideways. The red arrow, gravity, always points at Earth’s center.',
+      why: 'The ball is still falling every moment. It is just moving sideways fast enough that the ground curves away exactly as fast as it falls. Falling around a planet forever is what an orbit is.',
+      overlay(sim,ctx,LH,k){const s=sim.st,[bx,by]=gvBall(sim),r=Math.hypot(s.x,s.y),ux=s.x/r,uy=-s.y/r;tag(ctx,'falling',bx-ux*70,by-uy*70,k,{s:12,c:'#c8102e'});
+        gvCard(ctx,k,[['7.7 km/s = about 17,000 mph',700],['One lap: about 92 minutes'],['Laps so far: '+s.orbits]]);} },
+    { key: 'iss', title: 'Ride along: the space station', set: { v0: 7.7, zoom: '12' }, fresh: true, speed: 0.1,
+      see: 'Zoomed in 12 times and slowed down, riding along with the ball. The ground slides past below, but the ball stays 400 km up the whole time.',
+      why: 'This is the space station’s orbit. Astronauts float, not because gravity is gone (it is 89% as strong as on the ground) but because they and the station are falling together. Nothing presses them against the floor.',
+      overlay(sim,ctx,LH,k){const [bx,by]=gvBall(sim),r=Math.hypot(sim.st.x,sim.st.y);tag(ctx,'still '+gvKm((r-GV_RE)/1e3)+' km up',bx,by-40,k,{s:12,hi:true});
+        gvCard(ctx,k,[['The space station',700],['About 400 km up, 7.7 km/s'],['About 16 laps a day, so the crew'],['sees about 16 sunrises a day']]);} },
+    { key: 'ellipse', title: 'Faster still: a stretched orbit', set: { v0: 9.5 }, fresh: true, speed: 2,
+      see: 'At 9.5 km/s the ball swings far out, about 16,000 km up, and comes back. Watch its speed: fast near Earth, slow at the far end.',
+      why: 'Going out, gravity pulls back against its motion and slows it. Coming back, gravity speeds it up. Too slow at the top to escape, it falls back around: the path is an ellipse.',
+      overlay(sim,ctx,LH,k){const p=gvXY(sim,0,GV_R0),q=gvXY(sim,0,-(GV_RE+15.86e6));tag(ctx,'fastest: 9.5 km/s',p[0],p[1]-22,k,{s:12,hi:true});tag(ctx,'slowest: 2.9 km/s',q[0],Math.min(LH-20,q[1]+22),k,{s:12,hi:true});
+        const [bx,by]=gvBall(sim),v=Math.hypot(sim.st.vx,sim.st.vy)/1e3;tag(ctx,v.toFixed(1)+' km/s',bx+56,by,k,{s:12});} },
+    { key: 'escape', title: 'Escape', set: { v0: 11 }, fresh: true, speed: 2,
+      see: 'At 11 km/s the ball leaves. The label on the ball shows its speed dropping as it climbs, but it never comes back.',
+      why: 'Gravity slows the ball the whole way out, but gravity also gets weaker the farther out it goes. Above 10.85 km/s at this height, gravity runs out of strength before it can stop the ball. Space probes leave Earth this way.',
+      overlay(sim,ctx,LH,k){gvLoop(sim,1200);const s=sim.st,[bx,by]=gvBall(sim),v=Math.hypot(s.vx,s.vy)/1e3;if(!s.done)tag(ctx,v.toFixed(1)+' km/s',clamp(bx+56,60,740),clamp(by,20,LH-20),k,{s:12,hi:true});
+        gvCard(ctx,k,[['Escape speed here: 10.85 km/s',700],['From the ground: 11.2 km/s']]);} },
+    { key: 'weaker', title: 'Gravity weakens with distance', set: { mode: 'force', planet: 'earth', r: 1, m: 10 }, fresh: true, pause: true, run(sim){gvCycle(sim,'weaker',[1,2,3]);},
+      see: 'A different view. A 10 kg object moves out from Earth’s surface to 2, then 3, Earth radii from the center. Watch the pull arrow shrink.',
+      why: 'Gravity spreads out in every direction, so twice as far away it is spread over 4 times the area. Twice the distance means ¼ the pull; three times means 1/9. It gets weaker but never reaches zero.',
+      overlay(sim,ctx,LH,k){const r=sim.p.r,F=v=>(98.2/(v*v)).toFixed(1);gvCard(ctx,k,[['Pull on a 10 kg object',700],...[1,2,3].map(v=>[v+(v===1?' radius (the ground): ':' radii: ')+F(v)+' N'+(v>1?' (1/'+v*v+')':''),v===r?700:500,13,v===r?'#c8102e':PAL['cv-ink']])],470,60+110*k,300);} },
+    { lvl: 'honors', key: 'higher', title: 'Higher orbits are slower', set: { mode: 'cannon', h: 2000, v0: 6.9 }, fresh: true, speed: 1,
+      see: 'The tower is now 2000 km tall. At only 6.9 km/s the ball still circles Earth, on a wider circle.',
+      why: 'For a circle, gravity must supply exactly the centripetal force: GMm/r² = mv²/r, so v = √(GM/r). Farther out, gravity is weaker, so a slower speed is enough. GPS satellites, 20,200 km up, need only 3.9 km/s.',
+      overlay(sim,ctx,LH,k){gvCard(ctx,k,[['v = √(GM/r)',700],['400 km up: 7.67 km/s'],['2000 km up: 6.90 km/s'],['GPS, 20,200 km up: 3.87 km/s']]);} },
+    { lvl: 'honors', key: 'mars', title: 'Your weight on Mars', set: { mode: 'force', planet: 'mars', r: 1, m: 10 }, fresh: true, pause: true,
+      see: 'The same 10 kg object on the surface of Mars. The pull is 37 N, not 98 N.',
+      why: 'g = GM/R². Mars has 0.107 of Earth’s mass, but it is also small (0.532 of Earth’s radius), so you stand closer to its center. 0.107 ÷ 0.532² = 0.38, so you weigh 38% of your Earth weight. Your mass is still 10 kg.',
+      overlay(sim,ctx,LH,k){gvCard(ctx,k,[['g = GM/R²',700],['Earth: 9.8 N/kg → 98 N'],['Mars: 0.107 ÷ 0.532² = 0.38 of Earth'],['3.7 N/kg → 37 N',700,13,'#c8102e']],470,60+110*k,300);} },
+    { lvl: 'ap', key: 'energy', title: 'Energy decides: bound or free', set: { mode: 'cannon', v0: 10 }, fresh: true, speed: 4,
+      see: 'At 10 km/s, just under escape speed, the ball climbs about 32,000 km before falling back.',
+      why: 'Energy per kilogram E = v²/2 − GM/r = 50.0 − 58.9 = −8.9 MJ/kg. Negative total energy means the ball can never reach infinity: the orbit is a closed ellipse. At 10.85 km/s, E = 0, and the ball just escapes.',
+      overlay(sim,ctx,LH,k){gvCard(ctx,k,[['E = v²/2 − GM/r',700],['= 50.0 − 58.9 = −8.9 MJ/kg'],['E < 0: bound (ellipse)',700,13,'#c8102e'],['E ≥ 0: escape']]);} },
+    { lvl: 'ap', key: 'kepler', title: 'Kepler’s third law', set: { mode: 'cannon', h: 3000, v0: 6.5 }, fresh: true, speed: 2,
+      see: 'A near-circular orbit from a 3000 km tower, 9371 km from Earth’s center. One lap now takes about 150 minutes, compared with 92 minutes at 400 km.',
+      why: 'For orbits around the same body, T² = (4π²/GM)·r³. The radius grew by 9371 ÷ 6771 = 1.38, so the period grows by 1.38^1.5 = 1.63: 92.4 × 1.63 ≈ 150 min.',
+      overlay(sim,ctx,LH,k){gvCard(ctx,k,[['T² ∝ r³',700],['r = 6771 km: T = 92.4 min'],['r = 9371 km: T = 150.5 min'],['(9371 ÷ 6771)^1.5 = 1.63']]);} }
+  ],
+  useIt: [
+    { do: 'Look up the space station’s next pass over Colorado with NASA’s Spot the Station, then go outside and watch it.',
+      why: 'It shows as a bright, steady dot crossing the sky in a few minutes, usually an hour or two after sunset or before sunrise, when your sky is dark but sunlight still reaches the station 400 km up. That is the 7.7 km/s orbit from this lab (NASA Spot the Station).' },
+    { do: 'When your map app puts you in the wrong place downtown, step into the open, away from tall buildings.',
+      why: 'GPS satellites orbit about 20,200 km up and circle Earth twice a day. Your phone needs a clear line to several of them; buildings, bridges and trees block or bounce their signals. Under open sky a phone is usually accurate to about 5 m (GPS.gov).' },
+    { do: 'Aim a satellite TV dish or a weather-satellite antenna once, toward the southern sky, and leave it.',
+      why: 'Those satellites sit 35,786 km above the equator, where one orbit takes exactly as long as one turn of the Earth. They stay over the same spot, so the dish never has to track them. From Colorado, the equator is to the south (NOAA).' }
+  ],
+  tryIt: [
+    { title: 'Newton’s cannon on a table (5 minutes)',
+      steps: ['Roll a marble or ball off the edge of a table, slowly. Mark where it lands.', 'Roll it off again, much faster. Mark where it lands.', 'Have a friend watch from the side and say which one hits the floor first.'],
+      look: 'The fast one lands farther away, but both hit the floor at the same moment. Moving sideways doesn’t stop falling. On a round planet, fast enough sideways means the ground curves away before you land.' },
+    { title: 'spot the station (one evening)',
+      steps: ['Find the next pass at spotthestation.nasa.gov or in NASA’s Spot the Station app.', 'Go outside at that time and look where it says it will appear.', 'Time how long it takes to cross the sky.'],
+      look: 'A bright dot that does not blink, moving steadily, gone in a few minutes. You are watching something fall around the Earth at 7.7 km/s.' }
+  ]
+}
+});
+
 })();
