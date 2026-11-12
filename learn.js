@@ -667,4 +667,110 @@ gravity: {
 }
 });
 
+
+/* ---------- Circular motion (Nov 12, 2026) ----------
+   Coordinates from sims/circular.js: puck table STR (cx 285, cy 225, 136 px/m; table x 20–540);
+   curve track centre (300, 225), radius 170 px, car at angle phi; loop LOOP (cx 330, ground 404, 17 px/m);
+   rotor drawn below y ≈ 150, empty sky above it on the left. */
+const ciAct=(sim,id)=>{const a=sim.def.actions.find(x=>x.id===id);if(a)a.run(sim);};
+const ciMet=(sim,id)=>{const m=sim.def.metrics.find(x=>x.id===id);return m?m.get(sim):null;};
+function ciCard(ctx,k,lines,x,y,w,LH){const kk=Math.min(k,1.45);w=Math.min(784,w*Math.max(1,kk));x=Math.max(8,Math.min(x,792-w));const h=12+lines.length*20*kk;if(LH)y=Math.min(y,LH-h-8);
+  ctx.save();ctx.globalAlpha=0.96;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,x,y,w,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+  lines.forEach((l,j)=>{const o=typeof l==='string'?[l]:l;H.txt(ctx,o[0],x+10,y+22*kk+j*20*kk,{s:(o[2]||13)*kk,w:o[1]||500,c:o[3]||PAL['cv-ink']});});}
+function ciPuck(sim){const q=sim.st.str,p=sim.p;return q.cut?[285+q.x*136,225-q.y*136]:[285+p.r*136*Math.cos(q.th),225-p.r*136*Math.sin(q.th)];}
+function ciArrow(ctx,x,y,dx,dy,col,w){const L=Math.hypot(dx,dy);if(L<3)return;const ux=dx/L,uy=dy/L,h=Math.min(12,4+L*0.3);ctx.save();ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w||3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dx-ux*h*0.8,y+dy-uy*h*0.8);ctx.stroke();ctx.beginPath();ctx.moveTo(x+dx,y+dy);ctx.lineTo(x+dx-ux*h-uy*h*0.55,y+dy-uy*h+ux*h*0.55);ctx.lineTo(x+dx-ux*h+uy*h*0.55,y+dy-uy*h-ux*h*0.55);ctx.closePath();ctx.fill();ctx.restore();}
+/* cut the string 1.4 s into each run and start again 1.5 s after the puck leaves the table */
+function ciCutLoop(sim){const q=sim.st.str;if(!q)return;if(!q.cut&&q.t>1.4)ciAct(sim,'cut');if(q.stop){if(!sim._ciT)sim._ciT=performance.now();else if(performance.now()-sim._ciT>1500){ciAct(sim,'go');sim._ciT=0;}}else sim._ciT=0;}
+function ciCarLoop(sim){const c=sim.st.car;if(!c)return;if(c.skid||c.slideIn){if(c.t-(c.skidAt||0)>3.2)ciAct(sim,'go');}}
+function ciCar(sim){const c=sim.st.car,p=sim.p;if(c.skid)return [300+c.x*170/p.cr,225-c.y*170/p.cr];return [300+170*Math.cos(c.phi),225-170*Math.sin(c.phi)];}
+
+BioLab.addLearn({
+circular: {
+  goals: {
+    bio: ['Why going around a curve at a steady speed still counts as accelerating', 'Which way the push or pull points when something turns', 'What really happens when a string snaps or tires lose their grip', 'Why snow makes the safe speed on a curve so much lower'],
+    honors: ['Why going around a curve at a steady speed still counts as accelerating', 'How to find the centripetal acceleration, a = v²/r, and the force that supplies it', 'Why doubling your speed takes four times the grip', 'The slowest speed that makes it over the top of a loop'],
+    ap: ['How to find the centripetal acceleration, a = v²/r, and the force that supplies it', 'How to write ΣF = mv²/r for a loop, a curve and a rotor ride', 'How a banked curve turns a car with no friction at all']
+  },
+  matters: 'Every curve you drive or ride, every turn on a bike, every swing ride and every off-ramp in a Colorado snowstorm is circular motion. Knowing what force turns you, and how fast it runs out, tells you how fast is safe.',
+  startKey: 'start', startRun: true, startSpeed: 1,
+  startOverlay(sim,ctx,LH,k){if(sim.p.mode!=='curve'){BioLab.setValues(sim,{mode:'curve',cv:15,cr:50,mu:0.7});BioLab.reset(sim);}const [x,y]=ciCar(sim);tag(ctx,'your car: 15 m/s',x-80,y+26,k,{s:12,hi:true});tag(ctx,'curve radius 50 m',300,200,k,{s:12});ciCard(ctx,k,[['Same curve, two roads',700],['Dry road: grip μ = 0.7'],['Packed snow: grip μ = 0.2']],190,235,220);},
+  steps: [
+    { key: 'puck', title: 'Around and around', set: { mode: 'string' }, fresh: true, speed: 0.4,
+      see: 'Seen from above, a puck glides on an air table, tied to a pin by a string. The dots mark where it was every 0.1 s. The blue arrow is its velocity.',
+      why: 'The dots are evenly spaced, so the speed stays the same: 4 m/s. But the blue arrow keeps turning. It always points along the circle, the way the puck is moving at that instant.',
+      overlay(sim,ctx,LH,k){const [x,y]=ciPuck(sim);tag(ctx,'velocity: along the circle',clamp(x+40,120,450),clamp(y+46,40,420),k,{s:12,c:'#1b6fb3'});ciCard(ctx,k,[['Speed: 4 m/s, every moment',700],['Direction: always changing']],32,360,250,LH);} },
+    { key: 'turn', title: 'Turning is accelerating', set: { mode: 'string' }, fresh: true, speed: 0.4,
+      see: 'Bottom left: the velocity a moment ago (light blue) and now (dark blue), drawn from the same point. The red arrow is the change between them. Watch which way it points as the puck goes around.',
+      why: 'Acceleration means the velocity is changing, and a change of direction counts. The change always points toward the center of the circle, so the puck is always accelerating toward the pin. Something has to pull it that way: here, the string.',
+      overlay(sim,ctx,LH,k){const q=sim.st.str,th=q.th,O=[110,330],L=62,a=[-Math.sin(th-0.7)*L,-Math.cos(th-0.7)*L],b=[-Math.sin(th)*L,-Math.cos(th)*L];
+        ctx.save();ctx.globalAlpha=0.95;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,36,256,150,150,10);ctx.fill();ctx.restore();
+        ciArrow(ctx,O[0],O[1],a[0],a[1],'#8fc4ef',3);ciArrow(ctx,O[0],O[1],b[0],b[1],'#1b6fb3',3);ciArrow(ctx,O[0]+a[0],O[1]+a[1],b[0]-a[0],b[1]-a[1],'#c8102e',3);
+        const [x,y]=ciPuck(sim),dx=285-x,dy=225-y,d=Math.hypot(dx,dy);ciArrow(ctx,x,y,dx/d*48,dy/d*48,'#c8102e',3);tag(ctx,'change in velocity → toward the center',300,428,k,{s:12,c:'#c8102e'});} },
+    { key: 'cut', title: 'Cut the string', set: { mode: 'string' }, fresh: true, speed: 0.4,
+      see: 'The string is cut while the puck is moving. The dashed red line points straight out from the pin. Watch which way the puck actually goes.',
+      why: 'With nothing pulling it toward the center, nothing turns it, so the puck keeps the velocity it had and goes straight along the tangent (Newton’s first law). It does not fly straight out from the center, and it does not spiral.',
+      overlay(sim,ctx,LH,k){ciCutLoop(sim);const q=sim.st.str;if(!q.cut)return;const a=q.cutAt,px=285+sim.p.r*136*Math.cos(a),py=225-sim.p.r*136*Math.sin(a);
+        ctx.save();ctx.setLineDash([6,6]);ctx.strokeStyle='#c8102e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(285,225);ctx.lineTo(285+(sim.p.r+0.8)*136*Math.cos(a),225-(sim.p.r+0.8)*136*Math.sin(a));ctx.stroke();ctx.restore();
+        tag(ctx,'✗ not straight out',clamp(285+(sim.p.r+0.9)*136*Math.cos(a),90,470),clamp(225-(sim.p.r+0.9)*136*Math.sin(a),30,420),k,{s:12,c:'#c8102e'});
+        const [x,y]=ciPuck(sim);tag(ctx,'✓ straight along the tangent',clamp(x,110,450),clamp(y-28,30,420),k,{s:12,hi:true});} },
+    { key: 'faster', title: 'Twice as fast', set: { mode: 'string', v: 8 }, fresh: true, speed: 0.25,
+      see: 'Same puck, same string, now at 8 m/s. Look at the string tension on the right.',
+      why: 'Twice as fast means the direction changes twice as quickly, and each change is twice as big. So the string has to pull 2 × 2 = 4 times as hard: 40 N instead of 10 N. That is why fast turns need so much more grip.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['String pull',700],['4 m/s: 10 N'],['8 m/s: 40 N, 4× as much',700,13,'#c8102e']],32,340,240,LH);} },
+    { key: 'curve', title: 'A car on a dry curve', set: { mode: 'curve', cv: 15, cr: 50, mu: 0.7 }, fresh: true, speed: 1,
+      see: 'Now a car on a 50 m curve at 15 m/s (34 mph), seen from above. The gauge at the top right shows how much of the tires’ grip it takes.',
+      why: 'On a flat road, nothing pulls the car toward the center except friction between the tires and the road. Turning here takes 66% of what dry tires can give, so the car holds the curve.',
+      overlay(sim,ctx,LH,k){const [x,y]=ciCar(sim),dx=300-x,dy=225-y,d=Math.hypot(dx,dy);ciArrow(ctx,x,y,dx/d*46,dy/d*46,'#7a3fb0',3);tag(ctx,'tire friction: toward the center',300,160,k,{s:12,c:'#7a3fb0'});
+        ciCard(ctx,k,[['Dry road',700],['Grip used: '+Math.round(ciMet(sim,'grip'))+'%'],['Top safe speed: 18.5 m/s']],200,235,200);} },
+    { key: 'snow', title: 'The same curve on snow', set: { mode: 'curve', cv: 15, cr: 50, mu: 0.2 }, fresh: true, speed: 1,
+      see: 'Same car, same 15 m/s, but on packed snow (grip 0.2). Watch where the car goes when the tires can’t give enough grip.',
+      why: 'The curve still needs the same pull toward the center, but snow can only supply about a third of it. The car does not slide outward. It goes nearly straight, along the tangent, off the curve: just like the puck when the string was cut.',
+      overlay(sim,ctx,LH,k){ciCarLoop(sim);ciCard(ctx,k,[['Packed snow',700],['Grip needed: 230% of what it has',700,13,'#c8102e'],['Top safe speed: 9.9 m/s (22 mph)']],180,235,240);} },
+    { key: 'snowslow', title: 'Slow down for the snow', set: { mode: 'curve', cv: 9.5, cr: 50, mu: 0.2 }, fresh: true, speed: 1,
+      see: 'Still on snow, but now at 9.5 m/s (21 mph). The car holds the curve.',
+      why: 'Grip needed grows with speed squared. Cutting the speed to about two-thirds cuts the grip needed to under half, and now the snow can supply it, with a little to spare.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['Snow, 9.5 m/s',700],['Grip used: '+Math.round(ciMet(sim,'grip'))+'%'],['It makes the curve',700,13,'#1b7a3e']],200,235,200);} },
+    { key: 'loop', title: 'Loop-the-loop', set: { mode: 'loop', lR: 5, lv: 17 }, fresh: true, speed: 0.5,
+      see: 'A cart rides a loop 10 m tall. The label on the cart shows how heavy the rider feels, as a multiple of normal weight.',
+      why: 'The track has to push the cart toward the center. At the bottom it pushes up, against gravity, so it pushes hard and the rider feels heavy. At the top, gravity is already pulling toward the center, so the track pushes less and the rider feels light.',
+      overlay(sim,ctx,LH,k){const c=sim.st.cart,X=330+c.x*17,Y=404-c.y*17,f=ciMet(sim,'feel');if(f!=null&&isFinite(f))tag(ctx,'feels '+f.toFixed(1)+'× weight',clamp(X+86,90,700),clamp(Y-10,30,420),k,{s:12,hi:true});
+        tag(ctx,'top: lightest',330,212,k,{s:12});tag(ctx,'bottom: heaviest',330,428,k,{s:12});} },
+    { key: 'rotor', title: 'The rotor ride', set: { mode: 'rotor', rpm: 30, rR: 3, rmu: 0.4 }, fresh: true, speed: 1, run(sim){setTimeout(()=>{if(sim.lnKey==='rotor'&&sim.st.rot&&!sim.st.rot.floor)ciAct(sim,'floor');},1800);},
+      see: 'Riders stand against the wall of a spinning drum. After a moment the floor drops away. Watch the riders.',
+      why: 'The wall pushes each rider toward the center, which is what keeps them going around. That hard push presses them against the wall, so friction can hold them up: up to 711 N of friction against 588 N of weight. They stay stuck to the wall.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['Wall push toward the center: 1,776 N',700],['Friction it allows: up to 711 N'],['Rider’s weight: 588 N → held up',700,13,'#1b7a3e']],20,40,320);} },
+    { lvl: 'honors', key: 'ac', title: 'a = v²/r', set: { mode: 'string', v: 4, r: 0.4 }, fresh: true, speed: 0.4,
+      see: 'The string is now half as long, 0.4 m, at the same 4 m/s.',
+      why: 'Centripetal acceleration a = v²/r = 4² ÷ 0.4 = 40 m/s², twice what it was on the 0.8 m string. The string supplies F = ma = 0.5 kg × 40 m/s² = 20 N. A tighter turn at the same speed takes more force.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['a = v²/r',700],['r = 0.8 m: 16 ÷ 0.8 = 20 m/s² → 10 N'],['r = 0.4 m: 16 ÷ 0.4 = 40 m/s² → 20 N',700,13,'#c8102e']],32,340,300,LH);} },
+    { lvl: 'honors', key: 'loopmin', title: 'Just enough speed for the loop', set: { mode: 'loop', lR: 5 }, fresh: true, speed: 0.5, run(sim){ciAct(sim,'minimum');},
+      see: 'The cart enters at exactly √(5gR) = 15.7 m/s. Watch the label at the very top.',
+      why: 'At the top, N + mg = mv²/R. The slowest safe speed there makes N = 0: gravity alone supplies the turn, so v<sub>top</sub> = √(gR) = 7.0 m/s. Energy from the bottom: v² = v<sub>top</sub>² + 4gR = 5gR.',
+      overlay(sim,ctx,LH,k){const c=sim.st.cart,X=330+c.x*17,Y=404-c.y*17,f=ciMet(sim,'feel');if(f!=null&&isFinite(f))tag(ctx,'feels '+f.toFixed(1)+'× weight',clamp(X+86,90,700),clamp(Y-10,30,420),k,{s:12,hi:true});
+        ciCard(ctx,k,[['At the top: N = 0',700],['mg = mv²/R → v = √(gR) = 7.0 m/s'],['Entry: √(5gR) = 15.7 m/s']],60,40,280);} },
+    { lvl: 'ap', key: 'bank', title: 'Banked curves', set: { mode: 'curve', bank: 20, mu: 0, cr: 50, fbd: true }, fresh: true, speed: 1, run(sim){ciAct(sim,'design');},
+      see: 'The road is banked 20° and has no friction at all (μ = 0). At the design speed the car still holds the curve. Look at the cross-section on the right.',
+      why: 'The tilted road pushes perpendicular to its surface, so the normal force has a horizontal part toward the center. N sin θ = mv²/r and N cos θ = mg give v = √(gr tan θ) = √(9.8 × 50 × tan 20°) = 13.4 m/s.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['No friction needed',700],['v = √(gr tan θ) = 13.4 m/s'],['N sin θ supplies mv²/r']],190,235,220);} }
+  ],
+  useIt: [
+    { do: 'On snow or ice, slow down before the curve and drive through it at a steady speed. Don’t brake in the middle of it.',
+      why: 'The grip a curve needs grows with speed squared, and snow gives about a third of dry-road grip. Braking mid-curve asks the same tires for even more. Colorado’s transportation department says to avoid braking on curves and to drive through them at a safe, steady speed (CDOT Winter Driving Tips).' },
+    { do: 'Check your tire tread before winter, for example with a coin in the tread.',
+      why: 'On a flat curve, the tires are the only thing turning the car. Worn tires can’t grip the road well, and CDOT calls them extremely hazardous on snow (CDOT).' },
+    { do: 'Secure loose things in the car, and buckle up even for short drives.',
+      why: 'In a sharp turn, nothing is pulling a loose phone or backpack toward the center, so it keeps going straight while the car turns under it. The same happens to an unbelted person.' }
+  ],
+  tryIt: [
+    { title: 'the bucket swing (5 minutes, outside)',
+      steps: ['Put a cup of water in a small bucket.', 'Swing it in a big vertical circle, quickly and steadily, at arm’s length.', 'Slow down a little each time until the water starts to splash at the top. Then stop.'],
+      look: 'At arm’s length (about 1 m) the bucket needs at least √(gR) ≈ 3.1 m/s at the top. Faster than that, the bucket pushes the water around the circle. Slower, gravity pulls the water down more than the circle needs.' },
+    { title: 'the coin on the turntable (2 minutes)',
+      steps: ['Put a coin near the middle of a lazy Susan or a spinning plate, then one near the edge.', 'Spin it slowly, then a little faster.'],
+      look: 'The coin at the edge slides off first, and it leaves along a straight line, not straight out. It is moving faster and needs more grip to turn, just like a car on a tight curve.' }
+  ]
+}
+});
+
 })();

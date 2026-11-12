@@ -529,3 +529,58 @@ gravity:{
     steps:['v = √(GM/r): a smaller r means a larger speed.','Total energy E = −GMm/(2r) becomes more negative as r shrinks.','Drag removes energy, but gravity does more work as the satellite drops, so it ends up faster. On an FRQ, show both expressions.']}
   ]}
 });
+/* Circular motion (Nov 12, 2026): why questions for Test yourself, including real-life ones. */
+BioLab.addReview({
+circular:{
+  apNote:'Released questions from College Board. Ask your teacher which ones match what you have covered.',
+  ap:[{title:'All released AP Physics 1 exam questions',url:'https://apcentral.collegeboard.org/courses/ap-physics-1/exam/past-exam-questions',note:'Free-response questions by year, with scoring guidelines. Look for circular motion: loops, curves and objects on strings.'}],
+  questions:[
+  {id:'steady',kind:'test',lvl:'bio',
+    q:'A car drives around a circular track at a steady 20 mph. Is it accelerating?',
+    choices:['Yes: its direction keeps changing, and a change in direction is a change in velocity','No: its speed isn’t changing','Only when it speeds up','Only if the track is banked'],correct:0,
+    steps:['Velocity has a size (the speed) and a direction.','Going around a curve, the direction changes every moment, so the velocity changes.','Changing velocity is acceleration. On a circle it points toward the center.'],
+    lab:{set:{mode:'string',v:4},look:'Watch the red acceleration arrow on the puck: the speed never changes, but the arrow is always there, pointing at the pin.'}},
+  {id:'snapped',kind:'test',lvl:'bio',
+    q:'You whirl a ball on a string over your head, and the string snaps. Which way does the ball go?',
+    choices:['Straight along the direction it was moving at that instant, the tangent','Straight out, away from your hand','It keeps curving for a moment, then goes straight','Straight down'],correct:0,
+    steps:['The string was the only thing pulling the ball toward the center.','With that pull gone, nothing turns the ball, so it keeps the velocity it had (Newton’s first law).','That velocity points along the circle, so the ball flies off along the tangent.'],
+    lab:{set:{mode:'string'},act:'cut',look:'The puck leaves along the tangent line, not straight out from the pin.'}},
+  {id:'fourx',kind:'test',lvl:'bio',
+    q:'On the same curve, you take the turn at twice the speed. How much more grip do your tires need?',
+    choices:['4 times as much','2 times as much','The same','Half as much'],correct:0,
+    steps:['The force needed to turn is mv²/r.','Doubling v makes v² four times as large.','So the tires must supply 4 times the friction. That is why speed on curves is so dangerous.'],
+    lab:{set:{mode:'curve',cv:15},look:'Note <b>Tire grip used</b> at 15 m/s, then try 30 m/s.'}},
+  {id:'snowcurve',kind:'real',lvl:'bio',
+    q:'Driving down from the mountains, you hit a snowy curve a little too fast. Why does Colorado’s transportation department say to slow down before the curve, not brake in the middle of it?',
+    choices:['Turning already uses up most of the snow’s small grip; braking mid-curve asks the same tires for more, and the car can slide straight off','Brakes don’t work on snow','Braking makes the car lighter','Slowing down before the curve warms up the tires'],correct:0,
+    steps:['On a flat curve, tire friction is the only force turning the car.','Snow gives only about a third of dry-road grip, so a curve at normal speed can use all of it.','Braking needs grip too. Asking for both at once can exceed what the tires have, and the car goes straight, off the curve (CDOT Winter Driving Tips).']},
+  {id:'outward',kind:'test',lvl:'bio',
+    q:'In a sharp turn, your backpack slides across the back seat toward the outside of the curve. What is really happening?',
+    choices:['The backpack keeps going straight while the car turns under it','A force pushes the backpack outward','The backpack is pulled toward the center','Gravity pulls it sideways'],correct:0,
+    steps:['Nothing pulls the loose backpack toward the center of the turn.','So it keeps moving in a straight line, as it was.','The car turns away underneath it, so it ends up against the outside door. There is no outward force.']},
+  {id:'acnum',kind:'test',lvl:'honors',
+    q:'A 0.5 kg puck moves at 4 m/s on a string 0.4 m long. What is the string tension?',
+    num:{ans:20,tol:0.2,unit:'N'},
+    steps:['a = v²/r = 16 ÷ 0.4 = 40 m/s², toward the center.','The string supplies the force: F = ma = 0.5 × 40.','= 20 N. A common mistake is to use v instead of v².'],
+    lab:{set:{mode:'string',m:0.5,r:0.4,v:4},look:'Read <b>String tension, mv²/r</b>.'}},
+  {id:'snowmax',kind:'test',lvl:'honors',
+    q:'What is the top safe speed on a flat 50 m curve when the tires grip with μ = 0.2 (packed snow)?',
+    num:{ans:9.9,tol:0.1,unit:'m/s'},
+    steps:['The most friction can give is μmg, and it must supply mv²/r.','μmg = mv²/r, so v = √(μgr) — the mass cancels.','v = √(0.2 × 9.8 × 50) = √98 = 9.9 m/s, about 22 mph.'],
+    lab:{set:{mode:'curve',mu:0.2,cr:50},look:'Read <b>Top safe speed</b>.'}},
+  {id:'bucket',kind:'real',lvl:'honors',
+    q:'You swing a bucket of water in a vertical circle at arm’s length, about 1 m. What is the slowest speed at the top that keeps the water in?',
+    num:{ans:3.1,tol:0.05,unit:'m/s'},
+    steps:['At the slowest speed, gravity alone supplies the turn at the top: mg = mv²/r.','v = √(gr) = √(9.8 × 1).','= 3.1 m/s. Any slower and gravity pulls the water down faster than the circle needs.']},
+  {id:'loopentry',kind:'ap',lvl:'ap',
+    q:'A frictionless loop has radius 5.0 m. What is the minimum speed at the bottom for a cart to stay on the track at the top?',
+    num:{ans:15.7,tol:0.1,unit:'m/s'},
+    steps:['At the top, the slowest safe speed makes the normal force zero: mg = mv<sub>top</sub>²/R, so v<sub>top</sub>² = gR.','Energy from bottom to top (a rise of 2R): v<sub>b</sub>² = v<sub>top</sub>² + 4gR = 5gR.','v<sub>b</sub> = √(5 × 9.8 × 5.0) = √245 = 15.7 m/s.'],
+    lab:{set:{mode:'loop',lR:5},act:'minimum',look:'Read <b>Rider feels</b> at the very top: 0.0 g.'}},
+  {id:'banked',kind:'ap',lvl:'ap',
+    q:'A curve of radius 50 m is banked at 20° and covered in ice (no friction). At what speed can a car take it?',
+    num:{ans:13.4,tol:0.1,unit:'m/s'},
+    steps:['Only gravity and the normal force act. Vertically N cos θ = mg; horizontally N sin θ = mv²/r.','Divide: tan θ = v²/(gr), so v = √(gr tan θ).','v = √(9.8 × 50 × tan 20°) = √178 = 13.4 m/s.'],
+    lab:{set:{mode:'curve',bank:20,mu:0,cr:50},act:'design',look:'The car holds the curve with 0% grip used.'}}
+  ]}
+});
