@@ -211,7 +211,17 @@ vectors2d:{
     q:'A boat goes 4 m/s in still water across a 40 m river with a 2 m/s current. It aims upstream so it lands directly across. How long does the crossing take?',
     num:{ans:11.5,tol:.1,unit:'s'},
     steps:['To cancel the current, the upstream part of the boat’s velocity must be 2 m/s: sin θ = 2 ÷ 4, so θ = 30°.','The across part is 4 cos 30° = 3.46 m/s.','Time = 40 ÷ 3.46 = 11.5 s, longer than the 10 s it would take pointing straight across.'],
-    lab:{set:{mode:'river',bs:4,cur:2,aim:30,wid:40},look:'Aimed 30° upstream. Read <b>Time on the water</b> and <b>Downstream drift</b>.'},verify:[['crossT',11.55,.02],['drift',0,.05]],wait:30}
+    lab:{set:{mode:'river',bs:4,cur:2,aim:30,wid:40},look:'Aimed 30° upstream. Read <b>Time on the water</b> and <b>Downstream drift</b>.'},verify:[['crossT',11.55,.02],['drift',0,.05]],wait:30},
+  {id:'rip',kind:'real',lvl:'bio',
+    q:'A rip current is pulling you straight out from the beach faster than you can swim. Why does the National Weather Service say to swim parallel to the shore instead of straight back?',
+    choices:['Swimming along the shore is sideways to the current, so the current can’t cancel that motion and you move out of its narrow path','Swimming parallel makes the current weaker','The current only pulls on swimmers facing the beach','Swimming parallel is faster than swimming toward shore'],correct:0,
+    steps:['Straight back toward the beach, your velocity points directly against the current. If the current is faster, the two add to a velocity that still points out to sea.','Swimming parallel to the shore is at right angles to the current. Like the boat pointed across the river, the current carries you outward, but your sideways motion still adds up.','Rip currents are narrow, so a short swim along the shore gets you out of them. Then you can swim at an angle back to the beach.'],
+    lab:{set:{mode:'river',bs:1,aim:0,cur:2,wid:40},act:'go',look:'A slow swimmer (1 m/s) in a 2 m/s current, swimming “across.” The current carries it far downstream, but it still crosses.'}},
+  {id:'ferry',kind:'real',lvl:'honors',
+    q:'You can paddle a kayak at 2.0 m/s in still water. A river flows at 1.0 m/s. How many degrees upstream should you point to cross without drifting downstream?',
+    num:{ans:30,tol:1,unit:'°'},
+    steps:['To cancel the current, the upstream part of your velocity must equal the current: 2.0 sin θ = 1.0.','sin θ = 1.0 ÷ 2.0 = 0.5, so θ = 30°.','Paddlers call this a ferry angle. A faster current needs a bigger angle, and if the current is faster than you can paddle, no angle can cancel it.'],
+    lab:{set:{mode:'river',bs:2,aim:30,cur:1,wid:40},act:'go',look:'Aimed 30° upstream at 2 m/s in a 1 m/s current. Read <b>Downstream drift</b> when it lands.'},verify:[['drift',0,.05]],wait:30}
   ]},
 forces:{
   questions:[

@@ -493,4 +493,73 @@ incline: {
 }
 });
 
+/* ---------- vectors in two dimensions ---------- */
+const vcCard=(ctx,k,lines,x,y,w)=>{const f=Math.min(1,1.1/Math.min(k,1.3));foCard(ctx,k,lines.map(l=>{const o=typeof l==='string'?[l,500]:l.slice();o[2]=(o[2]||12.5)*f;return o;}),x,y,w||290);};
+const vcR=(sim,ctx,k,lines)=>{const r=sim.vis&&sim.vis.rv,h=10+lines.length*18*Math.min(k,1.3);let y=140;if(r){const top=r.yb-r.s*sim.p.wid;y=Math.max(top+56,Math.min((top+r.yb)/2+18,r.yb-8-h));}vcCard(ctx,k,lines,16,y,270);};
+const VRIV={mode:'river',bs:3,aim:0,cur:1.5,wid:40};
+const vcTrip=sim=>{const b=sim.st.boat;if(!b)return '…';return b.done?'Landed: '+b.t.toFixed(1)+' s, '+(Math.abs(b.x)<0.05?'no drift':b.x.toFixed(1)+' m downstream'):'t = '+b.t.toFixed(1)+' s, drift '+b.x.toFixed(1)+' m';};
+
+BioLab.addLearn({
+vectors2d: {
+  goals: {
+    bio: ['Why a boat pointed straight across a river still lands downstream', 'How to add two arrows tip to tail to see where you really go', 'Why aiming upstream (or into the wind) gets you straight across', 'How this helps you escape a rip current and paddle across a river'],
+    honors: ['How to add velocities as vectors: v(boat, shore) = v(boat, water) + v(water, shore)', 'Why the across part alone sets the crossing time', 'How to split any vector into x and y components and add them', 'How to use the Pythagorean theorem and trig to rebuild the result'],
+    ap: ['How to add relative velocities with components', 'How to find the aim angle that cancels a current, sin θ = v_c ÷ v_b', 'Why perpendicular components are independent', 'How to find the heading a plane needs in a crosswind']
+  },
+  matters: 'Anything that moves through moving water or air, a swimmer, a kayak, a plane, a drone, gets pushed sideways. Adding the arrows tells you where you will really end up, and how to aim so you land where you want.',
+  question: 'Your boat goes 3 m/s (about 7 mph) in still water. You point it straight across a 40 m river flowing at 1.5 m/s. How far downstream do you land, and which way should you point to land straight across?',
+  startKey: 'river', startRun: false,
+  startOverlay(sim,ctx,LH,k){vcR(sim,ctx,k,[['River: 40 m wide, flowing 1.5 m/s →',700],'Boat: 3 m/s in still water (about 7 mph)','Seen from above; dots every 1 s']);},
+  steps: [
+    { key: 'across', title: 'Point straight across', base: VRIV, fresh: true, speed: 1.2,
+      see: 'The boat points straight at the flag on the far bank, but the red dots, one per second, march diagonally. It lands about 20 m downstream after 13.3 s.',
+      why: 'Two things move the boat at once: its own push through the water (blue, 3 m/s across) and the river carrying the water (teal, 1.5 m/s downstream). Draw them <b>tip to tail</b>: the red arrow from the start of the blue one to the tip of the teal one is how the boat really moves past the shore.',
+      overlay(sim,ctx,LH,k){vcR(sim,ctx,k,[['Boat’s push: 3 m/s across',700,12.5,PAL['s2']],['Current: 1.5 m/s downstream',700,12.5,PAL['s6']],['Real path: the red arrow',700,12.5,PAL['s1']],vcTrip(sim)]);} },
+    { key: 'faster', title: 'Double the current', base: VRIV, set: { cur: 3 }, fresh: true, speed: 2,
+      see: 'Same boat, same aim, but the river now flows at 3 m/s. The path tilts much more, and the boat lands 40 m downstream. The time on the water is still 13.3 s.',
+      why: 'The current only pushes sideways, so it changes where you land, not how fast you cross. Only the boat’s across part, 3 m/s, gets you to the far bank: 40 m ÷ 3 m/s = 13.3 s, whatever the current does.',
+      overlay(sim,ctx,LH,k){vcR(sim,ctx,k,[['Current: 3 m/s (was 1.5)',700,12.5,PAL['s6']],'Across: still 3 m/s, so still 13.3 s',['Drift doubles: 20 m → 40 m',800,12.5,'#c8102e'],vcTrip(sim)]);} },
+    { key: 'upstream', title: 'Aim 30° upstream', base: VRIV, set: { aim: 30 }, fresh: true, speed: 2,
+      see: 'Back to the 1.5 m/s river, but now the boat points 30° upstream. It crabs across at an angle and lands right at the flag. The trip takes longer, about 15.4 s.',
+      why: 'Pointing partly upstream splits the boat’s 3 m/s into two parts. Half of it, 1.5 m/s, pushes upstream and exactly cancels the current. The rest, about 2.6 m/s, carries it across, so the crossing is slower: 40 ÷ 2.6 ≈ 15.4 s. This answers the question: 20 m downstream pointing straight, or aim 30° upstream to land straight across.',
+      overlay(sim,ctx,LH,k){vcR(sim,ctx,k,['Aim: 30° upstream',['Upstream part: 1.5 m/s, cancels the current',700,12.5,PAL['s2']],'Across part: about 2.6 m/s',['→ '+vcTrip(sim),800,12.5,'#c8102e']]);} },
+    { key: 'plane', title: 'A plane in a crosswind', base: { mode: 'plane', as: 60, hdg: -30, ws: 30, wd: 90 }, fresh: true, speed: 1,
+      see: 'Same idea in the air, seen on a map. A 30 m/s wind blows toward the east. The plane’s nose points 30° west of north, yet its path runs straight north to the city.',
+      why: 'Pilots call this <b>crabbing</b>: pointing partly into the wind so the wind’s sideways push is cancelled. The nose and the path point different ways, just like the boat aimed upstream. Planes landing at Denver International on a gusty day do exactly this.',
+      overlay(sim,ctx,LH,k){vcCard(ctx,k,[['Nose: 30° west of north',700,12.5,PAL['s2']],['Wind: 30 m/s toward the east',700,12.5,PAL['s6']],['Path: straight north to the city',800,12.5,'#c8102e']],80,16,280);} },
+    { key: 'add', title: 'Adding any two arrows', base: { mode: 'add', am: 3, aa: 0, bm: 4, ba: 90, op: 'add', comps: false }, fresh: true, speed: 0.6,
+      see: 'Arrow A is 3 m east; arrow B is 4 m north. B slides over so its tail sits on A’s tip. The red resultant from the start to the end is 5 m long, not 7 m.',
+      why: 'Walk 3 blocks east and 4 blocks north and you end up 5 blocks away in a straight line. Arrows that point different ways partly “miss” each other, so they add up to less than their sizes added together. For a right angle, the Pythagorean theorem gives it: √(3² + 4²) = 5.',
+      overlay(sim,ctx,LH,k){vcCard(ctx,k,[['3 m east + 4 m north',700],'Walked: 7 m',['Straight-line distance: √(3² + 4²) = 5 m',800,12.5,'#c8102e']],16,16,280);} },
+    { lvl: 'honors', key: 'speed', title: 'Speed relative to the shore', base: VRIV, set: { bs: 4, cur: 3 }, fresh: true, speed: 2,
+      see: 'A faster boat, 4 m/s, crosses a 3 m/s river pointing straight across. It moves past the shore at 5 m/s, faster than either speed alone, and crosses in 10 s with 30 m of drift.',
+      why: 'Velocities add as vectors: <b>v</b>(boat, shore) = <b>v</b>(boat, water) + <b>v</b>(water, shore). They are at right angles, so |v| = √(4² + 3²) = 5 m/s. The time uses only the across part: t = 40 ÷ 4 = 10 s, and the drift is 3 m/s × 10 s = 30 m.',
+      overlay(sim,ctx,LH,k){vcR(sim,ctx,k,['v = √(4² + 3²) = '+foM(sim,'gsr').toFixed(2)+' m/s','t = 40 m ÷ 4 m/s = 10 s','Drift = 3 m/s × 10 s = 30 m',['→ '+vcTrip(sim),800,12.5,'#c8102e']]);} },
+    { lvl: 'honors', key: 'comps', title: 'Add with components', base: { mode: 'add', am: 5, aa: 30, bm: 4, ba: 120, op: 'add', comps: true }, fresh: true, speed: 0.6,
+      see: 'A is 5 m at 30°, B is 4 m at 120°. The dashed lines split each into an x part and a y part, and the table at the top right adds them.',
+      why: 'A_x = 5 cos 30° = 4.33, A_y = 5 sin 30° = 2.50. B_x = 4 cos 120° = −2.00, B_y = 4 sin 120° = 3.46. Add the x’s and the y’s: R = (2.33, 5.96). Then |R| = √(2.33² + 5.96²) = 6.40 m, at tan⁻¹(5.96 ÷ 2.33) = 69°.',
+      overlay(sim,ctx,LH,k){vcCard(ctx,k,['R_x = 4.33 + (−2.00) = 2.33 m','R_y = 2.50 + 3.46 = 5.96 m',['|R| = '+foM(sim,'rmag').toFixed(2)+' m at '+foM(sim,'rang').toFixed(0)+'°',800,12.5,'#c8102e']],16,16,280);} },
+    { lvl: 'ap', key: 'aim', title: 'The aim that cancels a current', base: VRIV, set: { bs: 4, cur: 2, aim: 30 }, fresh: true, speed: 2,
+      see: 'A 4 m/s boat in a 2 m/s current, aimed 30° upstream. It lands with no drift after about 11.5 s.',
+      why: 'Zero drift means v_b sin θ = v_c, so θ = sin⁻¹(v_c ÷ v_b) = sin⁻¹(2 ÷ 4) = 30°. The across component is v_b cos θ = 3.46 m/s, so t = 40 ÷ 3.46 = 11.5 s. If v_c > v_b, no aim can cancel the current, and the best you can do is limit the drift.',
+      overlay(sim,ctx,LH,k){vcR(sim,ctx,k,['θ = sin⁻¹(2 ÷ 4) = 30°','v_across = 4 cos 30° = 3.46 m/s','t = 40 ÷ 3.46 = 11.5 s',['→ '+vcTrip(sim),800,12.5,'#c8102e']]);} },
+    { lvl: 'ap', key: 'heading', title: 'Heading in a slanted wind', base: { mode: 'plane', as: 60, hdg: -21, ws: 30, wd: 45 }, fresh: true, speed: 1,
+      see: 'Now the 30 m/s wind blows toward the northeast. The plane points 21° west of north and tracks almost due north, and its ground speed is faster than its airspeed.',
+      why: 'Split the wind: 30 sin 45° = 21.2 m/s east and 21.2 m/s north. To cancel the east part, 60 sin h = 21.2, so h = sin⁻¹(0.354) ≈ 21° west of north. North speed = 60 cos 21° + 21.2 ≈ 77 m/s: the wind’s north part is a partial tailwind.',
+      overlay(sim,ctx,LH,k){vcCard(ctx,k,['Wind east: 30 sin 45° = 21.2 m/s','Heading: sin⁻¹(21.2 ÷ 60) ≈ 21° W of N',['Ground speed: '+foM(sim,'gsp').toFixed(1)+' m/s',800,12.5,'#c8102e']],80,16,280);} }
+  ],
+  useIt: [
+    { do: 'If a rip current pulls you away from a beach, don’t swim straight back against it. Swim parallel to the shoreline until you feel the pull weaken, then swim at an angle back to the beach.',
+      why: 'A rip current is a narrow stream of water rushing out to sea, often faster than you can swim, so swimming against it is a fight you lose. Swimming along the shore is like the boat pointed across the river: the current carries you out, but it can’t stop you from crossing it. That’s the National Weather Service’s top rip-current tip.' },
+    { do: 'When you paddle a kayak, canoe or paddleboard across a river, point the nose partly upstream instead of right at your landing spot. The faster the current, the more upstream you point.',
+      why: 'Paddlers call this a ferry. Part of your paddling cancels the current, exactly like the boat aimed 30° upstream. Paddling.com’s guides explain that pointing straight at your target lets the current sweep you downstream.' }
+  ],
+  tryIt: [
+    { title: 'the moving-tray crossing (5 minutes, two people)',
+      steps: ['Put a wind-up toy, a toy car you can push gently, or even a crawling pet bug toy on a large baking sheet or a big sheet of cardboard on a table. Mark its starting spot on the table with tape.', 'Let the toy move straight across the sheet while your partner slowly and steadily slides the sheet sideways along the table: that is the “current.”', 'Mark where the toy reaches the far edge, on the table. Then try again with the toy aimed a little “upstream,” against the way the sheet slides.'],
+      look: 'Aimed straight across, the toy reaches the far edge downstream of where it started, but it takes about the same time to cross. Aimed upstream, it lands straight across, and the crossing takes a little longer.' }
+  ]
+}
+});
+
 })();
