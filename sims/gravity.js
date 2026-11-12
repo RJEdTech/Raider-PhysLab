@@ -10,7 +10,7 @@ const {clamp,lerp,rr,txt,pill,atLeast,PAL,RM,axes}=BioLab.h;
    Inverse-square law: F = GMm/r² for an object at r planet radii from the center of the Moon, Mars, Earth or Jupiter. */
 const GME=3.986e14,RE=6.371e6;
 const PLANETS={moon:{l:'Moon',M:0.0123,R:0.273,c:'#a9a9a9'},mars:{l:'Mars',M:0.107,R:0.532,c:'#c1440e'},earth:{l:'Earth',M:1,R:1,c:'#2f6db5'},jupiter:{l:'Jupiter',M:317.8,R:11.21,c:'#c9a27e'}};
-const MODE_CTL={v0:['cannon'],h:['cannon'],planet:['force'],r:['force'],m:['force']};
+const MODE_CTL={v0:['cannon'],h:['cannon'],zoom:['cannon'],planet:['force'],r:['force'],m:['force']};
 const MODE_TILE={alt:['cannon'],spd:['cannon'],vc:['cannon'],ve:['cannon'],E:['cannon'],T:['cannon'],F:['force'],gh:['force'],Fp:['force'],wS:['force']};
 const SPACE='#0c1320',SINK='#e8eef7',SSOFT='#9fb0c6';
 
@@ -31,7 +31,7 @@ const gAt=(p,r)=>9.82*pl(p).M/(r*r*pl(p).R*pl(p).R);   // N/kg at r planet radii
 
 /* Step "Newton's cannon": a 400 km drop is only about 11 px at the full-Earth scale, so a zoomed circle at the right shows the
    tower and the ball falling, with a dot every 40 s (the gaps grow as it speeds up). It drops again 1.5 s after it lands. */
-function zoomDrop(sim,ctx,LH,k){const p=sim.p,s=sim.st,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc)return;
+function zoomDrop(sim,ctx,LH,k){const p=sim.p,s=sim.st,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc||sim.vis.zb)return;
   if(s.done==='crash'){if(!sim._zdT)sim._zdT=performance.now();else if(performance.now()-sim._zdT>1500){launch(s,p);sim._zdT=0;}}else sim._zdT=0;
   if(!sim._zd||s.tt<sim._zd.t)sim._zd={t:s.tt,pts:[[0,p.h*1000]],next:40};
   const alt=Math.max(0,Math.hypot(s.x,s.y)-RE);while(s.tt>=sim._zd.next&&!s.done){sim._zd.pts.push([sim._zd.next,alt]);sim._zd.next+=40;}sim._zd.t=s.tt;
@@ -58,12 +58,13 @@ const SIM={
   lede:{bio:'Fire a cannonball sideways from a very tall tower. Too slow and it falls back. Fast enough and it falls around the Earth forever.',
         honors:'An orbit is free fall. Compare the launch speed with the circular speed √(GM/r), and see how gravity weakens with the square of the distance.',
         ap:'Track the specific orbital energy and Kepler’s third law. A negative total energy means a closed ellipse; zero or positive means escape.'},
-  scale:{bio:'Earth is 12,742 km across. The tower is 400 km tall, the height of the International Space Station.',honors:'Earth’s radius is 6371 km. The tower height is drawn to scale; at 400 km you are only 6% farther from Earth’s center than on the ground.'},
+  scale:{bio:'Earth and the tower are drawn to scale: Earth is 12,742 km across and the tower is 400 km tall, the height of the International Space Station. The ball is drawn much bigger than real. Use Zoom to look closer.',honors:'Earth’s radius is 6371 km. The tower height is drawn to scale; at 400 km you are only 6% farther from Earth’s center than on the ground.'},
   timeScale:10,dtMax:0.05,prewarm:0,sampleDt:0.5,window:150,unit:'min',chChange:10,chReveal:100,
   controls:[
     {id:'mode',label:'Set-up',type:'seg',def:'cannon',lvl:'bio',options:[{v:'cannon',l:'Newton’s cannon'},{v:'force',l:'Inverse-square law'}],
      onChange(sim){syncMode(sim);}},
     {id:'v0',label:'Launch speed',type:'range',min:0,max:12,step:0.1,def:7.7,unit:' km/s',d:1,lvl:'bio',help:'Fired sideways. A fast jet flies about 0.3 km/s.'},
+    {id:'zoom',label:'Zoom',type:'seg',def:'1',lvl:'bio',options:[{v:'1',l:'Whole Earth'},{v:'4',l:'4× closer'},{v:'12',l:'12× closer'}],help:'Zoomed in, the view follows the ball. Slow the speed down to watch the ground go by.'},
     {id:'h',label:'Tower height',type:'range',min:100,max:3000,step:50,def:400,unit:' km',lvl:'honors'},
     {id:'planet',label:'World',type:'select',def:'earth',lvl:'bio',options:[{v:'moon',l:'Moon'},{v:'mars',l:'Mars'},{v:'earth',l:'Earth'},{v:'jupiter',l:'Jupiter'}]},
     {id:'r',label:'Distance from the center',type:'range',min:1,max:5,step:0.1,def:1,unit:' radii',d:1,lvl:'bio',help:'1 radius = standing on the surface.'},
@@ -183,7 +184,7 @@ const SIM={
   about:'<p><b>Newton’s cannon:</b> the ball moves under Earth’s gravity alone, a = −GM r̂/r², with GM = 3.986×10¹⁴ m³/s² and R = 6371 km, integrated with velocity-Verlet steps of 3 s. There is no air drag and Earth does not rotate. The tower is imaginary: a real 400 km tower is impossible.</p><p><b>Inverse-square law:</b> g = 9.82 × (M/M_E)/(r·R/R_E)². Planet data: Moon 0.0123 M_E, 0.273 R_E; Mars 0.107, 0.532; Jupiter 317.8, 11.21 (Jupiter’s “surface” is its cloud tops). Planets are treated as uniform spheres.</p>',
   /* The opening question, drawn: three throws from the tower trace out one after another (falls back, goes around,
      leaves Earth), each with its speed hidden as "? km/s". It covers the speed-check panel, which would give the answer away. */
-  hookOverlay(sim,ctx,LH,k,tau){const p=sim.p,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc)return;const CX=300,CY=236,r0=RE+p.h*1000;
+  hookOverlay(sim,ctx,LH,k,tau){const p=sim.p,sc=sim.vis.ppm;if(p.mode!=='cannon'||!sc||sim.vis.zb)return;const CX=300,CY=236,r0=RE+p.h*1000;
     const key=p.h+':'+sc.toPrecision(3);
     if(!sim._hk||sim._hk.key!==key){
       const run=(v,tmax)=>{let x=0,y=r0,vx=v,vy=0;const pts=[[CX,CY-y*sc]],dt=10;
@@ -213,13 +214,16 @@ const SIM={
 
 function stars(ctx){for(let i=0;i<70;i++){const x=(i*137.5)%800,y=(i*91.3+i*i*3.1)%450;ctx.fillStyle='rgba(255,255,255,'+(0.25+(i%5)*0.12)+')';ctx.fillRect(x,y,1.6,1.6);}}
 
-function drawCannon(sim,ctx,vdt,k){const p=sim.p,s=sim.st,CX=300,CY=236;
+function drawCannon(sim,ctx,vdt,k){const p=sim.p,s=sim.st,Z=parseFloat(p.zoom)||1,V=sim.vis;
   ctx.fillStyle=SPACE;ctx.fillRect(0,0,800,450);stars(ctx);
   const r=Math.hypot(s.x,s.y),el=s.el;let ext=Math.max(1.16*RE,(RE+p.h*1000)*1.06);
   if(isFinite(el.apo)&&el.peri>0)ext=Math.max(ext,Math.min(el.apo,14*RE)*1.05);else if(!isFinite(el.apo))ext=Math.max(ext,Math.min(r,14*RE)*1.1,3*RE);
-  const target=205/ext;sim.vis.ppm=sim.vis.ppm?(RM?target:lerp(sim.vis.ppm,target,Math.min(1,vdt*3+0.02))):target;const sc=sim.vis.ppm,Rp=RE*sc;
+  /* Zoom: closer views scale up from the whole-Earth view and follow the ball (zb blends the camera from Earth's center to the ball). */
+  const ext0=Math.max(1.16*RE,(RE+p.h*1000)*1.06),target=Z>1?205/ext0*Z:205/ext,ease=RM?1:Math.min(1,vdt*3+0.06);
+  V.ppm=V.ppm?(RM?target:lerp(V.ppm,target,ease)):target;V.zb=V.zb===undefined?(Z>1?1:0):(RM?(Z>1?1:0):lerp(V.zb,Z>1?1:0,ease));if(Math.abs(V.zb-(Z>1?1:0))<0.002)V.zb=Z>1?1:0;
+  const sc=V.ppm,CX=300-s.x*V.zb*sc,CY=(236-36*V.zb)+s.y*V.zb*sc,Rp=RE*sc;
   // atmosphere and Earth
-  const gr=ctx.createRadialGradient(CX,CY,Rp*0.98,CX,CY,Rp*1.05);gr.addColorStop(0,'rgba(120,180,255,.45)');gr.addColorStop(1,'rgba(120,180,255,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(CX,CY,Rp*1.05,0,6.29);ctx.fill();
+  const ga=Math.max(8,100e3*sc),gr=ctx.createRadialGradient(CX,CY,Rp-2,CX,CY,Rp+ga);gr.addColorStop(0,'rgba(120,180,255,.45)');gr.addColorStop(1,'rgba(120,180,255,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(CX,CY,Rp+ga,0,6.29);ctx.fill();
   ctx.fillStyle='#2f6db5';ctx.beginPath();ctx.arc(CX,CY,Rp,0,6.29);ctx.fill();
   ctx.save();ctx.beginPath();ctx.arc(CX,CY,Rp,0,6.29);ctx.clip();ctx.fillStyle='#3f8a4a';
   for(const [a,b,w,h] of [[-0.5,-0.55,0.55,0.35],[0.2,-0.1,0.45,0.6],[-0.65,0.3,0.4,0.35],[0.45,0.55,0.3,0.25]]){ctx.beginPath();ctx.ellipse(CX+a*Rp,CY+b*Rp,w*Rp,h*Rp,0.4,0,6.29);ctx.fill();}ctx.restore();
@@ -250,10 +254,10 @@ function drawCannon(sim,ctx,vdt,k){const p=sim.p,s=sim.st,CX=300,CY=236;
   ctx.fillStyle='#7fd6ff';ctx.fillRect(X+W/2+6,Y+H-20,14,4);txt(ctx,'velocity',X+W/2+24,Y+H-14,{s:11*k,c:SSOFT});
   // status
   txt(ctx,'⏱ '+(s.tt/60).toFixed(0)+' min   altitude '+Math.max(0,Math.round((r-RE)/1000)).toLocaleString()+' km',16,30,{s:13*k,w:700,c:SINK});
-  if(s.done==='crash'&&p.v0>0.05)pill(ctx,'Landed '+Math.round(s.land/1000).toLocaleString()+' km away',CX,428,'#c1440e','#fff',13*k);
-  else if(s.done==='escape')pill(ctx,'Escaped: it never comes back',CX,428,'#7a3fb0','#fff',13*k);
-  else if(s.orbits>0)pill(ctx,'Laps around Earth: '+s.orbits,CX,428,'#2b7a4b','#fff',13*k);
-  txt(ctx,'1 px ≈ '+Math.round(1/sc/1000)+' km',790,440,{s:11*k,a:'right',c:SSOFT});}
+  if(s.done==='crash'&&p.v0>0.05)pill(ctx,'Landed '+Math.round(s.land/1000).toLocaleString()+' km away',300,428,'#c1440e','#fff',13*k);
+  else if(s.done==='escape')pill(ctx,'Escaped: it never comes back',300,428,'#7a3fb0','#fff',13*k);
+  else if(s.orbits>0)pill(ctx,'Laps around Earth: '+s.orbits,300,428,'#2b7a4b','#fff',13*k);
+  txt(ctx,'1 px ≈ '+Math.max(1,Math.round(1/sc/1000))+' km · the ball is drawn far bigger than real',790,440,{s:11*k,a:'right',c:SSOFT});}
 
 function drawForce(sim,ctx,k){const p=sim.p,P=pl(p),hon=atLeast('honors');
   ctx.fillStyle=PAL['cv-bg'];ctx.fillRect(0,0,800,450);
