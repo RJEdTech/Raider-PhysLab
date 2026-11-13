@@ -773,4 +773,356 @@ circular: {
 }
 });
 
+/* ---------- Energy and momentum (Nov 2026): skatepark, power, springs, collisions, impulse ---------- */
+const emMet=(sim,id)=>{const m=sim.def.metrics.find(x=>x.id===id);return m?m.get(sim):null;};
+const emAct=(sim,id)=>{const a=(sim.def.actions||[]).find(x=>x.id===id);if(a)a.run(sim);};
+const n0=v=>v==null||!isFinite(v)?'…':Math.round(v).toLocaleString('en-US');
+const n1=v=>v==null||!isFinite(v)?'…':v.toFixed(1);
+const n2=v=>v==null||!isFinite(v)?'…':v.toFixed(2).replace('-','−');
+const GRN='#1b7a3e',RED='#c8102e';
+/* restart a collision run 1.6 s after it ends, and an impact 2.6 s after it lands */
+function coLoop(sim){const s=sim.st;if(!s)return;if(s.done){if(!sim._emT)sim._emT=performance.now();else if(performance.now()-sim._emT>1600){sim._emT=0;emAct(sim,'run');}}else sim._emT=0;}
+function imLoop(sim){const s=sim.st;if(s&&s.phase==='after'&&s.ta>2.6)emAct(sim,'again');}
+const skC=(ctx,k,L,LH)=>ciCard(ctx,k,L,150,24,280,LH);
+const pwS=(ctx,k,L,LH)=>ciCard(ctx,k,L,190,78,310,LH);
+const pwP=(ctx,k,L,LH)=>ciCard(ctx,k,L,20,184,330,LH);
+const spC=(ctx,k,L,LH)=>ciCard(ctx,k,L,322,322,218,LH);
+const coC=(ctx,k,L,LH)=>ciCard(ctx,k,L,292,4,236,LH);
+const imC=(ctx,k,L,LH)=>ciCard(ctx,k,L,66,34,320,LH);
+const imCar=(ctx,k,L,LH)=>ciCard(ctx,k,L,60,70,300,LH);
+BioLab.addLearn({
+skatepark: {
+  goals: {
+    bio: ['How height stores energy (potential energy) and motion carries it (kinetic energy)', 'Why the skater is fastest at the bottom and gets back to the same height', 'Where the energy goes when there is friction', 'Why a heavier skater is not faster'],
+    honors: ['How to use mgh = ½mv² to find a speed anywhere on the track', 'Why the zero of potential energy is your choice', 'How friction turns mechanical energy into thermal energy while the total stays the same'],
+    ap: ['How to use conservation of energy with the work–energy theorem', 'Why a loop needs v² ≥ gR at the top, so a start height of at least 2.5R', 'What the normal force does on a curve and when the skater leaves the track']
+  },
+  matters: 'Every ski run, bike ride downhill, playground slide and roller coaster at Elitch Gardens is energy changing form. Once you can track it, you can predict speed without timing anything, and see why brakes get hot.',
+  startKey: 'top', startRun: false,
+  startOverlay(sim,ctx,LH,k){if(sim.p.track!=='halfpipe'||sim.p.h0!==5){BioLab.setValues(sim,{track:'halfpipe',h0:5,mu:0,mass:60,planet:'earth'});emAct(sim,'restart');}
+    skC(ctx,k,[['A 60 kg skater, 5 m up a half-pipe',700],['Grid squares are 1 m. The bars on the right'],['track her energy in joules.']],LH);},
+  steps: [
+    { key: 'top', title: 'Energy stored by height', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth' }, fresh: true, pause: true,
+      see: 'The skater waits at the top, 5 m above the bottom of the half-pipe. Look at the bars on the right.',
+      why: 'She isn’t moving, so she has no kinetic energy. All her energy is <b>potential energy</b>, stored because gravity can pull her down: PE = mgh = 60 kg × 9.8 m/s² × 5 m ≈ 2,940 J.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['PE = mgh',700],['= 60 × 9.8 × 5 ≈ '+n0(emMet(sim,'pe'))+' J'],['KE = 0 J: she isn’t moving']],LH);} },
+    { key: 'down', title: 'Falling trades PE for KE', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth' }, fresh: true, speed: 0.2,
+      see: 'Slow motion. Watch the blue potential bar and the green kinetic bar as she drops.',
+      why: 'Every joule of potential energy she loses shows up as kinetic energy. The two bars change by the same amount, and the gold total bar doesn’t move at all.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['KE '+n0(emMet(sim,'ke'))+' J + PE '+n0(emMet(sim,'pe'))+' J',700],['= '+n0(emMet(sim,'tot'))+' J total, the whole way down',600,13,GRN]],LH);} },
+    { key: 'bottom', title: 'Fastest at the bottom', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth' }, fresh: true, speed: 0.4,
+      see: 'Watch the speedometer, top right, as she passes the lowest point.',
+      why: 'At the bottom almost all the energy is kinetic, so that is where she is fastest. ½mv² = mgh gives v = √(2gh) = √(2 × 9.8 × 5) ≈ 9.9 m/s, about 22 mph.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['Top speed so far: '+n1(emMet(sim,'vtop'))+' m/s',700],['v = √(2gh) = √(2 × 9.8 × 5) ≈ 9.9 m/s']],LH);} },
+    { key: 'up', title: 'Back to the same height', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth' }, fresh: true, speed: 0.7,
+      see: 'Watch how high she gets on the far side, compared with the dashed start-height line.',
+      why: 'Going up, kinetic energy turns back into potential energy. With no friction none of it leaves, so she stops at exactly 5 m, then comes back. She would swing like this forever.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['Height now: '+n1(emMet(sim,'height'))+' m',700],['She turns around at the dashed 5 m line']],LH);} },
+    { key: 'mass', title: 'A heavier skater', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 120, planet: 'earth' }, fresh: true, speed: 0.4,
+      see: 'Same track, same 5 m, but the skater is now 120 kg. Compare the energy bars and the top speed with before.',
+      why: 'Twice the mass means twice the potential energy, about 5,880 J. But it also takes twice the energy to move twice the mass at the same speed. Mass cancels: she still reaches 9.9 m/s.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['120 kg: total '+n0(emMet(sim,'tot'))+' J (twice as much)',700],['Top speed: '+n1(emMet(sim,'vtop'))+' m/s, the same as 60 kg',600,13,GRN]],LH);} },
+    { key: 'friction', title: 'Add friction', set: { track: 'halfpipe', h0: 5, mu: 0.08, mass: 60, planet: 'earth' }, fresh: true, speed: 1,
+      see: 'Now the track has friction. Watch the red thermal-energy bar and how high she gets each swing.',
+      why: 'Friction turns some kinetic energy into thermal energy: warm wheels and track, and sound. That energy is still there, so the gold total stays the same. But less is left for motion, so each swing is lower.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['Thermal: '+n0(emMet(sim,'th'))+' J and growing',700,13,RED],['Total: '+n0(emMet(sim,'tot'))+' J, unchanged',600,13,GRN]],LH);} },
+    { key: 'moon', title: 'The same drop on the Moon', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'moon' }, fresh: true, speed: 1,
+      see: 'Same skater and track, on the Moon, where gravity is 1.62 m/s².',
+      why: 'Weaker gravity stores less energy in the same height, so she is slower: √(2 × 1.62 × 5) ≈ 4.0 m/s at the bottom. She still climbs back to exactly 5 m, because energy is still conserved.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['On the Moon: g = 1.62 m/s²',700],['Top speed: '+n1(emMet(sim,'vtop'))+' m/s (Earth: 9.9 m/s)']],LH);} },
+    { lvl: 'honors', key: 'mid', title: 'Speed anywhere on the track', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth' }, fresh: true, speed: 0.3,
+      see: 'Read her speed and height together as she rides.',
+      why: 'You don’t need the shape of the track, only how far she has dropped. At 2 m high she has dropped 3 m, so ½mv² = mg(3 m) and v = √(2 × 9.8 × 3) ≈ 7.7 m/s on either side, going up or down.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['Height '+n1(emMet(sim,'height'))+' m → speed '+n1(emMet(sim,'speed'))+' m/s',700],['At 2 m: √(2 × 9.8 × 3) ≈ 7.7 m/s']],LH);} },
+    { lvl: 'honors', key: 'ref', title: 'You choose where PE = 0', set: { track: 'halfpipe', h0: 5, mu: 0, mass: 60, planet: 'earth', yref: 2 }, fresh: true, speed: 0.6,
+      see: 'The zero of potential energy is now 2 m up (gold dashed line). Watch the PE bar near the bottom, and the motion.',
+      why: 'Below the new zero, PE is negative. Every PE value, and the total, drops by the same 1,176 J. Only <b>changes</b> in PE matter, so the speeds and the motion are exactly the same.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['PE now: '+n0(emMet(sim,'pe'))+' J (can be negative)',700],['Same motion, same top speed: '+n1(emMet(sim,'vtop'))+' m/s']],LH);} },
+    { lvl: 'ap', key: 'loop', title: 'Enough height for the loop', set: { track: 'loop', h0: 5.5, mu: 0, mass: 60, planet: 'earth', yref: 0, lock: false }, fresh: true, speed: 0.5,
+      see: 'A loop of radius R = 2 m, wheels not locked to the track, starting from 5.5 m. Watch her at the very top.',
+      why: 'At the top the track and gravity both push toward the center: N + mg = mv²/R. She stays on as long as N ≥ 0, so v² ≥ gR. Energy then says h ≥ 2R + R/2 = 2.5R = 5 m. From 5.5 m she makes it.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['Top of the loop: v² ≥ gR',700],['mgh = mg(2R) + ½m(gR) → h ≥ 2.5R = 5 m'],['Normal force now: '+n0(emMet(sim,'N'))+' N']],LH);} },
+    { lvl: 'ap', key: 'loopfail', title: 'Not quite high enough', set: { track: 'loop', h0: 4, mu: 0, mass: 60, planet: 'earth', yref: 0, lock: false }, fresh: true, speed: 0.5,
+      see: 'Same loop, starting from only 4 m, the height of the loop itself.',
+      why: 'She would reach the top with no speed at all. Long before that, v² drops below gR, the normal force needed would be negative, and the track can only push. She leaves the track and falls as a projectile.',
+      overlay(sim,ctx,LH,k){skC(ctx,k,[['From 4 m: '+(sim.st.on?'still on the track':'off the track!'),700,13,sim.st.on?PAL['cv-ink']:RED],['Needs at least 2.5R = 5 m']],LH);} }
+  ],
+  useIt: [
+    { do: 'Going down a steep hill on a bike or a sled, control your speed early, before you have built it up.',
+      why: 'Every meter you drop turns about 10 J per kilogram into motion. From 10 m up, with no friction, that is √(2 × 9.8 × 10) = 14 m/s, over 30 mph. Brakes have to turn all of that into heat.' },
+    { do: 'On a long mountain descent in a car, shift to a lower gear instead of riding the brakes.',
+      why: 'Coming down a mountain pass, the car’s potential energy has to go somewhere. Brakes turn it into heat and can overheat and fade. A lower gear lets the engine absorb some of it (CDOT says to use lower gears on steep grades).' },
+    { do: 'When someone says a heavier person will slide faster, check the friction, not the mass.',
+      why: 'Without friction or air, mass cancels: v = √(2gh) for everyone. Real differences come from friction and air drag, not weight by itself.' }
+  ],
+  tryIt: [
+    { title: 'the pendulum that won’t hit you (5 minutes)',
+      steps: ['Tie a heavy object (a water bottle) to a string and hang it from a doorframe.', 'Hold it against your nose, then let it go. Don’t push it.', 'Stand still while it swings away and back.'],
+      look: 'It comes back almost to your nose, but never past it. With nothing adding energy, it can’t rise higher than where it started. Each swing is a little lower because air friction takes some energy.' },
+    { title: 'the ball on a ramp (5 minutes)',
+      steps: ['Bend a strip of cardboard into a U.', 'Roll a marble from one side at different heights.', 'Mark how high it gets on the other side.'],
+      look: 'It almost reaches the same height. The small difference is energy lost to friction and rolling, the same red thermal bar in the lab.' }
+  ]
+},
+power: {
+  goals: {
+    bio: ['What work means in physics: a force times the distance moved along it', 'What power is: how fast you do the work, in watts', 'Why sprinting up stairs takes the same work as walking, but more power', 'Why pulling at an angle does less work'],
+    honors: ['Why only the part of a force along the motion does work: W = Fd cos θ', 'Why friction does negative work', 'How the net work equals the change in kinetic energy'],
+    ap: ['How to find work as the area under a force–position graph', 'How instantaneous power P = F·v changes as the sled speeds up']
+  },
+  matters: 'Your phone charger, a light bulb, your legs on the stairs and a car engine all have a power rating in watts. Knowing work and power tells you how much energy something really takes and how fast it can deliver it.',
+  startKey: 'walk', startRun: false,
+  startOverlay(sim,ctx,LH,k){if(sim.p.mode!=='stairs'){BioLab.setValues(sim,{mode:'stairs',m:60,h:3.6,T:8});BioLab.reset(sim);}pwS(ctx,k,[['One floor of stairs: 3.6 m, 20 steps',700],['You: 60 kg. Walk it in 8 s or sprint it in 3 s.']],LH);},
+  steps: [
+    { key: 'walk', title: 'Work: lifting yourself', set: { mode: 'stairs', m: 60, h: 3.6, T: 8 }, fresh: true, speed: 1,
+      see: 'A 60 kg student walks up one floor, 3.6 m, in 8 s. Watch the work add up step by step.',
+      why: 'Climbing, your legs push you up with a force equal to your weight, mg = 588 N, over a height of 3.6 m. Work = force × distance = mgh = 60 × 9.8 × 3.6 ≈ 2,117 J.',
+      overlay(sim,ctx,LH,k){pwS(ctx,k,[['Work = mgh',700],['= 60 × 9.8 × 3.6 ≈ 2,117 J'],['So far: '+n0(emMet(sim,'Wst'))+' J']],LH);} },
+    { key: 'walkp', title: 'Power: how fast', set: { mode: 'stairs', m: 60, h: 3.6, T: 8 }, fresh: true, speed: 1,
+      see: 'Same walk. This time watch the power reading.',
+      why: 'Power is work divided by time: 2,117 J ÷ 8 s ≈ 265 W. A watt is one joule every second, so walking up you put out about as much as two and a half 100 W bulbs use.',
+      overlay(sim,ctx,LH,k){pwS(ctx,k,[['Power = work ÷ time',700],['= 2,117 J ÷ 8 s ≈ 265 W']],LH);} },
+    { key: 'sprint', title: 'Sprint the same stairs', set: { mode: 'stairs', m: 60, h: 3.6, T: 3 }, fresh: true, speed: 1,
+      see: 'Now the student sprints up in 3 s.',
+      why: 'Same weight, same height, so the same work: 2,117 J. Done in 3 s instead of 8, the power is 2,117 ÷ 3 ≈ 706 W, almost one horsepower (746 W). That is why sprinting stairs leaves you out of breath.',
+      overlay(sim,ctx,LH,k){pwS(ctx,k,[['Same work: 2,117 J',700],['Power: 2,117 ÷ 3 ≈ 706 W = '+n2(706/746)+' hp',700,13,RED]],LH);} },
+    { key: 'heavy', title: 'A heavier climber', set: { mode: 'stairs', m: 110, h: 3.6, T: 8 }, fresh: true, speed: 1,
+      see: 'A 110 kg climber walks the same stairs in the same 8 s.',
+      why: 'More weight lifted the same height is more work: 110 × 9.8 × 3.6 ≈ 3,881 J. In the same time, that is more power, about 485 W. Work depends on the force and the distance, not on how hard it feels.',
+      overlay(sim,ctx,LH,k){pwS(ctx,k,[['110 kg: W ≈ 3,881 J',700],['P ≈ 3,881 ÷ 8 ≈ 485 W']],LH);} },
+    { key: 'pull', title: 'Pull a sled across ice', set: { mode: 'pull', F: 80, th: 0, mu: 0, M: 20 }, fresh: true, speed: 1,
+      see: 'A 20 kg sled on ice, pulled with 80 N straight along the ground for 5 m. Watch the work tally on the right.',
+      why: 'The pull is along the motion, so all of it does work: W = Fd = 80 N × 5 m = 400 J. On ice nothing takes energy away, so all 400 J ends up as the sled’s kinetic energy.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['W = F × d = 80 N × 5 m = 400 J',700],['Work by your pull so far: '+n0(emMet(sim,'WF'))+' J']],LH);} },
+    { key: 'angle', title: 'Pull at an angle', set: { mode: 'pull', F: 80, th: 60, mu: 0, M: 20 }, fresh: true, speed: 1,
+      see: 'Same 80 N pull, but the rope now points 60° up. Watch the green arrow in the top-left box.',
+      why: 'Only the part of the pull along the ground moves the sled forward: 80 × cos 60° = 40 N. So the work over 5 m is 40 × 5 = 200 J, half as much. The upward part of the pull does no work at all.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['Along the motion: 80 × cos 60° = 40 N',700],['W = 40 N × 5 m = 200 J'],['So far: '+n0(emMet(sim,'WF'))+' J']],LH);} },
+    { key: 'up', title: 'Straight up: no work', set: { mode: 'pull', F: 80, th: 90, mu: 0.2, M: 20 }, fresh: true, speed: 1,
+      see: 'The rope points straight up, 80 N, not enough to lift the 196 N sled.',
+      why: 'You are pulling hard, but the sled doesn’t move in the direction you pull, and it doesn’t move at all. No motion along the force means zero work, however tired your arms get.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['Distance moved along the pull: 0 m',700],['Work: '+n0(emMet(sim,'WF'))+' J']],LH);} },
+    { key: 'snow', title: 'Friction does negative work', set: { mode: 'pull', F: 100, th: 20, mu: 0.2, M: 20 }, fresh: true, speed: 1,
+      see: 'Now on packed snow (μ = 0.20), pulling 100 N at 20°. Watch the friction line in the tally.',
+      why: 'Friction pushes backward while the sled moves forward, so it takes energy out: its work is negative. Your pull does about +470 J, friction about −162 J, and only the difference ends up as motion.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['Your pull: +'+n0(emMet(sim,'WF'))+' J',700],['Friction: '+n0(emMet(sim,'Wf'))+' J (negative)',700,13,RED]],LH);} },
+    { lvl: 'honors', key: 'wke', title: 'Net work = change in KE', set: { mode: 'pull', F: 100, th: 20, mu: 0.2, M: 20 }, fresh: true, speed: 1,
+      see: 'Same run. Compare the net work with the sled’s kinetic energy.',
+      why: 'Add every force’s work: pull + friction + gravity (0) + normal force (0). The net work always equals the change in kinetic energy, ½Mv². This is the work–energy theorem.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['Net work: '+n0(emMet(sim,'Wn'))+' J',700],['Kinetic energy: '+n0(emMet(sim,'KE'))+' J (the same)',700,13,GRN]],LH);} },
+    { lvl: 'ap', key: 'area', title: 'Work is the area under F(x)', set: { mode: 'pull', F: 80, th: 0, mu: 0, M: 20, prof: 'fall' }, fresh: true, speed: 1,
+      see: 'The pull now starts at 160 N and falls steadily to 0 over the 5 m. Switch the graph below to Force vs. position.',
+      why: 'When the force changes, W = ∫F dx, the area under the force–position graph. Here it is a triangle: ½ × 5 m × 160 N = 400 J, the same as a steady 80 N. The power, F·v, rises at first as the sled speeds up, then falls as the pull fades.',
+      overlay(sim,ctx,LH,k){pwP(ctx,k,[['W = area = ½ × 5 × 160 = 400 J',700],['Power now (F·v): '+n0(emMet(sim,'P'))+' W']],LH);} }
+  ],
+  useIt: [
+    { do: 'Compare appliances by watts to compare how fast they use energy, and by watts × hours to compare what they cost to run.',
+      why: 'A 1,500 W space heater uses 1.5 kWh every hour. At about 15¢ per kWh that is 22¢ an hour, while a 10 W LED bulb takes 150 hours to use the same energy.' },
+    { do: 'When you lift or pull something heavy, push along the direction it needs to move.',
+      why: 'Only the part of your force along the motion does useful work. Pulling a wagon with the handle low and nearly level wastes less effort than pulling up steeply, as long as the wheels can roll.' },
+    { do: 'Count stairs as exercise.',
+      why: 'One floor takes about 2,100 J of work for a 60 kg person, and the body burns 4 to 5 times that in food energy because muscles are only 20 to 25% efficient. Ten floors a day adds up.' }
+  ],
+  tryIt: [
+    { title: 'measure your own horsepower (5 minutes)',
+      steps: ['Find a flight of stairs and measure one step’s height. Count the steps.', 'Have a friend time you walking up, then running up (safely, holding the rail).', 'Work = your mass × 9.8 × total height. Power = work ÷ time. Divide by 746 for horsepower.'],
+      look: 'Most students land between 300 and 1,000 W running, around 0.5 to 1.3 hp. The work is the same both ways; only the time changes.' }
+  ]
+},
+springs: {
+  goals: {
+    bio: ['How a spring’s stretch depends on the weight hanging from it (Hooke’s law)', 'What makes a spring bounce faster or slower', 'Why the bounce dies out, and where the energy goes'],
+    honors: ['How to use F = kx and find k from a stretch', 'How to predict the period with T = 2π√(m/k)', 'How kinetic, spring and gravitational energy trade places', 'How springs in series and parallel combine'],
+    ap: ['How a = −(k/m)x makes simple harmonic motion', 'Why the period doesn’t depend on amplitude or on g']
+  },
+  matters: 'Car suspensions, mattresses, trampolines, the scale in a grocery store and the crumple zone of a helmet all depend on springs. The same math describes a guitar string, a swaying building and your heart’s rhythm on a monitor.',
+  startKey: 'hang', startRun: false,
+  startOverlay(sim,ctx,LH,k){spC(ctx,k,[['A spring with k = 30 N/m',700],['The ruler reads its stretch in cm.']],LH);},
+  steps: [
+    { key: 'hang', title: 'Hang a small mass', set: { mass: 100, k: 30, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'stop');},
+      see: 'A 100 g mass hangs at rest. Read the stretch on the ruler: the distance from the dashed “unstretched” line.',
+      why: 'At rest the spring pulls up exactly as hard as gravity pulls down. Weight = 0.1 kg × 9.8 = 0.98 N. Hooke’s law, F = kx, gives the stretch: x = 0.98 ÷ 30 = 0.033 m, about 3.3 cm.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['F = kx',700],['0.98 N = 30 N/m × x → x ≈ 3.3 cm'],['Stretch now: '+n1(emMet(sim,'stretch'))+' cm']],LH);} },
+    { key: 'triple', title: 'Three times the weight', set: { mass: 300, k: 30, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'stop');},
+      see: 'Now 300 g, three times as heavy.',
+      why: 'Three times the weight, three times the stretch: about 9.8 cm. A spring’s stretch is proportional to the force on it. That is exactly how a spring scale or a bathroom scale measures weight.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['3× the weight → 3× the stretch',700],['Stretch: '+n1(emMet(sim,'stretch'))+' cm']],LH);} },
+    { key: 'stiff', title: 'A stiffer spring', set: { mass: 300, k: 60, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'stop');},
+      see: 'Same 300 g, but the spring is twice as stiff: k = 60 N/m.',
+      why: 'The stiffness k is the force needed per meter of stretch. Double k and the same weight stretches it only half as far: 2.9 N ÷ 60 N/m ≈ 4.9 cm.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['k = 60 N/m: half the stretch',700],['Stretch: '+n1(emMet(sim,'stretch'))+' cm']],LH);} },
+    { key: 'bounce', title: 'Pull down and let go', set: { mass: 300, k: 30, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'The 300 g mass is pulled down 8 cm and released. The red pen traces its motion on the paper.',
+      why: 'Below the rest point, the spring pulls harder than gravity, so the mass speeds up toward it, overshoots, and the spring slows it again. It goes up and down in a steady rhythm, a full bounce every 0.63 s.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['One full bounce (period):',700],[n2(emMet(sim,'period'))+' s']],LH);} },
+    { key: 'heavier', title: 'More mass, slower bounce', set: { mass: 400, k: 30, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: '400 g on the same spring.',
+      why: 'More mass is harder to speed up and slow down, so each bounce takes longer: about 0.73 s instead of 0.63 s. Heavier things on springs bounce slower, like a loaded truck rocking on its suspension.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['400 g: period '+n2(emMet(sim,'period'))+' s',700],['300 g was 0.63 s']],LH);} },
+    { key: 'stiffer', title: 'Stiffer spring, faster bounce', set: { mass: 300, k: 120, damp: 0, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: '300 g on a spring four times as stiff, k = 120 N/m.',
+      why: 'A stiffer spring pulls back harder for the same stretch, so it turns the mass around faster. Four times the stiffness halves the period: about 0.31 s.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['k = 120 N/m: period '+n2(emMet(sim,'period'))+' s',700],['Half of 0.63 s']],LH);} },
+    { key: 'moon', title: 'The same spring on the Moon', set: { mass: 300, k: 30, damp: 0, planet: 'moon' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'Same 300 g and same spring, on the Moon.',
+      why: 'Weaker gravity means a smaller stretch at rest, about 1.6 cm. But the bounce time is still 0.63 s, because it depends only on the mass and the spring, not on gravity. That is why springs, not pendulums, weigh things in space.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['Moon: rest stretch '+n1(emMet(sim,'eq')!=null?emMet(sim,'eq'):1.6)+' cm',700],['Period: '+n2(emMet(sim,'period'))+' s, the same as on Earth',600,13,GRN]],LH);} },
+    { key: 'damp', title: 'Why the bounce dies out', set: { mass: 300, k: 30, damp: 0.3, planet: 'earth' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'Now there is damping, like air and friction in the spring.',
+      why: 'Damping turns some of the motion’s energy into thermal energy each bounce, so the bounces get smaller and smaller until the mass rests. A car’s shock absorbers do this on purpose, so the car doesn’t keep bouncing after a bump.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['Each bounce smaller',700],['Energy → heat, like a shock absorber']],LH);} },
+    { lvl: 'honors', key: 'energy', title: 'Three energies trade places', set: { mass: 300, k: 30, damp: 0, planet: 'earth', amp: 8 }, fresh: true, speed: 0.3, run(sim){emAct(sim,'release');},
+      see: 'Slow motion. Watch the green (kinetic), purple (spring) and blue (gravity) bars.',
+      why: 'At the bottom the spring is stretched most: lots of spring energy, no kinetic. Through the middle the mass is fastest. At the top, more gravitational energy. The gold total never changes when there is no damping.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['KE '+n2(emMet(sim,'ke'))+' + spring '+n2(emMet(sim,'ue'))+' + gravity '+n2(emMet(sim,'ug')),700],['= '+n2(emMet(sim,'tot'))+' J, constant',600,13,GRN]],LH);} },
+    { lvl: 'honors', key: 'period', title: 'T = 2π√(m/k)', set: { mass: 300, k: 30, damp: 0, planet: 'earth', config: 'single' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'Back to 300 g on 30 N/m. Compare the measured period with the formula.',
+      why: 'T = 2π√(m/k) = 2π√(0.3 ÷ 30) = 2π × 0.1 ≈ 0.63 s. Mass goes on top (more mass, slower), stiffness on the bottom (stiffer, faster), and the square root means you need 4× the mass to double the period.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['T = 2π√(0.3 ÷ 30) ≈ 0.63 s',700],['Measured: '+n2(emMet(sim,'period'))+' s']],LH);} },
+    { lvl: 'honors', key: 'series', title: 'Two springs in a row', set: { mass: 300, k: 30, damp: 0, planet: 'earth', config: 'series' }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'Two 30 N/m springs hung end to end (series).',
+      why: 'Each spring carries the full weight, so each stretches as much as one spring would, and together they stretch twice as far: effective k = 15 N/m. Side by side (parallel) they share the weight: k = 60 N/m.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['Series: k = 15 N/m',700],['Period: '+n2(emMet(sim,'period'))+' s (√2 × 0.63)']],LH);} },
+    { lvl: 'ap', key: 'shm', title: 'Simple harmonic motion', set: { mass: 300, k: 30, damp: 0, planet: 'earth', config: 'single', amp: 3 }, fresh: true, speed: 1, run(sim){emAct(sim,'release');},
+      see: 'A smaller 3 cm pull. Switch the graph below to x, v and a vs. time.',
+      why: 'The net force is −kx from the rest position, so a = −(k/m)x: always toward the middle and proportional to the distance. That gives sine-shaped motion, and its period 2π√(m/k) has no amplitude in it, so the 3 cm bounce takes the same 0.63 s as the 8 cm one.',
+      overlay(sim,ctx,LH,k){spC(ctx,k,[['a = −(k/m)x',700],['3 cm pull: period '+n2(emMet(sim,'period'))+' s']],LH);} }
+  ],
+  useIt: [
+    { do: 'If a car keeps bouncing after a bump, get the shock absorbers checked.',
+      why: 'The springs hold the car up; the shocks are the damping that stops the bounce. Worn shocks let the car keep oscillating, so the tires lose grip on the road between bounces.' },
+    { do: 'Don’t overload a trampoline, bike rack or hanging shelf past its rating.',
+      why: 'Hooke’s law only holds up to a limit. Past it, a spring stretches permanently and never comes back to its shape.' }
+  ],
+  tryIt: [
+    { title: 'the rubber-band scale (10 minutes)',
+      steps: ['Hang a rubber band from a hook and tape a ruler beside it.', 'Hang a bag and add coins (or batteries) one at a time, reading the stretch each time.', 'Graph stretch against the number of coins.'],
+      look: 'At first the points fall on a straight line: Hooke’s law. With a lot of weight the line bends, because rubber bands are not perfect springs.' }
+  ]
+},
+collisions: {
+  goals: {
+    bio: ['What momentum is: mass × velocity', 'Why the total momentum is the same before and after any collision', 'What happens when a heavy cart hits a light one, and the other way around', 'Why a sticky collision loses kinetic energy'],
+    honors: ['How to use conservation of momentum to find a speed after a collision', 'How to tell elastic from inelastic collisions using kinetic energy', 'Why an explosion from rest ends with zero total momentum'],
+    ap: ['How momentum is conserved in two dimensions, one component at a time', 'Why equal-mass elastic collisions at an angle leave at 90°']
+  },
+  matters: 'Car crashes, a pool break, football tackles, a rifle’s recoil and a rocket launch are all momentum problems. Crash investigators use it to work out how fast cars were going from where they ended up.',
+  startKey: 'equal', startRun: false,
+  startOverlay(sim,ctx,LH,k){coC(ctx,k,[['Two 1 kg carts on a track',700],['A moves right at 0.8 m/s; B is at rest.']],LH);},
+  steps: [
+    { key: 'equal', title: 'Equal carts, bouncy collision', set: { mode: 'track', type: 'elastic', mA: 1, mB: 1, vA: 0.8, vB: 0, tape: true }, fresh: true, speed: 0.6,
+      see: 'Cart A (red, 1 kg) rolls at 0.8 m/s into cart B (blue, 1 kg), which is at rest. The springy bumpers make it a bouncy collision.',
+      why: 'A stops dead and B leaves at 0.8 m/s, like a pool ball hitting another head-on. Momentum, p = mv, is passed on: 1 kg × 0.8 m/s = 0.8 kg·m/s before, and the same after.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['Total momentum: '+n2(emMet(sim,'ptot'))+' kg·m/s',700],['before and after']],LH);} },
+    { key: 'heavy', title: 'Heavy cart hits a light one', set: { mode: 'track', type: 'elastic', mA: 2, mB: 1, vA: 0.8, vB: 0, tape: true }, fresh: true, speed: 0.6,
+      see: 'Now A is 2 kg and B is 1 kg.',
+      why: 'The heavy cart barely slows (0.27 m/s) and keeps going, while the light one shoots off faster than A came in (1.07 m/s). Total momentum before: 2 × 0.8 = 1.6. After: 2 × 0.27 + 1 × 1.07 = 1.6. The same.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['A: '+n2(emMet(sim,'vA'))+' m/s   B: '+n2(emMet(sim,'vB'))+' m/s',700],['Total momentum: '+n2(emMet(sim,'ptot'))+' kg·m/s']],LH);} },
+    { key: 'light', title: 'Light cart hits a heavy one', set: { mode: 'track', type: 'elastic', mA: 1, mB: 2, vA: 0.8, vB: 0, tape: true }, fresh: true, speed: 0.6,
+      see: 'Swap them: A is 1 kg, B is 2 kg.',
+      why: 'The light cart bounces back (−0.27 m/s, negative means left) and the heavy one moves off slowly (0.53 m/s). Momentum is a vector, so the backward momentum counts as negative: 1 × (−0.27) + 2 × 0.53 = 0.8, the same as before.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['A: '+n2(emMet(sim,'vA'))+' (back)   B: '+n2(emMet(sim,'vB'))+' m/s',700],['Total momentum: '+n2(emMet(sim,'ptot'))+' kg·m/s']],LH);} },
+    { key: 'sticky', title: 'A sticky collision', set: { mode: 'track', type: 'sticky', mA: 1, mB: 1, vA: 0.8, vB: 0, tape: true }, fresh: true, speed: 0.6,
+      see: 'Velcro bumpers: the carts stick together. Watch the momentum and kinetic energy panels below.',
+      why: 'Twice the mass must carry the same 0.8 kg·m/s, so they move together at half the speed, 0.4 m/s. Momentum is conserved, but half the kinetic energy turns into heat and sound as the Velcro grabs.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['Together: '+n2(emMet(sim,'vA'))+' m/s',700],['Momentum kept; KE '+(sim.st.hit?'halved':'…'),600,13,RED]],LH);} },
+    { key: 'explode', title: 'Push apart from rest', set: { mode: 'track', type: 'explode', mA: 1, mB: 1, spring: 0.4, tape: true }, fresh: true, speed: 0.6,
+      see: 'The carts start touching, at rest, with a compressed spring between them. Then it’s released.',
+      why: 'Before: nothing moves, so total momentum is zero. After: they fly apart at 0.63 m/s each, in opposite directions. +0.63 and −0.63 add to zero. The spring’s energy becomes kinetic energy, but momentum stays zero.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['A: '+n2(emMet(sim,'vA'))+'   B: '+n2(emMet(sim,'vB'))+' m/s',700],['Total momentum: '+n2(emMet(sim,'ptot'))+' kg·m/s']],LH);} },
+    { key: 'recoil', title: 'Recoil', set: { mode: 'track', type: 'explode', mA: 1, mB: 2, spring: 0.4, tape: true }, fresh: true, speed: 0.6,
+      see: 'Same spring, but now B is 2 kg.',
+      why: 'The total must still be zero, so the light cart moves twice as fast as the heavy one: 0.73 m/s left and 0.37 m/s right. This is recoil: a rifle kicks back, and a skateboarder who throws a heavy ball rolls backward.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['1 kg: '+n2(emMet(sim,'vA'))+'   2 kg: '+n2(emMet(sim,'vB'))+' m/s',700],['1 × '+n2(emMet(sim,'vA'))+' + 2 × '+n2(emMet(sim,'vB'))+' = 0']],LH);} },
+    { lvl: 'honors', key: 'partial', title: 'Partly bouncy', set: { mode: 'track', type: 'partial', e: 0.5, mA: 1, mB: 1, vA: 0.8, vB: 0, tape: true }, fresh: true, speed: 0.6,
+      see: 'Bounciness e = 0.5: the carts separate at half the speed they approached.',
+      why: 'Momentum still gives 0.8 total. A keeps 0.2 m/s and B gets 0.6 m/s. Kinetic energy drops from 0.32 J to 0.20 J, 37.5% lost. Real collisions, like cars and balls, are somewhere between bouncy and sticky.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['A: '+n2(emMet(sim,'vA'))+'   B: '+n2(emMet(sim,'vB'))+' m/s',700],['Kinetic energy lost: '+(isFinite(emMet(sim,'kelost'))?n0(emMet(sim,'kelost'))+'%':'…')]],LH);} },
+    { lvl: 'honors', key: 'headon', title: 'Head-on and stuck', set: { mode: 'track', type: 'sticky', mA: 1, mB: 1, vA: 0.8, vB: -0.8, tape: true }, fresh: true, speed: 0.6,
+      see: 'Two equal carts drive at each other at 0.8 m/s and stick.',
+      why: 'Total momentum: 0.8 + (−0.8) = 0. So after sticking they must be at rest. All the kinetic energy, 0.64 J, becomes heat, sound and bent metal. That is the worst case in a car crash.',
+      overlay(sim,ctx,LH,k){coLoop(sim);coC(ctx,k,[['Total momentum: '+n2(emMet(sim,'ptot'))+' kg·m/s',700],['Both stop: 100% of KE lost',600,13,RED]],LH);} },
+    { lvl: 'ap', key: 'table', title: 'Two dimensions', set: { mode: 'table', type: 'elastic', mA: 1, mB: 1, vA: 0.8, vB: 0, b: 0.08, tape: true }, fresh: true, speed: 0.6,
+      see: 'An air table, seen from above. Puck A hits B off-center.',
+      why: 'Momentum is conserved separately in x and in y. The y-momentum starts at zero, so the pucks leave on opposite sides of A’s original path. For equal masses in an elastic collision, they leave 90° apart.',
+      overlay(sim,ctx,LH,k){coLoop(sim);ciCard(ctx,k,[['p_x: '+n2(emMet(sim,'px'))+'   p_y: '+n2(emMet(sim,'py'))+' kg·m/s',700],['Angle between paths: '+(isFinite(emMet(sim,'angle'))?n0(emMet(sim,'angle'))+'°':'…')]],246,0,240,LH);} }
+  ],
+  useIt: [
+    { do: 'In a car, keep a bigger following distance behind heavy trucks, and expect a small car to lose any collision with a large one.',
+      why: 'Momentum is shared in a crash. A 1,500 kg car hit by a 15,000 kg truck has its velocity changed about ten times more than the truck’s, so the people inside feel far bigger forces.' },
+    { do: 'Throwing or kicking something heavy while standing on a skateboard, ice or a boat, brace for recoil.',
+      why: 'Whatever momentum you give the object, you get the same amount in the opposite direction. On a low-friction surface, that pushes you backward.' }
+  ],
+  tryIt: [
+    { title: 'the coin line (3 minutes)',
+      steps: ['Line up five identical coins, touching, on a smooth table.', 'Slide a sixth coin straight into one end.', 'Then slide two coins together into the line.'],
+      look: 'One coin in, one coin out the far end. Two in, two out. Momentum and kinetic energy can only both be kept if the same mass leaves at the same speed.' }
+  ]
+},
+impulse: {
+  goals: {
+    bio: ['Why stopping a moving object takes the same impulse however you do it', 'Why a longer stop means a smaller force', 'How seat belts, airbags and crumple zones save lives using that idea'],
+    honors: ['How to use impulse J = FΔt = Δp to find an average force', 'Why a bounce takes more impulse than a stick'],
+    ap: ['How to find impulse as the area under a force–time graph', 'How stopping distance and stopping time are connected']
+  },
+  matters: 'Every helmet, airbag, crumple zone, gym mat and bent knee on a landing works the same way: stretch the stop out in time so the force drops. It is the physics behind most of the safety equipment you use.',
+  startKey: 'concrete', startRun: false,
+  startOverlay(sim,ctx,LH,k){imC(ctx,k,[['A 60 g egg, dropped from 1 m',700],['Its shell cracks above about 30 N.']],LH);},
+  steps: [
+    { key: 'concrete', title: 'Egg on concrete', set: { obj: 'egg', surface: 'concrete', h: 1 }, fresh: true, speed: 1,
+      see: 'The egg falls 1 m onto concrete. The graph on the right shows the force on the egg during the tiny moment of impact, slowed down 40 times.',
+      why: 'The egg arrives at 4.4 m/s with momentum 0.06 × 4.4 = 0.27 kg·m/s, and concrete stops it in about 2 ms. Stopping that fast takes a peak force of about 209 N, seven times what the shell can take.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['Stopped in '+n0(emMet(sim,'tau'))+' ms',700],['Peak force: '+n0(emMet(sim,'fpk'))+' N (shell cracks above 30 N)',700,13,RED]],LH);} },
+    { key: 'foam', title: 'Egg on a foam pad', set: { obj: 'egg', surface: 'foam', h: 1 }, fresh: true, speed: 1,
+      see: 'Same egg, same 1 m, onto a foam pad. The dashed curve on the graph is the last run, on concrete.',
+      why: 'The egg still has to lose the same 0.27 kg·m/s of momentum. Foam stretches the stop to 30 ms, 15 times longer, so the force is 15 times smaller: about 14 N. The egg survives.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['Stopped in '+n0(emMet(sim,'tau'))+' ms',700],['Peak force: '+n1(emMet(sim,'fpk'))+' N: survives',700,13,GRN]],LH);} },
+    { key: 'same', title: 'Same impulse, different shape', set: { obj: 'egg', surface: 'carpet', h: 1 }, fresh: true, speed: 1,
+      see: 'Now carpet, which stops the egg in 8 ms. Compare the shaded areas under the force curves.',
+      why: 'The area under a force–time graph is the <b>impulse</b>, and it always equals the change in momentum. Tall and thin (concrete) or short and wide (foam), the area is the same 0.27 N·s. Only the peak force changes: here about 52 N, still enough to crack it.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['Carpet: '+n0(emMet(sim,'tau'))+' ms → '+n0(emMet(sim,'fpk'))+' N',700],['Area (impulse): 0.27 N·s, every surface']],LH);} },
+    { key: 'higher', title: 'A higher drop', set: { obj: 'egg', surface: 'foam', h: 3 }, fresh: true, speed: 1,
+      see: 'Foam pad again, but from 3 m.',
+      why: 'From 3 m the egg arrives at 7.7 m/s, so it has more momentum to lose: about 0.46 kg·m/s. Over the same 30 ms, the peak force rises to about 24 N. Still under 30 N, but with little margin.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['From 3 m: '+n1(emMet(sim,'vimp'))+' m/s at impact',700],['Peak force: '+n1(emMet(sim,'fpk'))+' N']],LH);} },
+    { key: 'car', title: 'A crash with a seat belt', set: { obj: 'car', kmh: 50, rest: 'belt', front: 'rigid' }, fresh: true, speed: 1,
+      see: 'A car hits a wall at 50 km/h (31 mph). The crash-test dummy, 75 kg, wears a seat belt. The car’s front is rigid.',
+      why: 'The dummy has to lose 75 × 13.9 ≈ 1,040 kg·m/s of momentum, whatever happens. The belt stretches and lets the dummy stop over about 0.1 s, so the peak force is about 16 kN, around 22 g. Injuries are likely.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imCar(ctx,k,[['Seat belt, rigid front',700],['Stop: '+n0(emMet(sim,'tau'))+' ms → '+n1(emMet(sim,'fpkK'))+' kN, '+n0(emMet(sim,'gpk'))+' g']],LH);} },
+    { key: 'crumple', title: 'Add a crumple zone', set: { obj: 'car', kmh: 50, rest: 'belt', front: 'crumple' }, fresh: true, speed: 1,
+      see: 'Same crash, but the front of the car is designed to crush.',
+      why: 'The crumpling front takes 120 ms to stop the car instead of 40 ms, and the belted dummy stops over about 0.18 s. Same momentum change, almost twice the time, so roughly half the force: about 9 kN, 12 g. Likely to walk away.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imCar(ctx,k,[['Seat belt and crumple zone',700],['Stop: '+n0(emMet(sim,'tau'))+' ms → '+n1(emMet(sim,'fpkK'))+' kN, '+n0(emMet(sim,'gpk'))+' g',700,13,GRN]],LH);} },
+    { key: 'nobelt', title: 'No seat belt', set: { obj: 'car', kmh: 50, rest: 'none', front: 'crumple' }, fresh: true, speed: 1,
+      see: 'Same crumple zone, but the dummy isn’t belted.',
+      why: 'The car stops, but the unbelted dummy keeps going at 50 km/h until it hits the dashboard 45 cm ahead, which stops it in about 8 ms. Same momentum, a tiny fraction of the time: a peak force of about 200 kN. The crumple zone can’t help someone who isn’t attached to the car.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imCar(ctx,k,[['No belt: stopped by the dashboard',700,13,RED],['Stop: '+n0(emMet(sim,'tau'))+' ms → '+n0(emMet(sim,'fpkK'))+' kN, '+n0(emMet(sim,'gpk'))+' g',700,13,RED]],LH);} },
+    { lvl: 'honors', key: 'favg', title: 'J = F·Δt = Δp', set: { obj: 'egg', surface: 'foam', h: 1 }, fresh: true, speed: 1,
+      see: 'Back to the egg on foam. Compare the impulse with the egg’s momentum before impact.',
+      why: 'Impulse = average force × time = change in momentum. The egg goes from 0.266 kg·m/s to 0, so J = 0.266 N·s. Over 30 ms the average force is 0.266 ÷ 0.030 ≈ 8.9 N. The peak, for this smooth pulse, is π/2 times the average.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['Δp = '+n2(emMet(sim,'p0'))+' kg·m/s = J',700],['F_avg = J ÷ Δt = '+n1(emMet(sim,'favg'))+' N']],LH);} },
+    { lvl: 'honors', key: 'bounce', title: 'Bouncing takes more impulse', set: { obj: 'ball', ball: 'rubber', surface: 'carpet', h: 1 }, fresh: true, speed: 1,
+      see: 'A 150 g rubber ball dropped 1 m onto carpet bounces back up. Compare with a clay ball that sticks.',
+      why: 'To stick, the floor only has to stop the ball. To bounce, it has to stop it and then send it back up at 80% of the speed. Δp = m(v + 0.8v) = 1.8 mv, so the floor pushes 1.8 times as hard. Bouncing hurts more than sticking.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['Rubber: J = '+n2(emMet(sim,'J'))+' N·s',700],['Clay (sticks) would be 0.66 N·s']],LH);} },
+    { lvl: 'ap', key: 'area', title: 'Impulse is the area under F(t)', set: { obj: 'egg', surface: 'carpet', h: 1 }, fresh: true, speed: 1,
+      see: 'Read the area from 10 thin strips under the force curve.',
+      why: 'J = ∫F dt. Ten rectangles under the half-sine pulse already give 0.267 N·s, within a fraction of a percent of mv = 0.266 N·s. For a stick, stopping distance d = average speed × time = (v/2) × Δt.',
+      overlay(sim,ctx,LH,k){imLoop(sim);imC(ctx,k,[['10 strips: '+(emMet(sim,'area')!=null?emMet(sim,'area').toFixed(3):'…')+' N·s',700],['Stopping distance: '+n1(emMet(sim,'dist'))+' cm']],LH);} }
+  ],
+  useIt: [
+    { do: 'Wear your seat belt on every trip, including short ones in town.',
+      why: 'The crumple zone and airbag only help if you are attached to the car. Unbelted, you keep moving and stop against the dashboard in milliseconds. NHTSA estimates seat belts saved about 15,000 lives in the U.S. in 2017.' },
+    { do: 'Land jumps with bent knees and roll when you fall.',
+      why: 'Bending your knees stretches your stop over more time and distance, so the force on your joints drops. Landing stiff-legged stops you in a few milliseconds.' },
+    { do: 'Replace a bike or ski helmet after any hard crash, even if it looks fine.',
+      why: 'The foam works by crushing, which stretches out the stop. Once crushed, it can’t do that again (the Consumer Product Safety Commission and helmet makers say to replace it).' }
+  ],
+  tryIt: [
+    { title: 'the water-balloon catch (outside, 5 minutes)',
+      steps: ['Toss a water balloon to a partner.', 'First catch it with stiff arms. Then catch one by moving your hands back with it as it arrives.'],
+      look: 'Moving with it stretches the stop over more time, so the force on the balloon drops and it survives. Stiff hands stop it fast and it bursts.' }
+  ]
+}
+});
 })();
