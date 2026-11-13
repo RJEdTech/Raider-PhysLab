@@ -11,7 +11,7 @@ BioLab.setSections({
 });
 
 BioLab.COURSES = [
-  { id: 'phys', name: 'Physics',
+  { id: 'phys',finals:[{"t": "Physics fall final review", "units": [0, 1, 2, 3], "note": "Covers Units 1 to 4: motion, projectiles, forces, circular motion and gravity. Your teacher decides what is on the final, so check the study guide."}], name: 'Physics',
     blurb: 'Tools in the order Physics covers them, unit by unit.',
     units: [
       { n: 'Unit 1', t: 'One-dimensional motion', ids: ['motion1d', 'freefall'], links: [{ lesson: true, href: 'https://jackson-classroom.github.io/physics/1d-kinematics/position-time-graphs/', title: 'Position–time graphs', label: 'Mr. Jackson’s lesson', text: 'Read the graph, then walk the graph: slope, distance and displacement.', kind: 'Lesson' }] },
@@ -24,7 +24,7 @@ BioLab.COURSES = [
       { n: 'Unit 8', t: 'Light and optics', ids: ['color', 'refraction', 'lenses'] }
     ],
     further: ['rocket', 'chaos', 'relativity'] },
-  { id: 'honors', name: 'Honors Physics',
+  { id: 'honors',finals:[{"t": "Honors Physics fall final review", "units": [0, 1, 2, 3, 4], "note": "Covers Units 1 to 5, through work, energy and power. Your teacher decides what is on the final, so check the study guide."}], name: 'Honors Physics',
     blurb: 'Tools in the order Honors Physics covers them: first semester, then second.',
     units: [
       { n: 'Unit 1', t: 'One-dimensional motion', ids: ['motion1d', 'freefall', 'linearize'] },
@@ -38,7 +38,7 @@ BioLab.COURSES = [
       { n: 'Unit 9', t: 'Circuits and electricity', ids: ['coulomb', 'circuit', 'magnetism'] }
     ],
     further: ['rocket', 'chaos', 'relativity', 'photoelectric'] },
-  { id: 'ap1', name: 'AP Physics 1',
+  { id: 'ap1',finals:[{"t": "AP Physics 1 fall final review", "units": [0, 1, 2, 3], "note": "Covers AP Units 1 to 4: kinematics, dynamics, energy and momentum. Your teacher decides what is on the final, so check the study guide."}], name: 'AP Physics 1',
     blurb: 'Tools in the order AP Physics 1 covers them, matching the AP units.',
     units: [
       { n: 'Unit 1', t: 'Kinematics', ids: ['motion1d', 'freefall', 'vectors2d', 'projectile', 'linearize'] },
@@ -51,7 +51,7 @@ BioLab.COURSES = [
       { n: 'Unit 8', t: 'Fluids', ids: ['buoyancy', 'fluidflow'] }
     ],
     further: ['rocket', 'chaos', 'relativity', 'photoelectric'] },
-  { id: 'apc', name: 'AP Physics C',
+  { id: 'apc',finals:[{"t": "AP Physics C fall final review", "units": [0, 1, 2], "note": "Covers kinematics, Newton’s laws, work, energy and momentum. Add rotation if your class has reached it. Your teacher decides what is on the final, so check the study guide."}], name: 'AP Physics C',
     blurb: 'Tools in the order AP Physics C covers them: Mechanics in the fall, Electricity and Magnetism in the spring.',
     units: [
       { n: 'Fall', t: 'Kinematics', ids: ['motion1d', 'projectile', 'linearize'] },
