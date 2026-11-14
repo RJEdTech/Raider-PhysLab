@@ -128,7 +128,12 @@ efield: {
       cause: { from: { vx: 24 }, delay: 1, dur: 2, label: 'Voltage probe' },
       see: 'The probe moves outward from 8 cm to 12 cm, dropping from 225 kV to 150 kV.',
       why: 'Moving a +1 nC charge from the test point to the probe: ΔV = −74.9 kV, so the work you do is qΔV = −7.5 × 10⁻⁵ J. Negative: the field does the work, pushing the charge outward.',
-      overlay(sim,ctx,LH,k){EF(ctx,k,[['ΔV = '+String(met(sim,'dV')),700,14],['W = '+String(met(sim,'W')),700,13.5,RED]]);} }
+      overlay(sim,ctx,LH,k){EF(ctx,k,[['ΔV = '+String(met(sim,'dV')),700,14],['W = '+String(met(sim,'W')),700,13.5,RED]]);} },
+    { key: 'hook', title: 'Your question: when does it spark?', set: { preset: 'single', q: 2, tx: 23.5, ty: 9 }, fresh: true,
+      cause: { from: { tx: 31 }, delay: 0.6, dur: 3, label: 'Test charge across' },
+      see: 'Slide toward the +2 μC charge. At 8 cm the field is about 2,800 kN/C; at 7.5 cm it passes 3,000 kN/C, enough to make air spark.',
+      why: 'E = kq/r², so r = √(kq/E) = √(8.99 × 10⁹ × 2 × 10⁻⁶ ÷ 3 × 10⁶) ≈ 7.7 cm. Your finger concentrates the field near a doorknob in the same way, so the shock jumps the last few millimeters.',
+      overlay(sim,ctx,LH,k){EF(ctx,k,[['Distance: '+f1(met(sim,'r'))+' cm',700,14],['Field: '+f0(met(sim,'E'))+' kN/C',700,13,met(sim,'E')>3000?RED:PAL['cv-ink']],'Air sparks above 3,000 kN/C']);} }
   ],
   useIt: [
     { do: 'Stay low and away from tall, lone objects if you are caught outside in a thunderstorm, and get inside when you can.',
@@ -262,7 +267,11 @@ sound: {
     { key: 'tube', lvl: 'ap', title: 'A resonance tube', set: { mode: 'tube', tubeEnd: 'closed', tubeL: 0.85, harm: 1 }, fresh: true,
       see: 'A 0.85 m tube closed at one end resonates at 101 Hz: a node at the closed end and an antinode at the open end.',
       why: 'The tube holds a quarter wavelength: λ = 4L = 3.40 m, f = v/λ = 343/3.40 = 101 Hz. Open at both ends it holds half a wavelength, so f doubles to 202 Hz.',
-      overlay(sim,ctx,LH,k){TB(ctx,k,[['Closed tube, L = 0.85 m',700,14],'λ = 4L = '+f2(met(sim,'lamT'))+' m','f = '+f0(met(sim,'fres'))+' Hz']);} }
+      overlay(sim,ctx,LH,k){TB(ctx,k,[['Closed tube, L = 0.85 m',700,14],'λ = 4L = '+f2(met(sim,'lamT'))+' m','f = '+f0(met(sim,'fres'))+' Hz']);} },
+    { key: 'hook', title: 'Your question: the ambulance', set: { mode: 'doppler', freq: 500, vs: 30, vo: 0, medium: 'air' }, fresh: true,
+      see: 'A 500 Hz siren passing at 30 m/s (about 67 mph). Coming toward you it sounds like 548 Hz; driving away, 460 Hz.',
+      why: 'That drop of almost 90 Hz is about a musical step and a half, which is why the “neee-yowww” is so easy to hear. The siren itself never changes pitch.',
+      overlay(sim,ctx,LH,k){DP(ctx,k,[['500 Hz at 30 m/s',700,14],['Coming toward you: '+f0(met(sim,'fahead'))+' Hz',700,13,BLU],'Driving away: '+f0(met(sim,'fbehind'))+' Hz']);} }
   ],
   useIt: [
     { do: 'Count seconds between lightning and thunder, then divide by 3 for kilometers (by 5 for miles).',
@@ -369,7 +378,11 @@ capacitor: {
       run(sim){actAt(sim,99,'full',0);},
       see: 'Start full and flip the switch to bypass the battery. The capacitor drives the bulb by itself and drains to 37% after 1 s.',
       why: 'V_C = V₀e^(−t/RC). Each τ the voltage drops to 1/e ≈ 37% of what it was: exponential decay, like a camera flash recharging in reverse.',
-      overlay(sim,ctx,LH,k){CP(ctx,k,[['Discharging, τ = 1.0 s',700,14],'t = '+f1(sim.t)+' s','Capacitor: '+f2(met(sim,'vc'))+' V ('+f0(met(sim,'pct'))+'%)']);} }
+      overlay(sim,ctx,LH,k){CP(ctx,k,[['Discharging, τ = 1.0 s',700,14],'t = '+f1(sim.t)+' s','Capacitor: '+f2(met(sim,'vc'))+' V ('+f0(met(sim,'pct'))+'%)']);} },
+    { key: 'hook', title: 'Your question: the camera flash', set: { mode: 'rc', sw: 'charge', R: 100, C: 100, V: 9 }, fresh: true, speed: 4,
+      see: '9 V charging 100 μF through 100 kΩ: τ = RC = 10 s. After 10 s it is 63% full, after 30 s about 95%, and only after about 50 s (5τ) is it essentially full.',
+      why: 'An exponential never quite finishes, so engineers call 5τ “full.” That wait is why a camera flash makes you pause between shots; flash circuits use small resistances to charge in a second or two.',
+      overlay(sim,ctx,LH,k){CP(ctx,k,[['τ = '+f0(met(sim,'tau'))+' s',700,14],'t = '+f0(sim.t)+' s','Charged: '+f0(met(sim,'pct'))+'%']);} }
   ],
   useIt: [
     { do: 'Unplug a device and wait before opening it, even when it’s off.',
@@ -810,7 +823,12 @@ buoyancy: {
       cause: { from: { lower: 0 }, delay: 0.6, dur: 3, label: 'Lower the block' },
       see: 'The mystery block weighs 11.8 N in air and 2.0 N underwater.',
       why: 'Buoyant force = 11.8 − 2.0 = 9.8 N, so its volume is 1.0 L. Density = mass ÷ volume = 1.2 kg ÷ 0.001 m³ = 1,200 kg/m³. Archimedes is said to have used this trick to test a gold crown.',
-      overlay(sim,ctx,LH,k){BU(ctx,k,[['Mystery block',700,14],'Weight: '+f1(met(sim,'weight'))+' N, scale: '+f1(met(sim,'scale'))+' N','Weight lost: '+f1(met(sim,'loss'))+' N']);} }
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Mystery block',700,14],'Weight: '+f1(met(sim,'weight'))+' N, scale: '+f1(met(sim,'scale'))+' N','Weight lost: '+f1(met(sim,'loss'))+' N']);} },
+    { key: 'hook', title: 'Your question: deeper isn’t lighter', set: { block: 'alum', fluid: 'water', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { lower: 60 }, delay: 0.6, dur: 3, label: 'Lower the block' },
+      see: 'Once the block is fully under water, lowering it deeper leaves the scale at 16.7 N: 9.8 N lighter than in air, at any depth.',
+      why: 'Deeper water presses harder on both the top and the bottom of the block. The difference between them, the buoyant force, depends only on the volume of water pushed aside. A rock at the lake feels lighter under water, but not lighter still at the bottom.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Fully under',700,14],'Scale: '+f1(met(sim,'scale'))+' N','Buoyant force: '+f1(met(sim,'buoy'))+' N']);} }
   ],
   useIt: [
     { do: 'Take a deep breath to float more easily in a pool.',
