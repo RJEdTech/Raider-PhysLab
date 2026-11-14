@@ -440,4 +440,196 @@ circuit: {
   ]
 }
 });
+/* ---- Apr–May units: light and optics (added Nov 14, 2026) ---- */
+const CO1=(ctx,k,L)=>card(ctx,k,L,12,186,270);
+const CO2=(ctx,k,L)=>card(ctx,k,L,420,210,360);
+const RF=(ctx,k,L)=>card(ctx,k,L,12,320,212);
+const RP=(ctx,k,L)=>card(ctx,k,L,12,70,250);
+const RFB=(ctx,k,L)=>card(ctx,k,L,470,70,300);
+const LN=(ctx,k,L)=>card(ctx,k,L,470,46,320);
+const LM=(ctx,k,L)=>card(ctx,k,L,330,14,290);
+const tx=(sim,id)=>{const v=met(sim,id);return v==null||v!==v?'—':String(v);};
+const ang=v=>Number.isFinite(v)?v.toFixed(1)+'°':'none';
+
+BioLab.addLearn({
+color: {
+  goals: {
+    bio: ['Light is one small band of the electromagnetic spectrum', 'Shorter wavelength means more energy per photon', 'An object’s color depends on the light hitting it'],
+    honors: ['c = fλ and E = hf', 'Why UV and X-rays can damage cells but radio can’t', 'Additive color mixing and colored filters'],
+    ap: ['Photon energy on a log scale', 'Cone signals and color vision', 'Fluorescence and color blindness']
+  },
+  matters: 'Sunscreen, microwave ovens, Wi-Fi, X-rays at the dentist and the screen you’re reading all use the same kind of wave. What changes is the wavelength, and with it the energy each photon carries.',
+  question: 'A red car looks red in sunlight. What color is it under a pure green light?',
+  startKey: 'vis', startRun: false,
+  steps: [
+    { key: 'vis', title: 'Visible light', set: { part: 'em', band: 'vis', pos: 50 }, fresh: true, pause: true,
+      see: 'Green light: wavelength 533 nm, frequency 5.6 × 10¹⁴ Hz. Each photon carries 2.32 eV.',
+      why: 'Light is an electromagnetic wave: electric and magnetic fields wiggling together, traveling at 3.00 × 10⁸ m/s. Visible light is only a thin slice of the whole spectrum.',
+      overlay(sim,ctx,LH,k){CO1(ctx,k,[['λ = '+tx(sim,'wl').split(' (')[0],700,13.5],'Photon energy: '+tx(sim,'pe')]);} },
+    { key: 'rainbow', title: 'Red to violet', set: { part: 'em', band: 'vis', pos: 100 }, fresh: true,
+      cause: { from: { pos: 0 }, delay: 0.6, dur: 3, label: 'Frequency' },
+      see: 'Slide from red to violet. The wavelength shrinks from about 750 nm to 380 nm, and the photon energy doubles from 1.65 to 3.27 eV.',
+      why: { bio: 'Shorter waves pack more energy into each photon. Violet photons carry about twice the energy of red ones.', honors: 'E = hf = hc/λ. Halve the wavelength and you double the frequency and the energy.' },
+      overlay(sim,ctx,LH,k){CO1(ctx,k,[['λ = '+tx(sim,'wl').split(' (')[0],700,13.5],'Photon energy: '+tx(sim,'pe')]);} },
+    { key: 'radio', title: 'Radio waves', set: { part: 'em', band: 'radio', pos: 50 }, fresh: true, pause: true,
+      see: 'An AM radio wave is 173 m long, longer than a football field. Each photon carries only about 10⁻⁸ eV.',
+      why: 'Radio photons are far too weak to break chemical bonds. That’s why radio, Wi-Fi and phone signals don’t damage DNA the way UV can.',
+      overlay(sim,ctx,LH,k){CO1(ctx,k,[['Radio: λ = '+tx(sim,'wl').split(' (')[0],700,13.5],'Photon energy: '+tx(sim,'pe')]);} },
+    { key: 'uv', title: 'Ultraviolet', set: { part: 'em', band: 'uv', pos: 50 }, fresh: true, pause: true,
+      see: 'Far-UV photons carry about 20 eV, enough to knock an electron off an atom. The scale turns red: ionizing.',
+      why: 'Ionizing radiation can break bonds in DNA. That is why UV causes sunburn and skin cancer, and why sunscreen and UV-blocking sunglasses matter, especially at Colorado’s altitude.',
+      overlay(sim,ctx,LH,k){CO1(ctx,k,[['UV: '+tx(sim,'pe'),700,13.5],tx(sim,'ion').split(':')[0]==='Yes'?'Ionizing':'Not ionizing']);} },
+    { key: 'room', title: 'A red car in white light', set: { part: 'color', R: 100, G: 100, B: 100, obj: 'red', filt: 'none' }, fresh: true, pause: true,
+      see: 'Red, green and blue bulbs together make white light. The red car looks red.',
+      why: 'The paint absorbs green and blue and reflects red. The color you see is the light that bounces back to your eye.',
+      overlay(sim,ctx,LH,k){CO2(ctx,k,[['Lamp: white · Car paint: red',700,13.5],'You see: '+tx(sim,'see')]);} },
+    { key: 'green', title: 'Only green light', set: { part: 'color', R: 0, G: 100, B: 0, obj: 'red', filt: 'none' }, fresh: true,
+      cause: { from: { R: 100, B: 100 }, delay: 0.6, dur: 2, label: 'Red and blue bulbs' },
+      see: 'Turn off the red and blue bulbs. Under green light the red car looks black.',
+      why: 'Red paint absorbs green. With no red light to reflect, almost nothing comes back to your eye.',
+      overlay(sim,ctx,LH,k){CO2(ctx,k,[['Lamp: green only',700,13.5],'You see: '+tx(sim,'see')]);} },
+    { key: 'glasses', lvl: 'honors', title: 'Cyan glasses', set: { part: 'color', R: 100, G: 100, B: 100, obj: 'red', filt: 'cyan' }, fresh: true,
+      see: 'White light, red car, but now you wear cyan glasses. The car looks black again.',
+      why: 'A cyan filter lets green and blue through and blocks red. The car only reflects red, so the glasses block all of it. A filter subtracts colors; it never adds them.',
+      overlay(sim,ctx,LH,k){CO2(ctx,k,[['Cyan glasses',700,13.5],'You see: '+tx(sim,'see')]);} },
+    { key: 'magenta', lvl: 'honors', title: 'Mixing light', set: { part: 'color', R: 100, G: 0, B: 100, obj: 'white', filt: 'none' }, fresh: true,
+      cause: { from: { G: 100 }, delay: 0.6, dur: 2, label: 'Green bulb' },
+      see: 'A white car under red + blue light looks magenta.',
+      why: 'Light mixes by adding: red + blue = magenta, red + green = yellow, green + blue = cyan, all three = white. Your phone screen makes every color from tiny red, green and blue dots.',
+      overlay(sim,ctx,LH,k){CO2(ctx,k,[['Red + blue light, white car',700,13.5],'You see: '+tx(sim,'see')]);} }
+  ],
+  useIt: [
+    { do: 'Wear sunscreen and UV-blocking sunglasses, especially skiing or hiking.',
+      why: 'At high altitude and on snow, more UV reaches you. UV photons carry enough energy to damage skin and eye cells; visible light doesn’t.' },
+    { do: 'Check a shirt’s color near a window before buying it.', lvl: 'honors',
+      why: 'Store lights don’t have the same mix of colors as sunlight, so a color can look different outside.' }
+  ],
+  tryIt: [
+    { title: 'see the pixels (2 minutes)',
+      steps: ['Put a drop of water on your phone screen over a white area, or use a magnifying glass.', 'Look closely at white, yellow and magenta parts of the screen.'],
+      look: 'Every color is made of tiny red, green and blue dots. Yellow is red + green with no blue; white is all three.' }
+  ]
+},
+refraction: {
+  goals: {
+    bio: ['Light bends when it goes from one material into another', 'Into water or glass it bends toward the normal', 'Total internal reflection traps light in fiber-optic cables'],
+    honors: ['Snell’s law: n₁ sin θ₁ = n₂ sin θ₂', 'The critical angle', 'Dispersion: why a prism makes a rainbow'],
+    ap: ['n = c/v', 'Wavelength changes in a medium; frequency doesn’t', 'Partial reflection at every surface']
+  },
+  matters: 'Eyeglasses, camera lenses, rainbows, diamonds that sparkle and the fiber-optic cables carrying the internet all depend on light bending at a surface.',
+  question: 'A laser hits water at an angle. Does it keep going straight, bend toward the surface, or bend toward straight down?',
+  startKey: 'water', startRun: false,
+  steps: [
+    { key: 'water', title: 'Air into water', set: { mode: 'intro', top: 'air', bot: 'water', angle: 45, white: false }, fresh: true, pause: true,
+      see: 'The laser hits water at 45° from the normal (the dashed line). Inside the water it travels at 32.1°, bent toward the normal.',
+      why: 'Light slows down in water, to about 2.25 × 10⁸ m/s. The side of the beam that enters first slows first, so the beam pivots, like a cart whose wheel hits mud.',
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['Air → water',700,14],'In: '+ang(met(sim,'t1'))+'  Out: '+ang(met(sim,'t2')),'Reflected: '+f0(met(sim,'refl'))+'%']);} },
+    { key: 'straight', title: 'Straight in', set: { mode: 'intro', top: 'air', bot: 'water', angle: 0, white: false }, fresh: true,
+      cause: { from: { angle: 45 }, delay: 0.6, dur: 2, label: 'Laser angle' },
+      see: 'Aim straight down along the normal. The beam goes straight through without bending.',
+      why: 'Both sides of the beam enter at the same moment, so there is nothing to pivot it. Bending only happens at an angle.',
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['Straight in',700,14],'In: '+ang(met(sim,'t1'))+'  Out: '+ang(met(sim,'t2'))]);} },
+    { key: 'diamond', lvl: 'honors', title: 'Into diamond', set: { mode: 'intro', top: 'air', bot: 'diamond', angle: 45, white: false }, fresh: true,
+      cause: { from: { bot: 'water' }, delay: 0.6, dur: 1, label: 'Bottom material' },
+      see: 'Diamond bends the same beam to just 17.1°.',
+      why: 'Snell’s law: sin θ₂ = (1.00 × sin 45°)/2.41 = 0.293, θ₂ = 17.1°. A higher index of refraction means slower light (1.24 × 10⁸ m/s) and more bending.',
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['Air → diamond',700,14],'Out: '+ang(met(sim,'t2')),'n₂ = '+f2(met(sim,'n2'))]);} },
+    { key: 'out', title: 'Water into air', set: { mode: 'intro', top: 'water', bot: 'air', angle: 40, white: false }, fresh: true, pause: true,
+      see: 'Now the light starts in water and comes out into air. At 40° in the water it leaves at 58.8°, bent away from the normal.',
+      why: 'Speeding up bends light away from the normal. This is why a straw looks broken in a glass, and why a pool looks shallower than it is.',
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['Water → air',700,14],'In: '+ang(met(sim,'t1'))+'  Out: '+ang(met(sim,'t2'))]);} },
+    { key: 'tir', title: 'Trapped inside', set: { mode: 'intro', top: 'water', bot: 'air', angle: 50, white: false }, fresh: true,
+      cause: { from: { angle: 40 }, delay: 0.6, dur: 2.5, label: 'Laser angle' },
+      see: 'Tilt to 50°. No light escapes: 100% reflects back into the water.',
+      why: { bio: 'Past a certain angle, the light would have to bend more than 90° to get out, so it can’t. It all reflects. This is total internal reflection.', honors: 'Critical angle: sin θc = 1.00/1.33, θc = 48.7°. Any angle beyond it reflects completely.' },
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['Water → air at '+ang(met(sim,'t1')),700,14],['Reflected: '+f0(met(sim,'refl'))+'%',700,13,RED],'Critical angle: '+ang(met(sim,'crit'))]);} },
+    { key: 'fiber', title: 'Fiber optics', set: { mode: 'fiber', angle: 45, clad: 'air' }, fresh: true, pause: true,
+      see: 'Laser light enters a glass fiber and bounces off the walls all the way to the far end. 100% arrives.',
+      why: 'Every bounce hits the wall beyond the critical angle, so total internal reflection keeps the light inside. Internet cables carry data this way under oceans.',
+      overlay(sim,ctx,LH,k){RFB(ctx,k,[['Glass fiber',700,14],'Light kept: '+f0(met(sim,'kept'))+'%']);} },
+    { key: 'prism', title: 'A prism makes a rainbow', set: { mode: 'prism', bot: 'water', angle: 45, white: true }, fresh: true, pause: true,
+      see: 'White light enters a prism and comes out as a spread of colors, violet bent most and red least.',
+      why: 'Each color bends a slightly different amount, because the index of refraction depends on wavelength. Raindrops do the same thing to make a rainbow.',
+      overlay(sim,ctx,LH,k){RP(ctx,k,[['White light in',700,14],'Spectrum out: violet bends most']);} },
+    { key: 'lam', lvl: 'ap', title: 'Wavelength in water', set: { mode: 'intro', top: 'air', bot: 'water', angle: 45, lam: 500, white: false }, fresh: true, pause: true,
+      see: 'A 500 nm laser in water has a wavelength of only 374 nm, and travels at 2.24 × 10⁸ m/s.',
+      why: 'n = c/v and λ_water = λ_air/n. The frequency can’t change at the surface (the waves arrive and leave at the same rate), so the slower speed shortens the wavelength.',
+      overlay(sim,ctx,LH,k){RF(ctx,k,[['500 nm in air',700,14],'In water: '+f0(met(sim,'lam2'))+' nm','v = '+f2(met(sim,'v2'))+' × 10⁸ m/s']);} }
+  ],
+  useIt: [
+    { do: 'Aim below where a fish appears if you’re spearfishing or reaching into a pond.',
+      why: 'Light from the fish bends as it leaves the water, so the fish looks higher (and closer to the surface) than it is.' },
+    { do: 'Notice the glitter of a diamond or crystal.', lvl: 'honors',
+      why: 'Diamond’s small critical angle (24°) traps light inside through several internal reflections before it escapes, split into colors.' }
+  ],
+  tryIt: [
+    { title: 'the broken pencil (2 minutes)',
+      steps: ['Put a pencil in a glass of water so it leans against the side.', 'Look at it from the side, then from above.'],
+      look: 'The pencil looks bent or broken at the water line. Light from the underwater part bends as it leaves the water, so it seems to come from a different place.' }
+  ]
+},
+lenses: {
+  goals: {
+    bio: ['A converging lens can make a real image on a screen', 'Move the object closer and the image gets bigger and farther away', 'A magnifying glass makes a virtual image'],
+    honors: ['Principal rays', 'The thin-lens equation 1/dₒ + 1/dᵢ = 1/f', 'Magnification m = −dᵢ/dₒ; mirrors follow the same rules'],
+    ap: ['Sign conventions for real and virtual images', 'Lens power in diopters', 'Mirror vs. lens comparisons']
+  },
+  matters: 'Your eye, your phone camera, glasses, projectors, car mirrors and telescopes are all lenses or mirrors forming images by the same three rules.',
+  question: 'You slide a candle toward a magnifying glass. Does its image get bigger or smaller, and does it stay on the screen?',
+  startKey: 'cam', startRun: false,
+  steps: [
+    { key: 'cam', title: 'Like a camera', set: { el: 'conv', f: 15, dobj: 40, rays: '3' }, fresh: true, pause: true,
+      see: 'A candle 40 cm from a converging lens (f = 15 cm) forms a real, upside-down, smaller image 24 cm on the other side.',
+      why: 'Three rays from the flame tip meet at one point: that is the image. Real means the light really meets there, so a screen placed there would show it. Your eye and phone camera work this way.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14],'Image distance: '+f1(met(sim,'di'))+' cm','Image height: '+f1(met(sim,'hi'))+' cm']);} },
+    { key: 'twoF', title: 'At 2F', set: { el: 'conv', f: 15, dobj: 30, rays: '3' }, fresh: true,
+      cause: { from: { dobj: 40 }, delay: 0.6, dur: 2, label: 'Object distance' },
+      see: 'Move the candle to 30 cm, twice the focal length. The image is the same size, 30 cm away.',
+      why: 'At 2F the setup is symmetric: object and image are the same distance from the lens and the same size.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14],'Image distance: '+f1(met(sim,'di'))+' cm','Image height: '+f1(met(sim,'hi'))+' cm']);} },
+    { key: 'proj', title: 'Like a projector', set: { el: 'conv', f: 15, dobj: 20, rays: '3' }, fresh: true,
+      cause: { from: { dobj: 30 }, delay: 0.6, dur: 2, label: 'Object distance' },
+      see: 'At 20 cm the image is 3 times larger, inverted, and 60 cm away.',
+      why: 'Between F and 2F the image is bigger and farther. A projector puts a small bright slide just outside F to throw a big image on a far wall (upside down, so the slide goes in upside down).',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14],'Image distance: '+f1(met(sim,'di'))+' cm','Image height: '+f1(met(sim,'hi'))+' cm']);} },
+    { key: 'atF', title: 'At the focal point', set: { el: 'conv', f: 15, dobj: 15, rays: '3' }, fresh: true,
+      cause: { from: { dobj: 20 }, delay: 0.6, dur: 2, label: 'Object distance' },
+      see: 'At exactly 15 cm the rays leave parallel. They never meet: no image.',
+      why: 'This is how a flashlight or lighthouse works: a bulb at the focal point sends out a straight, parallel beam.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14]]);} },
+    { key: 'mag', title: 'A magnifying glass', set: { el: 'conv', f: 15, dobj: 10, rays: '3' }, fresh: true,
+      cause: { from: { dobj: 15 }, delay: 0.6, dur: 2, label: 'Object distance' },
+      see: 'Inside the focal point the rays spread apart. Traced backward, they seem to come from a bigger, upright image behind the candle: virtual, 3 times larger.',
+      why: 'No light actually reaches a virtual image, so it can’t go on a screen. Your eye sees it by looking through the lens, which is how a magnifying glass works.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14],'Image distance: '+f1(met(sim,'di'))+' cm','Magnification: '+f1(met(sim,'m'))+'×']);} },
+    { key: 'div', lvl: 'honors', title: 'A diverging lens', set: { el: 'div', f: 15, dobj: 40, rays: '3' }, fresh: true,
+      see: 'A diverging lens spreads light out. The image is always virtual, upright and smaller: here 0.27 times as tall.',
+      why: 'Glasses for nearsighted people use diverging lenses to spread light slightly before it enters the eye, so it focuses on the retina instead of in front of it.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[[tx(sim,'type'),700,14],'Image distance: '+f1(met(sim,'di'))+' cm','Magnification: '+f2(met(sim,'m'))+'×']);} },
+    { key: 'makeup', lvl: 'honors', title: 'A makeup mirror', set: { el: 'concave', f: 15, dobj: 10, rays: '3' }, fresh: true,
+      see: 'A concave mirror with your face inside its focal point gives a virtual, upright image 3 times larger.',
+      why: 'Curved mirrors follow the same equation as lenses. Inside F a concave mirror magnifies, which is why makeup and shaving mirrors are concave.',
+      overlay(sim,ctx,LH,k){LM(ctx,k,[[tx(sim,'type'),700,14],'Magnification: '+f1(met(sim,'m'))+'×']);} },
+    { key: 'side', lvl: 'honors', title: 'A car side mirror', set: { el: 'convex', f: 15, dobj: 40, rays: '3' }, fresh: true,
+      see: 'A convex mirror makes a small, upright, virtual image.',
+      why: 'It shows a wide view in a small mirror, but things look smaller and so farther away. Hence “Objects in mirror are closer than they appear.”',
+      overlay(sim,ctx,LH,k){LM(ctx,k,[[tx(sim,'type'),700,14],'Magnification: '+f2(met(sim,'m'))+'×']);} },
+    { key: 'eq', lvl: 'ap', title: 'The thin-lens equation', set: { el: 'conv', f: 15, dobj: 40, rays: '3' }, fresh: true, pause: true,
+      see: 'Check 1/dₒ + 1/dᵢ = 1/f: 1/40 + 1/24 = 0.0667 = 1/15.',
+      why: 'Real images have positive dᵢ, virtual ones negative. m = −dᵢ/dₒ = −24/40 = −0.6: the minus sign means inverted. Power = 1/f in meters: 1/0.15 m = 6.7 diopters, the unit on a glasses prescription.',
+      overlay(sim,ctx,LH,k){LN(ctx,k,[['1/dₒ + 1/dᵢ = '+(Number.isFinite(met(sim,'sum'))?met(sim,'sum').toFixed(4):'—'),700,13.5],'1/f = '+(Number.isFinite(met(sim,'invf'))?met(sim,'invf').toFixed(4):'—'),'Power: '+f1(met(sim,'power'))+' D']);} }
+  ],
+  useIt: [
+    { do: 'Read your glasses or contacts prescription: the number is the lens power in diopters.',
+      why: 'Negative numbers are diverging lenses (nearsighted); positive are converging (farsighted or reading glasses).' },
+    { do: 'Trust your car mirror’s warning: objects are closer than they appear.', lvl: 'honors',
+      why: 'The convex mirror shrinks the image so you see a wider area, which makes cars look farther away.' }
+  ],
+  tryIt: [
+    { title: 'a magnifying glass camera (5 minutes)',
+      steps: ['In a dim room, hold a magnifying glass between a bright window and a white wall or paper.', 'Move the paper until the window comes into focus.'],
+      look: 'You’ll see a sharp, small, upside-down picture of the window: a real image, exactly like the first step.' }
+  ]
+}
+});
 })();
