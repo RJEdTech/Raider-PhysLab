@@ -1134,6 +1134,13 @@ const roBL=(ctx,k,L,LH)=>ciCard(ctx,k,L,262,8,212,LH);
 const roTR=(ctx,k,L)=>ciCard(ctx,k,L,496,6,296);
 const TQ_R='#c8102e',TQ_G='#1b7a3e',TQ_B='#1b6fb3';
 const roRace=sim=>{emAct(sim,'race');};
+const roTop=0;
+/* cause and effect: slide a setting from a to b while the overlay watches (t0 and dur in seconds since the step began) */
+function tqTw(sim,tau,spec,t0,dur){const f=ease(clamp((tau-t0)/dur,0,1)),o={};for(const id in spec){const [a,b]=spec[id],v=Math.round((a+(b-a)*f)*1000)/1000;if(Math.abs(sim.p[id]-v)>1e-6)o[id]=v;}if(Object.keys(o).length)BioLab.setValues(sim,o);return f;}
+function tqRing(ctx,x,y,r,tau,col){const a=0.5+0.5*Math.sin(tau*6);ctx.save();ctx.strokeStyle=col||'#c8102e';ctx.lineWidth=3;ctx.globalAlpha=0.45+0.55*a;ctx.beginPath();ctx.arc(x,y,r+3*a,0,6.29);ctx.stroke();ctx.restore();}
+const tqMassXY=(sim,d,side)=>{const ph=sim.st.phi||0,dx=side*160*d,dy=-36;return [400+dx*Math.cos(ph)-dy*Math.sin(ph),320+dx*Math.sin(ph)+dy*Math.cos(ph)];};
+const tqPush=sim=>[190+900*sim.p.r,250];
+
 
 BioLab.addLearn({
 torque: {
@@ -1150,11 +1157,12 @@ torque: {
       see: 'Two 30 kg masses, each 1.5 m from the pivot. The plank stays level.',
       why: 'The left mass tries to turn the plank counterclockwise and the right one clockwise. Each turning effect, called <b>torque</b>, is weight × distance from the pivot. Equal torques cancel.',
       overlay(sim,ctx,LH,k){tqTR(ctx,k,[['Torque = weight × distance',700],'Left: 294 N × 1.5 m = 441 N·m','Right: 294 N × 1.5 m = 441 N·m',['Equal → balanced',700,13,TQ_G]]);} },
-    { key: 'far', title: 'Distance matters', set: { dR: 2 }, fresh: true, speed: 1,
-      see: 'Slide the right mass out to 2.0 m. Neither mass changed, but the right side drops.',
+    { key: 'far', title: 'Distance matters', fresh: true, speed: 1,
+      see: 'Watch the circled mass slide out from 1.5 m to 2.0 m. Its weight never changes, but as soon as it stops, the right side drops.',
       why: 'The same weight farther from the pivot turns the plank harder: 294 N × 2.0 m = 588 N·m beats 441 N·m.',
       so: 'It’s why a door is easy to push at the handle and hard to push near the hinges.',
-      overlay(sim,ctx,LH,k){tqTR(ctx,k,[['Same mass, farther out',700],'Left: 441 N·m','Right: 294 N × 2.0 m = 588 N·m',['Right side goes down',700,13,TQ_R]]);} },
+      overlay(sim,ctx,LH,k,tau){const f=tqTw(sim,tau,{dR:[1.5,2]},0.8,2.4),d=sim.p.dR,tR=294*d;if(Math.abs(sim.st.phi||0)>0.02){ctx.save();ctx.strokeStyle=PAL['cv-ink'];ctx.globalAlpha=0.55;ctx.setLineDash([7,5]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(80,320);ctx.lineTo(720,320);ctx.stroke();ctx.restore();H.txt(ctx,'level before',90,312,{s:11*Math.min(k,1.3),w:700,c:PAL['cv-ink']});}if(f<1){const [x,y]=tqMassXY(sim,d,1);tqRing(ctx,x,y,40,tau);}
+        tqTR(ctx,k,[[f<1?'Sliding the right mass out…':'Same mass, farther out',700],'Left: 294 N × 1.5 m = 441 N·m',['Right: 294 N × '+d.toFixed(2)+' m = '+Math.round(tR)+' N·m',700,13,f>0&&f<1?TQ_B:PAL['cv-ink']],[tR>441.5?'Bigger torque → right side drops':'Equal → balanced',700,13,tR>441.5?TQ_R:TQ_G]]);} },
     { key: 'heavy', title: 'Heavier and closer balances lighter and farther', set: { mL: 30, dL: 2, mR: 60, dR: 1 }, fresh: true, speed: 1,
       see: { bio: 'A 30 kg kid 2 m out balances a 60 kg adult 1 m from the pivot.', honors: 'A 30 kg mass at 2 m balances a 60 kg mass at 1 m: Στ = 0.' },
       why: 'Twice the weight at half the distance gives the same torque: 588 N·m each side. That’s how a parent and a small child can use a seesaw together.',
@@ -1163,18 +1171,21 @@ torque: {
       see: 'A rusted bolt needs 40 N·m to break loose. You push 100 N straight across the handle, 30 cm from the bolt. It doesn’t budge.',
       why: 'Torque = distance × force = 0.30 m × 100 N = 30 N·m. That is less than the 40 N·m the bolt needs.',
       overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Torque = distance × force',700],'0.30 m × 100 N = 30 N·m',['Needs 40 N·m → stuck',700,13,TQ_R]],LH);} },
-    { key: 'longer', title: 'Push farther out', set: { mode: 'wrench', F: 120, r: 0.35, ang: 90 }, fresh: true, speed: 1,
-      see: 'Push a little harder, 120 N, and farther out, at 35 cm. The bolt turns.',
+    { key: 'longer', title: 'Push farther out', set: { mode: 'wrench', F: 100, r: 0.3, ang: 90 }, fresh: true, speed: 1,
+      see: 'Watch your hand slide out from 30 cm to 35 cm while the push grows from 100 N to 120 N. The torque bar climbs, and the moment it passes the 40 N·m line the bolt turns.',
       why: 'Distance multiplies your force. At 35 cm, 120 N gives 0.35 × 120 = 42 N·m, more than the 40 N·m needed. A longer wrench, or a pipe slipped over the handle, does the same.',
-      overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Farther out',700],'0.35 m × 120 N = 42 N·m',['More than 40 N·m → it turns',700,13,TQ_G]],LH);} },
-    { key: 'angle', title: 'Push at a slant', set: { mode: 'wrench', F: 100, r: 0.3, ang: 35 }, fresh: true, speed: 1,
-      see: 'Same 100 N at 30 cm, but now the push makes a 35° angle with the handle. The torque drops to about 17 N·m.',
+      overlay(sim,ctx,LH,k,tau){const f=tqTw(sim,tau,{r:[0.3,0.35],F:[100,120]},0.8,2.6),tq=sim.p.r*sim.p.F;if(f<1){const [x,y]=tqPush(sim);tqRing(ctx,x,y,18,tau);}
+        tqBL(ctx,k,[[f<1?'Moving out and pushing harder…':'Farther out',700],sim.p.r.toFixed(3)+' m × '+Math.round(sim.p.F)+' N = '+tq.toFixed(1)+' N·m',[tq>=40?'At least 40 N·m → it turns':'Less than 40 N·m → still stuck',700,13,tq>=40?TQ_G:TQ_R]],LH);} },
+    { key: 'angle', title: 'Push at a slant', set: { mode: 'wrench', F: 100, r: 0.3, ang: 90 }, fresh: true, speed: 1,
+      see: 'Same 100 N at 30 cm. Watch the push tilt from straight across (90°) to 35°. The torque bar shrinks from 30 to about 17 N·m, though the push is just as hard.',
       why: { bio: 'Only the part of your push that goes across the handle turns the bolt. The part along the handle just pulls on the bolt.', honors: 'τ = rF sinθ = 0.30 × 100 × sin 35° = 17.2 N·m. Equivalently, the lever arm shrinks to r⊥ = r sinθ = 17.2 cm (purple line).' },
-      overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Slanted push',700],'τ = 0.30 m × 100 N × sin 35° = '+n1(emMet(sim,'tau'))+' N·m',['Straight across (90°) gives the most',700,13,TQ_B]],LH);} },
-    { key: 'bolt', title: 'Push right at the bolt', set: { mode: 'wrench', F: 100, r: 0, ang: 90 }, fresh: true, speed: 1,
-      see: 'Push right on the bolt, 0 cm out. Nothing turns, no matter how hard you push.',
+      overlay(sim,ctx,LH,k,tau){const f=tqTw(sim,tau,{ang:[90,35]},0.8,2.6),a=sim.p.ang;if(f<1){const [x,y]=tqPush(sim);tqRing(ctx,x,y,18,tau);}
+        tqBL(ctx,k,[[f<1?'Tilting the push…':'Slanted push',700],'τ = 0.30 m × 100 N × sin '+Math.round(a)+'° = '+n1(emMet(sim,'tau'))+' N·m',['Straight across (90°) gives the most',700,13,TQ_B]],LH);} },
+    { key: 'bolt', title: 'Push right at the bolt', set: { mode: 'wrench', F: 100, r: 0.3, ang: 90 }, fresh: true, speed: 1,
+      see: 'Same 100 N push. Watch your hand slide in toward the bolt. The torque shrinks with the distance and reaches zero at the bolt, no matter how hard you push.',
       why: 'With no distance from the pivot there is no lever arm, so the torque is zero. The same is true for a push straight along the handle.',
-      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['Distance 0',700],'0 m × 100 N = 0 N·m',['No turning at all',700,13,TQ_R]],60,342,260,LH);} },
+      overlay(sim,ctx,LH,k,tau){const f=tqTw(sim,tau,{r:[0.3,0]},0.8,2.6);if(f<1){const [x,y]=tqPush(sim);tqRing(ctx,x,y,18,tau);}
+        ciCard(ctx,k,[[f<1?'Sliding in toward the bolt…':'Distance 0',700],sim.p.r.toFixed(2)+' m × 100 N = '+n1(sim.p.r*100)+' N·m',[f<1?'Torque shrinks with the distance':'No turning at all',700,13,TQ_R]],60,342,280,LH);} },
     { key: 'ladder', lvl: 'ap', title: 'The leaning ladder', set: { mode: 'ladder', lang: 65, mu: 0.3, x: 0 }, fresh: true, speed: 1, run(sim){emAct(sim,'climb');},
       see: 'A 70 kg climber goes up a ladder leaning at 65° on a smooth wall. The floor’s friction coefficient is 0.30. About two thirds of the way up, the foot slides out.',
       why: 'Taking torques about the foot: as the climber rises, their weight’s lever arm grows, so the wall must push out harder. Friction must equal that push, but it can never exceed μN = 0.30 × 833 N = 250 N.',
@@ -1224,15 +1235,15 @@ rotation: {
       see: 'A skater sits on a frictionless spinning stool, holding a weight in each hand at arm’s length. She turns half a revolution per second.',
       why: 'With no friction, nothing outside twists her, so her spin will stay steady. The view from above shows the path of her hands.',
       overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms out',700],'Spin: '+n2(emMet(sim,'w'))+' rev/s']);} },
-    { key: 'in', title: 'Pull the arms in', set: { mode: 'skater' }, fresh: true, speed: 1, run(sim){emAct(sim,'in');},
-      see: 'She pulls her hands in to 25 cm from the axis. She spins about 3.5 times as fast, with no push from anyone.',
+    { key: 'in', title: 'Pull the arms in', set: { mode: 'skater' }, fresh: true, speed: 1,
+      see: 'Watch her hands: after a moment she pulls them in from 80 cm to 25 cm from the axis. As they come in she speeds up, to about 3.5 times as fast, with no push from anyone.',
       why: { bio: 'Pulling mass toward the center makes her easier to spin. Her “amount of spin” has to stay the same, so she turns faster to make up for it.', honors: 'Moving mass inward cuts her moment of inertia from 4.84 to 1.38 kg·m². Angular momentum L = Iω is conserved, so ω rises by the same factor, from 0.50 to 1.76 rev/s.' },
       so: 'Divers tuck to flip faster and open up to slow down before entering the water.',
-      overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms in',700],['Spin: '+n2(emMet(sim,'w'))+' rev/s (was 0.50)',700,13,TQ_G],'L = Iω stays 15.2 kg·m²/s']);} },
-    { key: 'energy', lvl: 'honors', title: 'Spin is conserved, energy is not', set: { mode: 'skater' }, fresh: true, speed: 1, run(sim){emAct(sim,'in');},
+      overlay(sim,ctx,LH,k,tau){if(tau>1.2&&sim.p.armR>0.3)emAct(sim,'in');const r=sim.st.r;roTR(ctx,k,[[tau<1.2?'Arms out…':r>0.26?'Pulling in…':'Arms in',700],'Hands from the axis: '+n2(r)+' m',['Spin: '+n2(emMet(sim,'w'))+' rev/s (started at 0.50)',700,13,TQ_G],'L = Iω stays 15.2 kg·m²/s']);} },
+    { key: 'energy', lvl: 'honors', title: 'Spin is conserved, energy is not', set: { mode: 'skater' }, fresh: true, speed: 1,
       see: 'Compare her kinetic energy: 23.9 J with arms out, 84.1 J with arms in.',
       why: 'KE = ½Iω² = L²/2I. With L fixed and I smaller, KE goes up. The extra energy comes from the work her arms do pulling the weights inward.',
-      overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms in',700],'L = '+n1(emMet(sim,'L'))+' kg·m²/s (same)',['KE = '+n1(emMet(sim,'KE'))+' J (was 23.9 J)',700,13,TQ_R]]);} },
+      overlay(sim,ctx,LH,k,tau){if(tau>1.2&&sim.p.armR>0.3)emAct(sim,'in');roTR(ctx,k,[[sim.st.r>0.26?'Arms coming in…':'Arms in',700],'L = '+n1(emMet(sim,'L'))+' kg·m²/s (stays the same)',['KE = '+n1(emMet(sim,'KE'))+' J (started at 23.9 J)',700,13,TQ_R]]);} },
     { key: 'spool', lvl: 'ap', title: 'τ = Iα on a spool', set: { mode: 'spool' }, fresh: true, speed: 1, run(sim){emAct(sim,'drop');},
       see: 'A 0.5 kg weight unwinds a 2 kg solid-disk spool. It falls with 3.27 m/s², a third of g.',
       why: 'String tension T makes the torque: TR = Iα, with α = a/R. Combined with mg − T = ma, a = mg / (m + I/R²). Swap in a ring of the same mass and a drops to 1.96 m/s², because I = MR² is twice as big.',
