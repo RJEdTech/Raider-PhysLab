@@ -632,4 +632,252 @@ lenses: {
   ]
 }
 });
+/* ---- Apr–May units: magnetism, induction, buoyancy, fluid flow (added Nov 14, 2026) ---- */
+const MG=(ctx,k,L)=>card(ctx,k,L,12,40,262);
+const IN=(ctx,k,L)=>card(ctx,k,L,14,80,300);
+const TR=(ctx,k,L)=>card(ctx,k,L,380,10,300);
+const BU=(ctx,k,L)=>card(ctx,k,L,546,300,250);
+const FP=(ctx,k,L)=>card(ctx,k,L,622,116,172);
+const FT=(ctx,k,L)=>card(ctx,k,L,330,48,320);
+const uT=v=>!Number.isFinite(v)?'—':v>=1000?(v/1000).toFixed(2)+' mT':v.toFixed(1)+' µT';
+
+BioLab.addLearn({
+magnetism: {
+  goals: {
+    bio: ['Magnets have north and south poles; field lines run from N to S', 'An electric current makes a magnetic field', 'A coil with an iron core makes a strong electromagnet'],
+    honors: ['The field around a wire: right-hand rule, B = μ₀I/2πr', 'What makes an electromagnet stronger', 'Earth as a magnet'],
+    ap: ['Force on a moving charge, F = qvB sin θ', 'Circular motion of charges in a field', 'Force on a current-carrying wire']
+  },
+  matters: 'Motors in every car and fan, MRI scanners, speakers, the hard drives in data centers and the junkyard crane all use magnetic fields made by electric currents.',
+  question: 'A wire with current flowing through it sits next to a compass. Will the compass move?',
+  startKey: 'bar', startRun: true,
+  steps: [
+    { key: 'bar', title: 'A bar magnet', set: { scene: 'bar', flip: false }, fresh: true, speed: 1,
+      see: 'Little compasses all around the magnet line up with its field. The lines loop out of the north end and into the south end.',
+      why: 'A compass needle is itself a tiny magnet. Its north end points along the field, away from N and toward S. The field is strongest near the poles, where the lines crowd together.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['Bar magnet',700,14],'Field at the compass: '+uT(met(sim,'bprobe'))]);} },
+    { key: 'far', title: 'Farther away', set: { scene: 'bar', flip: false, px: 12 }, fresh: true, speed: 1,
+      cause: { from: { px: 6 }, delay: 0.6, dur: 2, label: 'Compass position' },
+      see: 'Slide the compass twice as far out. The field drops from 2.92 mT to about 0.42 mT, seven times weaker.',
+      why: 'Magnetic fields fade fast with distance. That is why a fridge magnet holds a sheet of paper but not a thick magazine.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['Compass at '+f1(sim.p.px)+' cm',700,14],'Field: '+uT(met(sim,'bprobe'))]);} },
+    { key: 'wire', title: 'Current makes a field', set: { scene: 'wire', cur: 5 }, fresh: true, speed: 1,
+      see: 'A wire carrying 5 A straight out of the screen. The compasses line up in circles around it.',
+      why: { bio: 'Any moving charge makes a magnetic field. Around a straight wire the field forms rings. Hans Christian Ørsted found this in 1820 when a current made a compass needle jump.', honors: 'Right-hand rule: thumb along the current, fingers curl the way the field goes. B = μ₀I/2πr = 14.9 µT at 6.7 cm.' },
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['Wire, '+f1(sim.p.cur)+' A',700,14],'Field at the compass: '+uT(met(sim,'bprobe'))]);} },
+    { key: 'rev', title: 'Reverse the current', set: { scene: 'wire', cur: -5 }, fresh: true, speed: 1,
+      cause: { from: { cur: 5 }, delay: 0.6, dur: 2, label: 'Current' },
+      see: 'Run the current the other way. Every compass flips around.',
+      why: 'The field’s direction follows the current. Same strength, opposite direction.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['Wire, '+f1(sim.p.cur)+' A',700,14],'Needle points '+f0(met(sim,'heading'))+'°']);} },
+    { key: 'coil', title: 'An electromagnet', set: { scene: 'solenoid', cur: 5, turns: 50, core: true }, fresh: true, speed: 1,
+      see: 'Wrap the wire into a 50-turn coil around an iron core. It lifts 20 paperclips.',
+      why: 'Each loop’s field adds to the next, so a coil acts like a bar magnet. The iron core lines up its own atoms with the field and multiplies it hundreds of times.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['50 turns, 5 A, iron core',700,13.5],'Paperclips lifted: '+tx(sim,'clips')]);} },
+    { key: 'nocore', title: 'Take out the iron', set: { scene: 'solenoid', cur: 5, turns: 50, core: false }, fresh: true, speed: 1,
+      cause: { from: { core: true }, delay: 0.6, dur: 1, label: 'Iron core' },
+      see: 'Without the iron core the same coil lifts nothing.',
+      why: 'An air-core coil is a weak magnet. The iron is what makes junkyard electromagnets strong enough to lift cars.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['No core',700,13.5],'Paperclips lifted: '+tx(sim,'clips')]);} },
+    { key: 'turns', lvl: 'honors', title: 'More turns', set: { scene: 'solenoid', cur: 5, turns: 100, core: true }, fresh: true, speed: 1,
+      cause: { from: { turns: 50 }, delay: 0.6, dur: 2, label: 'Turns' },
+      see: 'Double the turns to 100 and the coil lifts 38 clips. Doubling the current instead does the same.',
+      why: 'The field inside a coil is B = μ₀nI, times the core’s boost. More turns per length or more current both strengthen it, and the electromagnet switches off when the current stops.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[[f0(sim.p.turns)+' turns, iron core',700,13.5],'Paperclips lifted: '+tx(sim,'clips')]);} },
+    { key: 'earth', lvl: 'honors', title: 'Earth is a magnet', set: { scene: 'earth' }, fresh: true, speed: 1,
+      see: 'Earth’s field is about 14 µT at this compass, weak but everywhere.',
+      why: 'Molten iron moving in Earth’s outer core makes the field. A compass’s north end points toward Earth’s geographic north, which means a magnetic south pole sits up there.',
+      overlay(sim,ctx,LH,k){MG(ctx,k,[['Earth',700,14],'Field at the compass: '+uT(met(sim,'bprobe'))]);} }
+  ],
+  useIt: [
+    { do: 'Keep magnets away from credit card stripes and old hard drives.',
+      why: 'They store information as tiny magnetized regions that a strong magnet can scramble.' },
+    { do: 'Hold a compass away from your phone, laptop or a car door when you navigate.', lvl: 'honors',
+      why: 'Speakers, motors and steel make their own fields that can be much stronger than Earth’s 25–65 µT.' }
+  ],
+  tryIt: [
+    { title: 'a nail electromagnet (10 minutes)',
+      steps: ['Wrap insulated wire 20 times around a steel nail.', 'Tape the ends briefly to the ends of a D battery.', 'Pick up paperclips, then try 40 turns. Disconnect quickly so the wire doesn’t get hot.'],
+      look: 'More turns lift more clips, and the clips drop when you disconnect. The nail is the iron core.' }
+  ]
+},
+induction: {
+  goals: {
+    bio: ['A moving magnet makes a current in a coil', 'No motion, no current', 'Faster motion and more turns make more voltage'],
+    honors: ['Faraday’s law: EMF depends on how fast flux changes', 'How a generator makes AC', 'Transformers: Vs/Vp = Ns/Np'],
+    ap: ['Lenz’s law: induced current opposes the change', 'Eddy currents and magnetic braking', 'Power in a transformer: VpIp = VsIs']
+  },
+  matters: 'Almost every watt of electricity you use was made by spinning a magnet near a coil. Wireless phone chargers, electric guitar pickups and the transformers on power poles use the same idea.',
+  question: 'A magnet sits perfectly still inside a coil of wire. Does any current flow?',
+  startKey: 'push', startRun: true,
+  steps: [
+    { key: 'push', title: 'Push the magnet in', set: { scene: 'magnet', motion: 'in', speed: 0.3, turns: 100, flip: false, meter: 'galv' }, fresh: true, speed: 1,
+      see: 'Push the magnet into the coil. The meter needle swings one way while it moves.',
+      why: 'As the magnet moves in, the magnetic field through the coil grows. A changing field pushes electrons around the wire: an induced current.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Push in at '+f2(sim.p.speed)+' m/s',700,14],'Biggest swing: '+f1(met(sim,'swing'))+' mA']);} },
+    { key: 'still', title: 'Hold it still', set: { scene: 'magnet', motion: 'still', speed: 0.3, turns: 100, flip: false, meter: 'galv' }, fresh: true, speed: 1,
+      see: 'Hold the magnet still inside the coil. Nothing.',
+      why: 'A magnetic field alone does nothing. Only a changing field induces current. That is the key idea of induction.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Magnet still',700,14],'Meter: '+f1(met(sim,'swing'))+' mA']);} },
+    { key: 'out', title: 'Pull it out', set: { scene: 'magnet', motion: 'out', speed: 0.3, turns: 100, flip: false, meter: 'galv' }, fresh: true, speed: 1,
+      see: 'Pull the magnet out. The needle swings the other way.',
+      why: 'Now the field through the coil shrinks instead of growing, so the current reverses. Moving it back and forth makes alternating current.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Pull out',700,14],'Biggest swing: '+f1(met(sim,'swing'))+' mA']);} },
+    { key: 'fast', title: 'Faster', set: { scene: 'magnet', motion: 'in', speed: 0.6, turns: 100, flip: false, meter: 'galv' }, fresh: true, speed: 1,
+      cause: { from: { speed: 0.3 }, delay: 0.4, dur: 1, label: 'Magnet speed' },
+      see: 'Push in twice as fast. The swing doubles, to about 7 mA.',
+      why: { bio: 'A faster change makes more voltage.', honors: 'Faraday’s law: EMF = −N ΔΦ/Δt. Same change in flux in half the time means twice the EMF.' },
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Push in at '+f2(sim.p.speed)+' m/s',700,14],'Biggest swing: '+f1(met(sim,'swing'))+' mA']);} },
+    { key: 'turns', title: 'More turns', set: { scene: 'magnet', motion: 'in', speed: 0.3, turns: 200, flip: false, meter: 'galv' }, fresh: true, speed: 1,
+      cause: { from: { turns: 100 }, delay: 0.4, dur: 1, label: 'Turns' },
+      see: 'Double the turns to 200. The swing doubles too.',
+      why: 'Each turn of wire gets its own push, and they add up in series. Generators use thousands of turns.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[[f0(sim.p.turns)+' turns',700,14],'Biggest swing: '+f1(met(sim,'swing'))+' mA']);} },
+    { key: 'gen', lvl: 'honors', title: 'A generator', set: { scene: 'generator', rpm: 300, bgen: 0.1 }, fresh: true, speed: 1,
+      see: 'Spin a coil in a magnetic field at 300 rpm. The voltage rises, falls and reverses every half turn: AC, peaking at 3.1 V.',
+      why: 'Peak EMF = NBAω. Spin twice as fast and the peak doubles (and the frequency doubles). Power plants spin turbines at 3,600 rpm to make 60 Hz AC.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Generator, '+f0(sim.p.rpm)+' rpm',700,14],'Peak EMF: '+f2(met(sim,'peak'))+' V','Now: '+f2(met(sim,'emf'))+' V']);} },
+    { key: 'xf', lvl: 'honors', title: 'A transformer', set: { scene: 'transformer', vp: 120, np: 200, ns: 100, ac: true }, fresh: true, speed: 1,
+      see: '120 V AC on a 200-turn primary coil. The 100-turn secondary puts out 60 V.',
+      why: 'The changing current in the primary makes a changing field in the iron core, which induces voltage in the secondary. Vs/Vp = Ns/Np = 100/200.',
+      overlay(sim,ctx,LH,k){TR(ctx,k,[['Np = 200, Ns = '+f0(sim.p.ns),700,14],'Secondary: '+f0(met(sim,'vsec'))+' V']);} },
+    { key: 'dc', lvl: 'honors', title: 'Try DC', set: { scene: 'transformer', vp: 120, np: 200, ns: 100, ac: false }, fresh: true, speed: 1,
+      cause: { from: { ac: true }, delay: 0.6, dur: 1, label: 'Alternating current' },
+      see: 'Switch the primary to steady DC. The secondary drops to 0 V.',
+      why: 'A steady current makes a steady field, and a steady field induces nothing. Transformers only work on AC, which is why the grid uses AC.',
+      overlay(sim,ctx,LH,k){TR(ctx,k,[['DC on the primary',700,14],'Secondary: '+f0(met(sim,'vsec'))+' V']);} },
+    { key: 'tube', lvl: 'ap', title: 'Magnetic braking', set: { scene: 'tube', tmat: 'copper', wall: 1.5 }, fresh: true, speed: 1,
+      see: 'A magnet dropped down a copper tube drifts down at 0.2 m/s and takes about 5 s to fall 1 m. In a plastic tube it falls freely.',
+      why: 'Lenz’s law: the falling magnet induces swirling eddy currents in the copper, and their field pushes back on the magnet. Roller coasters and some trains use this for brakes with no friction.',
+      overlay(sim,ctx,LH,k){IN(ctx,k,[['Copper tube',700,14],'Speed: '+f2(met(sim,'vel'))+' m/s','1 m takes '+f1(met(sim,'tfall'))+' s']);} }
+  ],
+  useIt: [
+    { do: 'Look at the gray cylinders on power poles near your house.',
+      why: 'They are transformers stepping thousands of volts down to the 120 and 240 V your outlets use.' },
+    { do: 'Set your phone on a wireless charger and notice it must be centered.', lvl: 'honors',
+      why: 'A coil in the charger makes a changing field that induces current in a coil in your phone, like a transformer with an air gap.' }
+  ],
+  tryIt: [
+    { title: 'magnet down a pipe (5 minutes)',
+      steps: ['Drop a strong neodymium magnet down a copper pipe or a thick aluminum pipe (hardware stores sell short pieces).', 'Drop a nonmagnetic piece of metal the same size and compare.'],
+      look: 'The magnet falls slowly, as if through honey. Nothing touches it: induced currents in the pipe push back.' }
+  ]
+},
+buoyancy: {
+  goals: {
+    bio: ['Liquid pushes up on anything in it (buoyant force)', 'The scale reading drops when a block goes underwater', 'Things float when they are less dense than the liquid'],
+    honors: ['Archimedes: buoyant force = weight of the liquid pushed aside', 'Pressure grows with depth: P = P₀ + ρgh', 'Fraction submerged = ρ_object/ρ_liquid'],
+    ap: ['Why pressure differences cause the buoyant force', 'Finding density from weight and apparent weight', 'Independence from depth once fully submerged']
+  },
+  matters: 'Ships made of steel float, submarines dive and rise, hot-air balloons lift, and ice floats in your drink, all because of buoyancy. Your ears pop at the bottom of the pool because of pressure.',
+  question: 'A 2.7 kg block of aluminum hangs from a spring scale. If you lower it into water, what happens to the reading?',
+  startKey: 'air', startRun: true,
+  steps: [
+    { key: 'air', title: 'In air', set: { block: 'alum', fluid: 'water', lower: 0 }, fresh: true, speed: 1,
+      see: 'The aluminum block hangs in air. The scale reads its full weight, 26.5 N.',
+      why: 'In air the only upward force is the spring scale, so it reads the block’s weight.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['In air',700,14],'Scale: '+f1(met(sim,'scale'))+' N']);} },
+    { key: 'lower', title: 'Lower it into water', set: { block: 'alum', fluid: 'water', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { lower: 0 }, delay: 0.6, dur: 3, label: 'Lower the block' },
+      see: 'As the block sinks in, the scale reading falls. Fully under, it reads 16.7 N: the water is holding up 9.8 N.',
+      why: { bio: 'Water pushes up on the block. That push, the buoyant force, takes some of the weight off the scale.', honors: 'Archimedes: the buoyant force equals the weight of water pushed aside. The 10 cm cube pushes aside 1 L of water, which weighs 9.8 N. Watch the overflow cup.' },
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Below the surface: '+f0(met(sim,'sub'))+'%',700,13.5],'Scale: '+f1(met(sim,'scale'))+' N','Buoyant force: '+f1(met(sim,'buoy'))+' N']);} },
+    { key: 'wood', title: 'Wood floats', set: { block: 'wood', fluid: 'water', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { lower: 0 }, delay: 0.6, dur: 3, label: 'Lower the block' },
+      see: 'A wood block settles with 60% under water and the scale goes slack: it floats.',
+      why: 'Wood (600 kg/m³) is less dense than water. It sinks only until it has pushed aside its own weight of water, which happens when 60% is under.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Wood',700,14],'Below the surface: '+f0(met(sim,'sub'))+'%','Scale: '+f1(met(sim,'scale'))+' N']);} },
+    { key: 'ice', title: 'Ice', set: { block: 'ice', fluid: 'water', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { lower: 0 }, delay: 0.6, dur: 3, label: 'Lower the block' },
+      see: 'Ice floats with about 92% below the surface.',
+      why: 'Ice is 917 kg/m³, just a little less dense than water, so almost all of it sits underwater. That is where “tip of the iceberg” comes from.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Ice',700,14],'Below the surface: '+f0(met(sim,'sub'))+'%']);} },
+    { key: 'salt', lvl: 'honors', title: 'Salty water', set: { block: 'ice', fluid: 'salt', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { fluid: 'water' }, delay: 0.6, dur: 1, label: 'Liquid' },
+      see: 'The same ice in very salty water floats higher: only 76% under.',
+      why: 'Denser liquid means each liter pushed aside weighs more, so less has to be submerged. Fraction under = 917 ÷ 1,200 = 0.76. This is why you float more easily in the ocean.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Ice in salty water',700,14],'Below the surface: '+f0(met(sim,'sub'))+'%']);} },
+    { key: 'mercury', lvl: 'honors', title: 'Aluminum on mercury', set: { block: 'alum', fluid: 'mercury', lower: 100 }, fresh: true, speed: 1,
+      see: 'Even aluminum floats on mercury, with only 20% under.',
+      why: 'Floating depends only on comparing densities: 2,700 vs. 13,600 kg/m³. Steel ships float because their hollow shape makes the ship’s average density less than water’s.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Aluminum on mercury',700,14],'Below the surface: '+f0(met(sim,'sub'))+'%']);} },
+    { key: 'press', lvl: 'honors', title: 'Pressure with depth', set: { block: 'alum', fluid: 'water', lower: 0, gdepth: 40 }, fresh: true, speed: 1,
+      cause: { from: { gdepth: 0 }, delay: 0.6, dur: 3, label: 'Probe depth' },
+      see: 'Lower the pressure probe from the surface to 40 cm. The pressure rises from 101.3 to 105.2 kPa.',
+      why: 'P = P₀ + ρgh. Each 10 cm of water adds about 1 kPa. The bottom of a block feels more pressure than its top, and that difference is the buoyant force.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Probe at '+f0(sim.p.gdepth)+' cm',700,14],'Pressure: '+f1(met(sim,'press'))+' kPa','ρgh = '+f2(met(sim,'gauge'))+' kPa']);} },
+    { key: 'myst', lvl: 'ap', title: 'Find a density', set: { block: 'mystery', fluid: 'water', lower: 100 }, fresh: true, speed: 1,
+      cause: { from: { lower: 0 }, delay: 0.6, dur: 3, label: 'Lower the block' },
+      see: 'The mystery block weighs 11.8 N in air and 2.0 N underwater.',
+      why: 'Buoyant force = 11.8 − 2.0 = 9.8 N, so its volume is 1.0 L. Density = mass ÷ volume = 1.2 kg ÷ 0.001 m³ = 1,200 kg/m³. Archimedes is said to have used this trick to test a gold crown.',
+      overlay(sim,ctx,LH,k){BU(ctx,k,[['Mystery block',700,14],'Weight: '+f1(met(sim,'weight'))+' N, scale: '+f1(met(sim,'scale'))+' N','Weight lost: '+f1(met(sim,'loss'))+' N']);} }
+  ],
+  useIt: [
+    { do: 'Take a deep breath to float more easily in a pool.',
+      why: 'Air in your lungs lowers your average density, so you push aside your weight in water with less of you under.' },
+    { do: 'Equalize your ears when you swim to the bottom of a deep pool.', lvl: 'honors',
+      why: 'At 3 m the water adds about 30 kPa, almost a third more than the air pressure on your eardrum from inside.' }
+  ],
+  tryIt: [
+    { title: 'the floating egg (10 minutes)',
+      steps: ['Put a raw egg in a tall glass of tap water. It sinks.', 'Stir in salt a spoonful at a time.'],
+      look: 'After enough salt the egg rises and floats. The salty water became denser than the egg.' }
+  ]
+},
+fluidflow: {
+  goals: {
+    bio: ['Water speeds up where a pipe gets narrower', 'Faster-moving fluid has lower pressure', 'Water shoots out faster from deeper in a tank'],
+    honors: ['Continuity: A₁v₁ = A₂v₂', 'Bernoulli’s equation', 'Torricelli: v = √(2gh)'],
+    ap: ['Energy per volume: P + ½ρv² + ρgh', 'Projectile range of the stream', 'Flow rate from hole size']
+  },
+  matters: 'Putting your thumb over a garden hose, airplane wings, a shower curtain that blows inward and the plumbing in your house all follow these rules.',
+  question: 'Water flows from a wide pipe into a narrow one. Does it speed up or slow down, and what happens to its pressure?',
+  startKey: 'pipe', startRun: true,
+  steps: [
+    { key: 'pipe', title: 'A narrowing pipe', set: { mode: 'pipe', Q: 2, d2: 4, d1: 8, h: 0 }, fresh: true, speed: 1,
+      see: '2 L of water per second flows from an 8 cm pipe into a 4 cm pipe. It speeds up from 0.40 to 1.59 m/s.',
+      why: { bio: 'The same amount of water must get through each second. In a narrower pipe it has to move faster, like cars merging into one lane.', honors: 'Continuity: A₁v₁ = A₂v₂. Half the width is a quarter of the area, so four times the speed.' },
+      overlay(sim,ctx,LH,k){FP(ctx,k,[['8 cm → '+f1(sim.p.d2)+' cm',700,14],'v₁ = '+f2(met(sim,'v1'))+' m/s','v₂ = '+f2(met(sim,'v2'))+' m/s']);} },
+    { key: 'press', title: 'Faster means lower pressure', set: { mode: 'pipe', Q: 2, d2: 4, d1: 8, h: 0 }, fresh: true, speed: 1,
+      see: 'The water columns show the pressure. In the fast, narrow section the pressure is lower: 23.8 kPa vs. 25.0 kPa.',
+      why: 'To speed the water up, something has to push it forward, so the pressure behind must be higher than the pressure ahead. That is Bernoulli’s principle.',
+      overlay(sim,ctx,LH,k){FP(ctx,k,[['Pressure',700,14],'P₁ = '+f1(met(sim,'P1'))+' kPa','P₂ = '+f1(met(sim,'P2'))+' kPa']);} },
+    { key: 'narrow', title: 'Narrower still', set: { mode: 'pipe', Q: 2, d2: 3, d1: 8, h: 0 }, fresh: true, speed: 1,
+      cause: { from: { d2: 4 }, delay: 0.6, dur: 2, label: 'Width of section 2' },
+      see: 'Squeeze section 2 to 3 cm. The water races at 2.83 m/s and the pressure drops to 21.1 kPa.',
+      why: 'This is what your thumb does on a garden hose: a smaller opening, a faster jet.',
+      overlay(sim,ctx,LH,k){FP(ctx,k,[['8 cm → '+f1(sim.p.d2)+' cm',700,14],'v₂ = '+f2(met(sim,'v2'))+' m/s','P₂ = '+f1(met(sim,'P2'))+' kPa']);} },
+    { key: 'up', lvl: 'honors', title: 'Uphill', set: { mode: 'pipe', Q: 2, d2: 4, d1: 8, h: 1 }, fresh: true, speed: 1,
+      cause: { from: { h: 0 }, delay: 0.6, dur: 2, label: 'Height of section 2' },
+      see: 'Raise section 2 by 1 m. Its pressure falls to 14.0 kPa.',
+      why: 'Bernoulli: P + ½ρv² + ρgh stays the same along the pipe. Lifting water 1 m costs ρgh = 9.8 kPa of pressure. That is why upstairs showers have weaker pressure.',
+      overlay(sim,ctx,LH,k){FP(ctx,k,[['Section 2 up '+f1(sim.p.h)+' m',700,14],'P₂ = '+f1(met(sim,'P2'))+' kPa']);} },
+    { key: 'tank', title: 'A hole in a tank', set: { mode: 'tank', level: 2, hole: 1, refill: true }, fresh: true, speed: 1,
+      see: 'A hole 1 m below the water surface. Water shoots out at 4.43 m/s and lands 2.0 m away.',
+      why: { bio: 'The deeper the hole, the more water presses down above it, and the faster the water comes out.', honors: 'Torricelli: v = √(2gh) = √(2 × 9.8 × 1.0) = 4.43 m/s, the same speed as something dropped 1 m.' },
+      overlay(sim,ctx,LH,k){FT(ctx,k,[['Hole 1 m below the surface',700,14],'Exit speed: '+f2(met(sim,'vout'))+' m/s','Lands '+f2(met(sim,'range'))+' m away']);} },
+    { key: 'deep', title: 'A lower hole', set: { mode: 'tank', level: 2, hole: 0.5, refill: true }, fresh: true, speed: 1,
+      cause: { from: { hole: 1 }, delay: 0.6, dur: 2, label: 'Hole height' },
+      see: 'Move the hole down to 0.5 m off the floor. It shoots out faster, 5.42 m/s, but lands closer: 1.73 m.',
+      why: 'The water is faster, but it starts lower, so it has less time in the air before it hits the floor.',
+      overlay(sim,ctx,LH,k){FT(ctx,k,[['Hole 1.5 m below the surface',700,14],'Exit speed: '+f2(met(sim,'vout'))+' m/s','Lands '+f2(met(sim,'range'))+' m away']);} },
+    { key: 'best', lvl: 'ap', title: 'The farthest stream', set: { mode: 'tank', level: 2, hole: 1.5, refill: true }, fresh: true, speed: 1,
+      cause: { from: { hole: 0.5 }, delay: 0.6, dur: 3, label: 'Hole height' },
+      see: 'A hole at 1.5 m also lands 1.73 m away. The hole halfway up (1.0 m) shot farthest.',
+      why: 'Range = v·t = √(2g(H − y)) · √(2y/g) = 2√(y(H − y)), largest when y = H/2. Holes equally far above and below the middle land at the same spot.',
+      overlay(sim,ctx,LH,k){FT(ctx,k,[['Hole at '+f1(sim.p.hole)+' m',700,14],'Exit speed: '+f2(met(sim,'vout'))+' m/s','Lands '+f2(met(sim,'range'))+' m away']);} }
+  ],
+  useIt: [
+    { do: 'Cover part of a hose end with your thumb to spray farther.',
+      why: 'A smaller opening makes the water move faster (continuity), so it shoots farther.' },
+    { do: 'Notice your shower curtain bulge inward when the water is on.', lvl: 'honors',
+      why: 'Moving air and water inside the shower have lower pressure than the still air outside, which pushes the curtain in.' }
+  ],
+  tryIt: [
+    { title: 'the bottle with three holes (10 minutes, outside)',
+      steps: ['Poke three holes down the side of a plastic bottle: near the top, the middle and the bottom.', 'Cover them, fill the bottle, set it on a step and uncover them.'],
+      look: 'The bottom stream shoots fastest, but the middle one may land farthest, just like the tank in the sim.' }
+  ]
+}
+});
 })();
