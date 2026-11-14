@@ -1265,4 +1265,144 @@ rotation: {
 }
 });
 
+/* ===== Elevator and Atwood machine ===== */
+const KR='#c8102e';
+function phAt(sim,tau,t,key,fn){const m=sim._phAt||(sim._phAt={});if(tau>=t&&!m[key]){m[key]=1;fn();}}
+const phAtReset=sim=>{sim._phAt={};};
+const elGo=(sim,ride,t0,loop)=>{sim.st.rt=t0||0;sim.st.loop=loop||null;};
+const ELC=(ctx,k,L)=>ciCard(ctx,k,L,276,62,252);
+function elTrack(sim){const N=emMet(sim,'N');if(!isFinite(N))return;const r=sim._el||(sim._el={hi:-1,lo:1e9});if(sim.st.rt>0.2){r.hi=Math.max(r.hi,N);r.lo=Math.min(r.lo,N);}}
+const elReset=sim=>{sim._el={hi:-1,lo:1e9};phAtReset(sim);};
+const elHL=sim=>{const r=sim._el;return r&&r.hi>0?'Highest '+n0(r.hi)+' N, lowest '+n0(r.lo)+' N':'Highest and lowest: watching…';};
+const ATC=(sim,ctx,k,L)=>sim.p.mode==='push'?ciCard(ctx,k,L,12,60,212):ciCard(ctx,k,L,sim.p.mode==='table'?70:12,999,212,410);
+const atT1=sim=>{const a=Number(emMet(sim,'pred'));return sim.p.m1*(9.8+(sim.p.m2>=sim.p.m1?a:-a));},atT2=sim=>{const a=Number(emMet(sim,'pred'));return sim.p.m2*(9.8-(sim.p.m2>=sim.p.m1?a:-a));};
+const atA=sim=>n2(emMet(sim,'pred'));
+BioLab.addLearn({
+elevator: {
+  goals: {
+    bio: ['Why a scale reads more or less than your weight in a moving elevator', 'That speeding up or slowing down, not moving, changes the reading', 'Why you feel weightless in free fall'],
+    honors: ['Newton’s second law for the rider: N − mg = ma', 'Reading acceleration as the slope of a v–t graph', 'Why the sign of a, not of v, decides heavier or lighter'],
+    ap: ['Free-body diagrams for the rider and for the car + rider system', 'Cable tension T = (M + m)(g + a)', 'Apparent weight as a non-inertial-frame effect']
+  },
+  matters: 'Elevators, roller coasters, airplanes and astronauts all feel heavier or lighter as they speed up and slow down. Engineers size elevator cables and coaster seats for those changing forces, not just for weight.',
+  startKey: 'lobby', startRun: false,
+  steps: [
+    { key: 'rest', title: 'Standing still', set: { ride: 'up' }, fresh: true, pause: true,
+      run(sim){elReset(sim);elGo(sim,'up',0);},
+      see: 'You (60 kg) stand on a scale in an elevator at the lobby. The scale reads 588 N, your weight.',
+      why: 'A scale doesn’t measure gravity directly. It measures how hard the floor pushes up on you (the normal force). Standing still, that push exactly balances gravity: N = mg = 60 × 9.8 = 588 N.',
+      overlay(sim,ctx,LH,k){ELC(ctx,k,[['Standing still: a = 0',700,13],['Floor pushes up 588 N',700,13,KR],'Gravity pulls down 588 N']);} },
+    { key: 'up', title: 'A ride up', set: { ride: 'up' }, fresh: true, speed: 0.6,
+      run(sim){elReset(sim);elGo(sim,'up',0);},
+      see: 'Watch the whole ride up: speed up, cruise, slow down. Keep your eye on the scale and the green arrow.',
+      why: 'Speeding up on the way up, the floor must push harder than gravity (648 N): you feel heavier. Cruising, a = 0 and it reads 588 N again. Slowing near the top, it pushes less (528 N): you feel lighter.',
+      so: { honors: 'N − mg = ma, so N = m(g + a). The scale changes only while the velocity changes; that is the slope of the v–t graph.' },
+      overlay(sim,ctx,LH,k){elTrack(sim);ELC(ctx,k,[[String(emMet(sim,'motion')),700,12],['Scale '+n0(emMet(sim,'N'))+' N (weight 588 N)',700,13,KR],elHL(sim)]);} },
+    { key: 'down', title: 'Going down is not lighter', set: { ride: 'down' }, fresh: true, speed: 0.6,
+      run(sim){elReset(sim);elGo(sim,'down',0);},
+      see: 'Now ride down. Predict first: will the scale read low the whole way down?',
+      why: 'No. It reads low (528 N) only while you speed up going down, normal while cruising, and high (648 N) while you slow to a stop at the lobby. Accelerating down means lighter; moving down doesn’t.',
+      overlay(sim,ctx,LH,k){elTrack(sim);ELC(ctx,k,[[String(emMet(sim,'motion')),700,12],['Scale '+n0(emMet(sim,'N'))+' N (weight 588 N)',700,13,KR],elHL(sim)]);} },
+    { key: 'harder', lvl: 'honors', title: 'Harder starts, bigger swings', set: { ride: 'up', accel: 2 }, fresh: true, speed: 0.6,
+      cause: { from: { accel: 1 }, delay: 1, dur: 1.5, at: [400,8], label: 'Elevator acceleration' },
+      run(sim){elReset(sim);},
+      see: 'Same ride up, but the elevator now speeds up and slows down twice as hard: 2.0 m/s² instead of 1.0.',
+      why: 'N = m(g + a) = 60 × (9.8 + 2.0) = 708 N while speeding up and 60 × (9.8 − 2.0) = 468 N while slowing. With a = 1.0 the swing was 648 to 528 N. Bigger acceleration, bigger change.',
+      overlay(sim,ctx,LH,k,tau){if(tau>2.6)elTrack(sim);ELC(ctx,k,[['Acceleration '+n1(sim.p.accel)+' m/s² (was 1.0)',700,13,KR],'Scale '+n0(emMet(sim,'N'))+' N',elHL(sim)]);} },
+    { key: 'heavier', title: 'A heavier rider', set: { ride: 'up', mass: 90 }, fresh: true, speed: 0.6,
+      cause: { from: { mass: 60 }, delay: 1.5, dur: 2.5, at: [400,8], label: 'Your mass' },
+      run(sim){elReset(sim);elGo(sim,'up',0.6,[0.6,2.4]);},
+      see: 'Speeding up on the way up, over and over. Watch the rider’s mass rise from 60 kg to 90 kg.',
+      why: 'The elevator gives everyone inside the same acceleration. A bigger mass needs a bigger push to get it, so both arrows grow: 90 × (9.8 + 1.0) = 972 N. The scale ÷ weight stays 1.10 for any rider.',
+      overlay(sim,ctx,LH,k){ELC(ctx,k,[['Mass '+n0(sim.p.mass)+' kg (was 60)',700,13,KR],'Scale '+n0(emMet(sim,'N'))+' N (was 648)','Weight '+n0(emMet(sim,'W'))+' N']);} },
+    { key: 'drop', title: 'Free fall reads zero', set: { ride: 'drop' }, fresh: true, speed: 0.4,
+      run(sim){elReset(sim);elGo(sim,'drop',0);},
+      see: 'A drop tower. Your seat is the scale. Watch the reading as the ride falls, then brakes.',
+      why: 'Falling freely, you and the seat speed up together at 9.8 m/s², so the seat doesn’t have to push you at all: 0 N. You feel weightless even though gravity still pulls with 588 N. The brakes then push hard to stop you.',
+      so: 'Astronauts in orbit feel weightless for the same reason: they and the station are falling around Earth together.',
+      overlay(sim,ctx,LH,k){elTrack(sim);ELC(ctx,k,[[String(emMet(sim,'motion')),700,12],['Seat pushes '+n0(emMet(sim,'N'))+' N (weight 588 N)',700,13,KR],elHL(sim)]);} },
+    { key: 'cable', lvl: 'ap', title: 'The cable feels it too', set: { ride: 'up', fbd: 'sys' }, fresh: true, speed: 0.6,
+      run(sim){elReset(sim);elGo(sim,'up',0);},
+      see: 'Now the free-body diagram is the whole car plus rider, 1,060 kg. The cable pulls up; gravity pulls down.',
+      why: 'T − (M + m)g = (M + m)a, so T = (M + m)(g + a): 11,448 N while speeding up, 10,388 N cruising, 9,328 N slowing. Cables are rated well above the biggest of these.',
+      overlay(sim,ctx,LH,k){ELC(ctx,k,[['Cable tension '+n0(emMet(sim,'T'))+' N',700,13,KR],'a = '+n2(emMet(sim,'acc'))+' m/s²','(M + m)g = 10,388 N']);} }
+  ],
+  useIt: [
+    { do: 'Expect to feel heavier at the bottom of a roller-coaster dip and lighter over the top of a hill.',
+      why: 'At the bottom the track pushes you up to change your direction, so you are accelerating up. Over a hill you accelerate down, and the seat pushes less, sometimes not at all.' },
+    { do: 'Weigh yourself standing still on a hard floor.',
+      why: 'Bouncing, leaning or a soft rug changes how hard the scale pushes back for a moment, and that is all a scale can measure.' },
+    { do: 'Notice where an elevator speeds up and slows down next time you ride one.', lvl: 'honors',
+      why: 'Your stomach and knees sense the change in the floor’s push. That feeling marks the parts of the v–t graph with a slope.' }
+  ],
+  tryIt: [
+    { title: 'the elevator scale (5 minutes)',
+      steps: ['Take a bathroom scale (or a phone with an accelerometer app) into an elevator.', 'Stand still on it and note the reading at the start, while the elevator cruises, and as it stops.', 'Ride both up and down.'],
+      look: 'Going up, the reading jumps above your weight at the start and drops below it at the end. Going down, it is the reverse. While cruising it matches your weight.' }
+  ]
+},
+atwood: {
+  goals: {
+    bio: ['Why two masses on a string move together', 'Why only the difference in weight speeds them up', 'How friction and a push change the motion'],
+    honors: ['Treating connected objects as one system: a = net force ÷ total mass', 'Finding tension from one object’s free-body diagram', 'Static friction that holds a system still'],
+    ap: ['Systems with a massive pulley: I = ½MR²', 'Why the tensions differ when the pulley has mass', 'Contact forces between pushed blocks']
+  },
+  matters: 'Elevators hang the car against a counterweight, cranes and window-washer rigs use pulleys, and trains are blocks pushed and pulled together. The same system thinking tells engineers how fast they speed up and how strong the cables must be.',
+  startKey: 'machine', startRun: true, startSpeed: 0.6,
+  steps: [
+    { key: 'equal', title: 'Equal masses: nothing happens', set: { mode: 'atwood', m1: 1, m2: 1, Mp: 0 }, fresh: true, speed: 0.6,
+      see: 'Two 1.0 kg masses hang over a pulley. Watch: they just hang there.',
+      why: 'Each side pulls down on the string with the same weight, 9.8 N, so the net force on the pair is zero. No net force means no acceleration.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['m₁ = m₂ = 1.0 kg',700,13],'Net force: 0 N',['a = '+atA(sim)+' m/s²',700,13,KR]]);} },
+    { key: 'heavier', title: 'Make one side heavier', set: { mode: 'atwood', m1: 1, m2: 1.2, Mp: 0 }, fresh: true, speed: 0.6,
+      cause: { from: { m2: 1 }, delay: 1.5, dur: 1.5, ring: [430,260,48], label: 'Mass m₂' },
+      see: 'Watch 0.2 kg get added to the right side. The pair starts to move, but slowly.',
+      why: 'Only the difference pulls: 0.2 × 9.8 = 1.96 N. But that force has to speed up all 2.2 kg, so a = 1.96 ÷ 2.2 = 0.89 m/s², about a tenth of a dropped ball’s.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['m₂ = '+n1(sim.p.m2)+' kg (was 1.0)',700,13],'Net force: '+n2((sim.p.m2-sim.p.m1)*9.8)+' N',['a = '+atA(sim)+' m/s² (was 0)',700,13,KR]]);} },
+    { key: 'more', title: 'A bigger difference', set: { mode: 'atwood', m1: 1, m2: 2.5, Mp: 0 }, fresh: true, speed: 0.6,
+      cause: { from: { m2: 1.2 }, delay: 1.5, dur: 3, ring: [430,260,52], label: 'Mass m₂' },
+      see: 'Watch m₂ grow from 1.2 kg to 2.5 kg. The run gets faster.',
+      why: 'The difference grows to 1.5 kg (14.7 N), and the total mass to 3.5 kg, so a = 14.7 ÷ 3.5 = 4.2 m/s². However heavy m₂ gets, a can never reach 9.8 m/s², because m₁ always has to be dragged along.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['m₂ = '+n1(sim.p.m2)+' kg (was 1.2)',700,13],'Net '+n1((sim.p.m2-sim.p.m1)*9.8)+' N on '+n1(sim.p.m1+sim.p.m2)+' kg',['a = '+atA(sim)+' m/s² (was 0.89)',700,13,KR]]);} },
+    { key: 'tension', lvl: 'honors', title: 'The tension is in between', set: { mode: 'atwood', m1: 1, m2: 1.6, Mp: 0 }, fresh: true, speed: 0.6, focus: [548,14,246,300],
+      see: 'The free-body diagrams on the right. Each mass has the string pulling up and gravity pulling down.',
+      why: 'On m₁ (9.8 N weight) the string must win, so T > 9.8 N. On m₂ (15.7 N weight) gravity must win, so T < 15.7 N. From m₁’s diagram: T = m₁(g + a) = 1.0 × (9.8 + 2.26) = 12.1 N.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['Tension '+n2(atT1(sim))+' N',700,13,KR],'m₁g = 9.80 N   m₂g = 15.68 N','a = '+atA(sim)+' m/s²']);} },
+    { key: 'table', title: 'A block on a table', set: { mode: 'table', m1: 1, m2: 1, mu: 0.4 }, fresh: true, speed: 0.6,
+      cause: { from: { mu: 0 }, delay: 2, dur: 2.5, label: 'Table friction μ' },
+      see: 'Now the string runs over the edge of a table, so only the hanging block’s weight pulls. Start with a frictionless air table, then watch friction get turned up.',
+      why: 'Friction on the table block (μ × m₁g) pulls back against the hanging weight, so the net force shrinks: a = (m₂g − μm₁g) ÷ (m₁ + m₂). At μ = 0.4 it drops from 4.9 to 2.9 m/s².',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['μ = '+n2(sim.p.mu)+' (was 0)',700,13],'Friction: '+n2(sim.p.mu*sim.p.m1*9.8)+' N',['a = '+atA(sim)+' m/s² (was 4.90)',700,13,KR]]);} },
+    { key: 'stuck', lvl: 'honors', title: 'Too much friction', set: { mode: 'table', m1: 3, m2: 1, mu: 0.4 }, fresh: true, speed: 0.6,
+      cause: { from: { mu: 0.2 }, delay: 2, dur: 2.5, label: 'Table friction μ' },
+      see: 'A heavy 3.0 kg block on the table, 1.0 kg hanging. Watch μ rise from 0.20 to 0.40.',
+      why: 'Static friction can hold up to μ × 29.4 N. Once that reaches the 9.8 N hanging weight (at μ = 0.33) friction holds the system still. It only pushes back as hard as it needs to: 9.8 N, not the full 11.8 N.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['μ = '+n2(sim.p.mu)+' (was 0.20)',700,13],'Friction can hold up to '+n2(sim.p.mu*29.4)+' N','Hanging weight: 9.80 N',['a = '+atA(sim)+' m/s²',700,13,KR]]);} },
+    { key: 'push', title: 'Push two blocks', set: { mode: 'push', m1: 1, m2: 1, F: 12 }, fresh: true, speed: 0.6,
+      cause: { from: { F: 6 }, delay: 2, dur: 2.5, label: 'Your push' },
+      see: 'You push the back block, and it pushes the front one. Watch your push double from 6 N to 12 N.',
+      why: 'Both blocks share one acceleration: a = F ÷ (m₁ + m₂), so doubling F doubles a. The back block pushes the front one with just enough force to give it that acceleration: m₂a.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['Push '+n0(sim.p.F)+' N (was 6)',700,13],'a = '+atA(sim)+' m/s² (was 3.00)',['Back pushes front: '+n2(sim.p.m2*sim.p.F/(sim.p.m1+sim.p.m2))+' N',700,13,KR]]);} },
+    { key: 'pulley', lvl: 'ap', title: 'A pulley with mass', set: { mode: 'atwood', m1: 1, m2: 1.6, Mp: 2 }, fresh: true, speed: 0.6,
+      cause: { from: { Mp: 0 }, delay: 2, dur: 2.5, label: 'Pulley mass M' },
+      see: 'Watch the pulley become a 2.0 kg solid disk.',
+      why: 'The pulley has to be spun up too, and it acts like an extra ½M = 1.0 kg in the system: a = (m₂ − m₁)g ÷ (m₁ + m₂ + ½M). It takes a net torque to spin it, so the two tensions are no longer equal.',
+      overlay(sim,ctx,LH,k){ATC(sim,ctx,k,[['Pulley '+n1(sim.p.Mp)+' kg (was 0)',700,13],'a = '+atA(sim)+' m/s² (was 2.26)',['T₁ = '+n2(atT1(sim))+' N, T₂ = '+n2(atT2(sim))+' N',700,13,KR]]);} }
+  ],
+  useIt: [
+    { do: 'Look for the counterweight next time you see an elevator shaft or a window-washer rig.',
+      why: 'Hanging the car against a weight close to its own makes it an Atwood machine: the motor only has to supply the difference, not lift the whole car.' },
+    { do: 'Add weight to a sled or wagon you are pulling only if you have to.',
+      why: 'Every extra kilogram adds to the mass you must accelerate and, on rough ground, to the friction pulling back.' },
+    { do: 'Pull a heavy box with a rope instead of shoving it, if the floor is rough.', lvl: 'honors',
+      why: 'Pushing down at an angle presses the box into the floor and raises friction. Pulling up at an angle lifts some of its weight off the floor.' }
+  ],
+  tryIt: [
+    { title: 'the paper-cup Atwood machine (10 minutes)',
+      steps: ['Hang two paper cups from a string over a smooth rod or a broom handle.', 'Put 10 coins in each cup: nothing happens.', 'Move coins one at a time from one cup to the other and time the drop to the floor.'],
+      look: 'With equal coins nothing moves. Each coin you move makes the heavy side fall faster, but even 15 against 5 falls much slower than a dropped coin.' }
+  ]
+}
+});
+
 })();
