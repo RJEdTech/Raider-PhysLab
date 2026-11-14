@@ -63,7 +63,28 @@ BioLab.COURSES = [
       { n: 'Spring', t: 'Circuits', ids: ['circuit', 'capacitor'] },
       { n: 'Spring', t: 'Magnetism and induction', ids: ['magnetism', 'induction'] }
     ],
-    further: ['chaos', 'rocket', 'relativity', 'photoelectric'] }
+    further: ['chaos', 'rocket', 'relativity', 'photoelectric'] },
+  { id: 'eng', name: 'Engineering Principles & Design',
+    blurb: 'Tools for each spring build in Engineering Principles & Design: the physics behind the truss, the earthquake tower, the mousetrap car and the egg drop.',
+    units: [
+      { n: 'Unit 1', t: 'Forces and the design process', ids: ['forces', 'torque'] },
+      { n: 'Unit 2', t: 'Structures: the roof truss', ids: ['forces', 'twobody', 'incline'], links: [{ href: 'https://rjedtech.github.io/Raider-MathLab/truss', title: 'Truss forces', label: 'Raider MathLab', text: 'Find the force in each member of a roof truss.', kind: 'MathLab' }, { href: 'https://rjedtech.github.io/Raider-MathLab/ramp', title: 'Ramp slope', label: 'Raider MathLab', text: 'Rise, run and the angle of a ramp.', kind: 'MathLab' }] },
+      { n: 'Unit 3', t: 'Earthquake tower and vibrations', ids: ['quaketower', 'springs', 'pendulum'] },
+      { n: 'Unit 4', t: 'Mousetrap car: energy, gears and friction', ids: ['gears', 'skatepark', 'power', 'friction', 'rotation', 'torque'] },
+      { n: 'Unit 5', t: 'Aerospace, fluids and the egg drop', ids: ['projectile', 'fluidflow', 'rocket', 'impulse'] },
+      { n: 'Unit 6', t: 'Final design project', ids: ['quaketower', 'gears', 'impulse'] }
+    ],
+    further: ['collisions', 'buoyancy'] },
+  { id: 'robo', name: 'Robotics 1',
+    blurb: 'Tools for each Robotics 1 challenge: timing a program, motors and gears, sensors and collisions.',
+    units: [
+      { n: 'Unit 1', t: 'Obstacle course: program by time', ids: ['botdrive', 'motion1d', 'circular'] },
+      { n: 'Unit 2', t: 'Delivery bot: motors and circuits', ids: ['botdrive', 'circuit', 'magnetism'] },
+      { n: 'Unit 3', t: 'Racing bot: gears and torque', ids: ['gears', 'rotation', 'torque', 'power', 'friction'] },
+      { n: 'Unit 4', t: 'Soccer bot: collisions and kicks', ids: ['collisions', 'impulse', 'projectile'] },
+      { n: 'Unit 5', t: 'Lifting bot: ramps and power', ids: ['power', 'incline', 'gears'] }
+    ],
+    further: ['sound', 'induction'] }
 ];
 
 /* Faith and Physics stories (faith.html), placed in the Physics and Honors Physics units they go with. */
@@ -84,12 +105,12 @@ BioLab.COURSES = [
 
 BioLab.TOPIC_ORDER = {
   0: ['linearize'],
-  1: ['motion1d', 'freefall', 'vectors2d', 'projectile'],
+  1: ['motion1d', 'freefall', 'vectors2d', 'projectile', 'botdrive'],
   2: ['forces', 'friction', 'incline', 'elevator', 'atwood', 'twobody', 'circular', 'gravity'],
   3: ['skatepark', 'power'],
   4: ['collisions', 'impulse'],
-  5: ['torque', 'rotation'],
-  6: ['pendulum', 'springs'],
+  5: ['torque', 'rotation', 'gears'],
+  6: ['pendulum', 'springs', 'quaketower'],
   7: ['buoyancy', 'fluidflow'],
   8: ['waves', 'sound', 'shotspotter'],
   9: ['color', 'refraction', 'lenses', 'oximeter'],
