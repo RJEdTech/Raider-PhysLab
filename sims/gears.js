@@ -60,7 +60,7 @@ const SIM={
     {const L=gy+Math.max(R1,R2);txt(ctx,'motor gear '+p.driver+'T',gx,L+22,{s:12*k,w:700,a:'center',c:PAL['cv-soft']});txt(ctx,'wheel gear '+p.driven+'T',gx+R1+R2+4,L+42,{s:12*k,w:700,a:'center',c:PAL['s1']||PAL['cv-ink']});}
     const G=ratio(p);pill(ctx,G>1?'Geared down '+G.toFixed(0)+' : 1 (more push, less speed)':G<1?'Geared up 1 : '+(1/G).toFixed(0)+' (more speed, less push)':'1 : 1 (no change)',gx+90,30,PAL['card2'],PAL['cv-ink'],13*Math.min(k,1.3));
     /* track */
-    const x0=420,x1=780,yb=380,ang=c.ang*Math.PI/180,len=x1-x0,dy=Math.tan(ang)*len*(c.L===2?0.6:0);
+    const x0=400,x1=730,yb=380,ang=c.ang*Math.PI/180,len=x1-x0,dy=Math.tan(ang)*len*(c.L===2?0.6:0);
     ctx.strokeStyle=PAL['cv-ink'];ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0-20,yb);ctx.lineTo(x0,yb);ctx.lineTo(x1,yb-dy);ctx.lineTo(x1,yb);ctx.closePath();ctx.stroke();
     ctx.fillStyle='#e8dfcf';ctx.fill();
     ctx.strokeStyle=PAL['rj'];ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x1-2,yb-dy);ctx.lineTo(x1-2,yb-dy-40);ctx.stroke();txt(ctx,'finish',x1-6,yb-dy-46,{s:12*k,w:700,c:PAL['rj'],a:'right'});
