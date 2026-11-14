@@ -1125,4 +1125,133 @@ impulse: {
   ]
 }
 });
+
+/* ===== Torque and rotation ===== */
+const tqTR=(ctx,k,L)=>ciCard(ctx,k,L,548,8,244);
+const tqBL=(ctx,k,L,LH)=>ciCard(ctx,k,L,60,342,400,LH);
+const tqLad=(ctx,k,L,LH)=>ciCard(ctx,k,L,14,120,230,LH);
+const roBL=(ctx,k,L,LH)=>ciCard(ctx,k,L,262,8,212,LH);
+const roTR=(ctx,k,L)=>ciCard(ctx,k,L,496,6,296);
+const TQ_R='#c8102e',TQ_G='#1b7a3e',TQ_B='#1b6fb3';
+const roRace=sim=>{emAct(sim,'race');};
+
+BioLab.addLearn({
+torque: {
+  goals: {
+    bio: ['What torque is: how strongly a force turns something', 'Why distance from the pivot matters as much as the force', 'How a heavy and a light mass can balance on a seesaw', 'Why the direction of a push matters'],
+    honors: ['Torque τ = rF sinθ and the lever arm', 'Rotational equilibrium: the torques cancel, Στ = 0', 'Balancing unequal masses on a seesaw', 'Why a push along a handle or at the pivot does nothing'],
+    ap: ['τ = rF sinθ = r⊥F', 'Static equilibrium: ΣF = 0 and Στ = 0', 'Choosing a pivot to remove unknown forces', 'The ladder: friction needed vs. friction available']
+  },
+  matters: 'Door handles, wrenches, bike pedals, seesaws and your own elbow all run on torque. It explains how to loosen a stuck bolt, why you carry heavy things close to your body, and how steep a ladder has to be.',
+  startKey: 'balance', startRun: false,
+  startOverlay(sim,ctx,LH,k){tag(ctx,'Pivot: the plank turns around this point',400,412,k,{s:12,hi:true});tag(ctx,'Each mass tries to turn the plank',665,40,k,{s:12,hi:true});},
+  steps: [
+    { key: 'balance', title: 'Equal turns cancel', fresh: true, speed: 1,
+      see: 'Two 30 kg masses, each 1.5 m from the pivot. The plank stays level.',
+      why: 'The left mass tries to turn the plank counterclockwise and the right one clockwise. Each turning effect, called <b>torque</b>, is weight × distance from the pivot. Equal torques cancel.',
+      overlay(sim,ctx,LH,k){tqTR(ctx,k,[['Torque = weight × distance',700],'Left: 294 N × 1.5 m = 441 N·m','Right: 294 N × 1.5 m = 441 N·m',['Equal → balanced',700,13,TQ_G]]);} },
+    { key: 'far', title: 'Distance matters', set: { dR: 2 }, fresh: true, speed: 1,
+      see: 'Slide the right mass out to 2.0 m. Neither mass changed, but the right side drops.',
+      why: 'The same weight farther from the pivot turns the plank harder: 294 N × 2.0 m = 588 N·m beats 441 N·m.',
+      so: 'It’s why a door is easy to push at the handle and hard to push near the hinges.',
+      overlay(sim,ctx,LH,k){tqTR(ctx,k,[['Same mass, farther out',700],'Left: 441 N·m','Right: 294 N × 2.0 m = 588 N·m',['Right side goes down',700,13,TQ_R]]);} },
+    { key: 'heavy', title: 'Heavier and closer balances lighter and farther', set: { mL: 30, dL: 2, mR: 60, dR: 1 }, fresh: true, speed: 1,
+      see: { bio: 'A 30 kg kid 2 m out balances a 60 kg adult 1 m from the pivot.', honors: 'A 30 kg mass at 2 m balances a 60 kg mass at 1 m: Στ = 0.' },
+      why: 'Twice the weight at half the distance gives the same torque: 588 N·m each side. That’s how a parent and a small child can use a seesaw together.',
+      overlay(sim,ctx,LH,k){tqTR(ctx,k,[['Unequal masses, still level',700],'Left: 294 N × 2.0 m = 588 N·m','Right: 588 N × 1.0 m = 588 N·m',['Equal → balanced',700,13,TQ_G]]);} },
+    { key: 'wrench', title: 'A stuck bolt', set: { mode: 'wrench', F: 100, r: 0.3, ang: 90 }, fresh: true, speed: 1,
+      see: 'A rusted bolt needs 40 N·m to break loose. You push 100 N straight across the handle, 30 cm from the bolt. It doesn’t budge.',
+      why: 'Torque = distance × force = 0.30 m × 100 N = 30 N·m. That is less than the 40 N·m the bolt needs.',
+      overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Torque = distance × force',700],'0.30 m × 100 N = 30 N·m',['Needs 40 N·m → stuck',700,13,TQ_R]],LH);} },
+    { key: 'longer', title: 'Push farther out', set: { mode: 'wrench', F: 120, r: 0.35, ang: 90 }, fresh: true, speed: 1,
+      see: 'Push a little harder, 120 N, and farther out, at 35 cm. The bolt turns.',
+      why: 'Distance multiplies your force. At 35 cm, 120 N gives 0.35 × 120 = 42 N·m, more than the 40 N·m needed. A longer wrench, or a pipe slipped over the handle, does the same.',
+      overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Farther out',700],'0.35 m × 120 N = 42 N·m',['More than 40 N·m → it turns',700,13,TQ_G]],LH);} },
+    { key: 'angle', title: 'Push at a slant', set: { mode: 'wrench', F: 100, r: 0.3, ang: 35 }, fresh: true, speed: 1,
+      see: 'Same 100 N at 30 cm, but now the push makes a 35° angle with the handle. The torque drops to about 17 N·m.',
+      why: { bio: 'Only the part of your push that goes across the handle turns the bolt. The part along the handle just pulls on the bolt.', honors: 'τ = rF sinθ = 0.30 × 100 × sin 35° = 17.2 N·m. Equivalently, the lever arm shrinks to r⊥ = r sinθ = 17.2 cm (purple line).' },
+      overlay(sim,ctx,LH,k){tqBL(ctx,k,[['Slanted push',700],'τ = 0.30 m × 100 N × sin 35° = '+n1(emMet(sim,'tau'))+' N·m',['Straight across (90°) gives the most',700,13,TQ_B]],LH);} },
+    { key: 'bolt', title: 'Push right at the bolt', set: { mode: 'wrench', F: 100, r: 0, ang: 90 }, fresh: true, speed: 1,
+      see: 'Push right on the bolt, 0 cm out. Nothing turns, no matter how hard you push.',
+      why: 'With no distance from the pivot there is no lever arm, so the torque is zero. The same is true for a push straight along the handle.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['Distance 0',700],'0 m × 100 N = 0 N·m',['No turning at all',700,13,TQ_R]],60,342,260,LH);} },
+    { key: 'ladder', lvl: 'ap', title: 'The leaning ladder', set: { mode: 'ladder', lang: 65, mu: 0.3, x: 0 }, fresh: true, speed: 1, run(sim){emAct(sim,'climb');},
+      see: 'A 70 kg climber goes up a ladder leaning at 65° on a smooth wall. The floor’s friction coefficient is 0.30. About two thirds of the way up, the foot slides out.',
+      why: 'Taking torques about the foot: as the climber rises, their weight’s lever arm grows, so the wall must push out harder. Friction must equal that push, but it can never exceed μN = 0.30 × 833 N = 250 N.',
+      overlay(sim,ctx,LH,k){tqLad(ctx,k,[['65°, μ = 0.30',700],'Friction needed: '+n0(emMet(sim,'fn'))+' N','Friction available: '+n0(emMet(sim,'fm'))+' N',[String(emMet(sim,'lst')),700,13,emMet(sim,'lst')==='Slips'?TQ_R:TQ_G]],LH);} },
+    { key: 'steep', lvl: 'ap', title: 'Set it steeper', set: { mode: 'ladder', lang: 75, mu: 0.3, x: 0 }, fresh: true, speed: 1, run(sim){emAct(sim,'climb');},
+      see: 'Same floor, same climber, but the ladder stands at 75°. The climber reaches the top and it holds.',
+      why: 'A steeper ladder puts the climber’s weight closer to above the foot, so the lever arm about the foot is shorter and the wall needs to push less. The friction needed at the top drops to about 190 N.',
+      overlay(sim,ctx,LH,k){tqLad(ctx,k,[['75°, μ = 0.30',700],'Friction needed: '+n0(emMet(sim,'fn'))+' N','Friction available: '+n0(emMet(sim,'fm'))+' N',[String(emMet(sim,'lst')),700,13,emMet(sim,'lst')==='Slips'?TQ_R:TQ_G]],LH);} }
+  ],
+  useIt: [
+    { do: 'Use the longest wrench that fits, and pull at the end of the handle, straight across it.',
+      why: 'Torque is distance × force × sin θ. Doubling the distance doubles the torque from the same effort, and a 90° pull wastes none of it.' },
+    { do: 'Carry heavy things close to your body.',
+      why: 'Your lower back is the pivot. A box held at arm’s length has a much bigger lever arm, so your back muscles must make far more torque to hold it.' },
+    { do: 'Set an extension ladder with its foot 1 foot out for every 4 feet of height.', lvl: 'ap',
+      why: 'OSHA’s 4-to-1 rule gives an angle of about 75°. As you saw, a steeper ladder needs much less floor friction to keep from sliding out.' }
+  ],
+  tryIt: [
+    { title: 'the ruler balance (10 minutes)',
+      steps: ['Balance a 30 cm ruler on a pencil at the 15 cm mark.', 'Put 2 coins at the 10 cm mark, 5 cm from the pivot.', 'Slide 1 coin along the other side until the ruler balances.', 'Now try 3 coins at the 10 cm mark against 1 coin.'],
+      look: 'One coin balances two at the 25 cm mark: twice as far from the pivot. Against three coins, the single coin has to sit three times as far out, at the very end. Coins × distance must match on both sides.' }
+  ]
+},
+rotation: {
+  goals: {
+    bio: ['Why objects with the same mass and size can roll at different speeds', 'Why mass far from the center is harder to spin', 'Why a spinning skater speeds up when she pulls her arms in'],
+    honors: ['Rolling kinetic energy: ½Mv² + ½Iω²', 'Moment of inertia of a hoop, a disk and a ball', 'Why mass and radius cancel in a rolling race', 'Conservation of angular momentum, L = Iω'],
+    ap: ['How the energy split depends on I = kMR²', 'v = √(2gh / (1 + k)) for rolling without slipping', 'L is conserved while rotational KE is not', 'τ = Iα for a spool and a falling weight']
+  },
+  matters: 'Figure skaters, divers, bike wheels and flywheels all follow the same two rules: where the mass sits decides how hard something is to spin, and spin stays the same unless something twists it.',
+  startKey: 'start', startRun: false,
+  startOverlay(sim,ctx,LH,k){tag(ctx,'Same mass, same size, same height',200,440,k,{s:12,hi:true});},
+  steps: [
+    { key: 'race', title: 'The rolling race', fresh: true, speed: 0.5, run: roRace,
+      see: 'A hoop, a solid disk and a solid ball, all with the same mass and radius, roll down the same 1.5 m drop. The ball wins, the disk comes second and the hoop comes last.',
+      why: { bio: 'Rolling means moving forward and spinning at once, and both take energy. Mass far from the center is harder to get spinning, so the hoop spends half its energy on spinning and has less left for speed.', honors: 'Each starts with the same mgh. Rolling KE = ½Mv² + ½Iω². The hoop (I = MR²) splits its energy 50/50; the ball (I = ⅖MR²) keeps 71% for moving forward.' },
+      overlay(sim,ctx,LH,k){roBL(ctx,k,[['Energy into moving',700],['Ball: 71% → 4.6 m/s',600,13,TQ_G],'Disk: 67% → 4.4 m/s','Hoop: 50% → 3.8 m/s'],LH);} },
+    { key: 'block', title: 'A block that slides', set: { block: true }, fresh: true, speed: 0.5, run: roRace,
+      see: 'Add a block sliding with no friction. It beats all three rollers to the bottom.',
+      why: 'The block doesn’t spin, so all of its energy goes into speed: v = √(2gh) = 5.4 m/s. That is the fastest anything can get from this height.',
+      overlay(sim,ctx,LH,k){roBL(ctx,k,[['Speed at the bottom',700],['Sliding block: 5.4 m/s',700,13,TQ_G],'Ball 4.6, disk 4.4, hoop 3.8 m/s'],LH);} },
+    { key: 'sizes', lvl: 'honors', title: 'Mass and radius cancel', set: { lineup: 'sizes' }, fresh: true, speed: 0.5, run: roRace,
+      see: 'Light and heavy, small and large hoops and disks. The two hoops tie, and the two disks tie.',
+      why: 'For rolling without slipping, a = g sinθ / (1 + I/MR²). Mass and radius cancel out; only the shape factor I/MR² matters.',
+      overlay(sim,ctx,LH,k){roBL(ctx,k,[['Only shape matters',700],'Hoop: I/MR² = 1','Disk: I/MR² = ½','Ball: I/MR² = ⅖'],LH);} },
+    { key: 'skater', title: 'The spinning skater', set: { mode: 'skater' }, fresh: true, speed: 1,
+      see: 'A skater sits on a frictionless spinning stool, holding a weight in each hand at arm’s length. She turns half a revolution per second.',
+      why: 'With no friction, nothing outside twists her, so her spin will stay steady. The view from above shows the path of her hands.',
+      overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms out',700],'Spin: '+n2(emMet(sim,'w'))+' rev/s']);} },
+    { key: 'in', title: 'Pull the arms in', set: { mode: 'skater' }, fresh: true, speed: 1, run(sim){emAct(sim,'in');},
+      see: 'She pulls her hands in to 25 cm from the axis. She spins about 3.5 times as fast, with no push from anyone.',
+      why: { bio: 'Pulling mass toward the center makes her easier to spin. Her “amount of spin” has to stay the same, so she turns faster to make up for it.', honors: 'Moving mass inward cuts her moment of inertia from 4.84 to 1.38 kg·m². Angular momentum L = Iω is conserved, so ω rises by the same factor, from 0.50 to 1.76 rev/s.' },
+      so: 'Divers tuck to flip faster and open up to slow down before entering the water.',
+      overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms in',700],['Spin: '+n2(emMet(sim,'w'))+' rev/s (was 0.50)',700,13,TQ_G],'L = Iω stays 15.2 kg·m²/s']);} },
+    { key: 'energy', lvl: 'honors', title: 'Spin is conserved, energy is not', set: { mode: 'skater' }, fresh: true, speed: 1, run(sim){emAct(sim,'in');},
+      see: 'Compare her kinetic energy: 23.9 J with arms out, 84.1 J with arms in.',
+      why: 'KE = ½Iω² = L²/2I. With L fixed and I smaller, KE goes up. The extra energy comes from the work her arms do pulling the weights inward.',
+      overlay(sim,ctx,LH,k){roTR(ctx,k,[['Arms in',700],'L = '+n1(emMet(sim,'L'))+' kg·m²/s (same)',['KE = '+n1(emMet(sim,'KE'))+' J (was 23.9 J)',700,13,TQ_R]]);} },
+    { key: 'spool', lvl: 'ap', title: 'τ = Iα on a spool', set: { mode: 'spool' }, fresh: true, speed: 1, run(sim){emAct(sim,'drop');},
+      see: 'A 0.5 kg weight unwinds a 2 kg solid-disk spool. It falls with 3.27 m/s², a third of g.',
+      why: 'String tension T makes the torque: TR = Iα, with α = a/R. Combined with mg − T = ma, a = mg / (m + I/R²). Swap in a ring of the same mass and a drops to 1.96 m/s², because I = MR² is twice as big.',
+      overlay(sim,ctx,LH,k){ciCard(ctx,k,[['Solid disk spool',700],'a = '+n2(emMet(sim,'acc'))+' m/s² (g = 9.8)','T = '+n2(emMet(sim,'T'))+' N (weight 4.9 N)',['τ = TR = Iα',700,13,TQ_B]],12,140,214,LH);} }
+  ],
+  useIt: [
+    { do: 'To spin faster on a swivel chair or skates, start with arms out, then pull them in.',
+      why: 'Angular momentum is conserved, so lowering your moment of inertia raises your spin rate. Stretch out again to slow down safely.' },
+    { do: 'Pick lighter wheels and tires when you upgrade a bike for climbing and sprinting.',
+      why: 'Mass at the rim counts extra: it has to be spun up as well as moved forward, like the hoop that came last in the race.' },
+    { do: 'Hold the top of a jar lid at its edge, not the middle, when it’s stuck.', lvl: 'honors',
+      why: 'Grip force farther from the center makes more torque. A rubber grip adds friction so more of your force reaches the lid.' }
+  ],
+  tryIt: [
+    { title: 'the can race (10 minutes)',
+      steps: ['Prop a large book on another book to make a ramp.', 'Hold a full can of soup and an empty can (or a can of thick soup and one of broth) side by side at the top.', 'Let go together and watch which reaches the bottom first. Repeat 3 times.'],
+      look: 'The full, solid-ish can usually wins: its mass is spread through the middle like the disk, while an empty can’s mass is all at the rim like the hoop.' }
+  ]
+}
+});
+
 })();
