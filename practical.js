@@ -735,3 +735,23 @@ twobody: {
   ]
 }
 });
+
+BioLab.addPractical({
+workenergy: {
+  hookSet: { mode: 'push', F: 60, d: 2, M: 20, th: 0, mu: 0 },
+  hook: 'A friend’s 1,200 kg car stalls in a parking lot. Together you push with 600 N, and the tires’ rolling resistance pushes back with about 176 N. If you push it 10 m, how fast is it rolling when you let go?',
+  answer: 'Net work = (600 − 176) N × 10 m = 4,240 J, all of it kinetic energy. v = √(2 × 4,240 ÷ 1,200) ≈ 2.7 m/s, a brisk walk. Pushing farther adds work just like pushing harder does, so a long steady push beats a short shove.',
+  uses: [
+    'Brakes: a car at 60 mph carries four times the kinetic energy it has at 30 mph, so the brakes must turn four times as much energy into heat, over about four times the distance.',
+    'Elevators and stairs: lifting a 70 kg person one 3 m floor stores about 2,060 J of potential energy, which is why elevators use counterweights to save most of that work.',
+    'Archery and slingshots: drawing a bow stores ½kx²-style energy in the limbs. Drawing twice as far stores far more than twice the energy, so draw weight and draw length both matter.'
+  ],
+  takeaway: 'Work is how energy gets moved: force × distance along the motion. Push a thing and the work becomes kinetic energy, ½mv²; lift it and it becomes height, mgh; squeeze a spring and it becomes ½kx². Every joule is accounted for.',
+  tour: [
+    'You push the cart with 60 N for 2 m: 60 × 2 = 120 joules of work. Watch the red bar fill as you push.',
+    'Once you let go, the cart keeps those 120 J as kinetic energy (green). The speed gate shows what that is: 3.46 m/s.',
+    'Lift a 10 kg carry-on 1.9 m into an overhead bin. Your work, about 186 J, is now stored as height energy (blue).',
+    'A squeezed spring stores energy too (purple). Let go and it becomes speed, then height, joule for joule.'
+  ]
+}
+});

@@ -912,3 +912,47 @@ impulse:{
     steps:['Impulse is the area under the force–time graph.','Triangle area = ½ × base × height = ½ × 0.02 × 40.','= 0.4 N·s.']}
   ]}
 });
+
+BioLab.addReview({
+workenergy:{
+  apNote:'Released questions from College Board. Ask your teacher which ones match what you have covered.',
+  ap:[{title:'All released AP Physics 1 exam questions',url:'https://apcentral.collegeboard.org/courses/ap-physics-1/exam/past-exam-questions',note:'Look for the work–energy theorem and spring potential energy.'}],
+  questions:[
+  {id:'we-w',kind:'test',lvl:'bio',q:'You push a 20 kg cart with 80 N for 1.5 m on a smooth floor. How much kinetic energy does it have when you let go?',
+    num:{ans:120,tol:1,unit:'J'},
+    steps:['Work = force × distance = 80 N × 1.5 m.','= 120 J.','With nothing taking energy away, all 120 J becomes kinetic energy.'],
+    lab:{set:{mode:'push',F:80,d:1.5,M:20,th:0,mu:0},look:'Watch the <b>Work by you</b> and <b>Kinetic</b> bars.'}},
+  {id:'we-v',kind:'test',lvl:'bio',q:'That 20 kg cart has 120 J of kinetic energy. How fast is it moving?',
+    num:{ans:3.46,tol:0.05,unit:'m/s'},
+    steps:['KE = ½mv², so v = √(2 KE ÷ m).','= √(2 × 120 ÷ 20) = √12.','≈ 3.46 m/s.'],
+    lab:{set:{mode:'push',F:60,d:2,M:20,th:0,mu:0},look:'Read the speed gate.'}},
+  {id:'we-2x',kind:'test',lvl:'bio',q:'You do twice as much work pushing the same cart from rest. Its speed becomes:',
+    choices:['About 1.4 times as fast','Exactly twice as fast','Four times as fast','The same speed'],correct:0,
+    steps:['Twice the work is twice the kinetic energy.','KE = ½mv², so KE depends on v².','v² doubles, so v grows by √2 ≈ 1.41.'],
+    lab:{set:{mode:'push',F:60,d:4,M:20,th:0,mu:0},look:'Compare the gate speed at 2 m and 4 m of push.'}},
+  {id:'we-pe',kind:'test',lvl:'bio',q:'How much work does it take to lift a 12 kg box steadily onto a 1.5 m shelf?',
+    num:{ans:176,tol:2,unit:'J'},
+    steps:['Lifting steadily, your force equals the weight, mg = 12 × 9.8 = 117.6 N.','W = mgh = 117.6 × 1.5.','≈ 176 J, stored as gravitational potential energy.'],
+    lab:{set:{mode:'lift',m:12,h:1.5,how:'steady'},look:'Read <b>Work done by you</b> and the height bar.'}},
+  {id:'we-heave',kind:'test',lvl:'bio',q:'You heave a 10 kg bag up 1.9 m with 150 N. Where does the work beyond mgh go?',
+    choices:['Into the bag’s speed, which then hits the shelf','Nowhere; the extra work is lost','Into the bag’s weight','Into making the shelf higher'],correct:0,
+    steps:['Your work: 150 × 1.9 = 285 J.','Height energy: mgh ≈ 186 J.','The other 99 J is kinetic energy: the bag is still moving fast at the shelf.'],
+    lab:{set:{mode:'lift',m:10,h:1.9,how:'hard',FL:150},look:'Compare the <b>Kinetic</b> and <b>Height</b> bars at the shelf.'}},
+  {id:'we-spr',kind:'test',lvl:'bio',q:'A launcher spring (k = 500 N/m) is squeezed 6 cm. How much energy does it store?',
+    num:{ans:0.9,tol:0.02,unit:'J'},
+    steps:['Spring energy = ½kx².','= ½ × 500 × 0.06².','= 0.90 J.'],
+    lab:{set:{mode:'spring',k:500,x:0.06,mb:0.1},look:'Read <b>Spring energy stored</b> before launch.'}},
+  {id:'we-h',kind:'test',lvl:'honors',q:'That 0.90 J launches a 0.15 kg ball straight up. How high above its start does it rise?',
+    num:{ans:0.61,tol:0.02,unit:'m'},
+    steps:['All the spring energy becomes height energy: ½kx² = mgh.','h = 0.90 ÷ (0.15 × 9.8).','≈ 0.61 m.'],
+    lab:{set:{mode:'spring',k:500,x:0.06,mb:0.15},look:'Read the <b>Highest point</b>.'}},
+  {id:'we-roll',kind:'test',lvl:'honors',q:'You do 120 J of work on a cart, and rolling resistance does −24 J. How much kinetic energy does the cart gain?',
+    num:{ans:96,tol:1,unit:'J'},
+    steps:['Net work = 120 J + (−24 J).','= 96 J.','Net work equals the change in kinetic energy.'],
+    lab:{set:{mode:'push',F:60,d:2,M:20,th:0,mu:0.05},look:'Watch the <b>Heat</b> bar grow beside <b>Kinetic</b>.'}},
+  {id:'we-slope',kind:'test',lvl:'ap',q:'A graph of work (y) against v² (x) for a cart pushed from rest has slope 7.5 kg. What is the cart’s mass?',
+    num:{ans:15,tol:0.1,unit:'kg'},
+    steps:['W = ½mv², so the slope of W against v² is m/2.','m = 2 × 7.5.','= 15 kg.'],
+    lab:{set:{mode:'push',F:60,d:2,M:15,th:0,mu:0},look:'Record trials at several push distances and graph <b>Work</b> against <b>Speed squared</b>.'}}
+  ]}
+});

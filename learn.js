@@ -1410,4 +1410,93 @@ atwood: {
 }
 });
 
+/* ---------- workenergy (replaces Physics Aviary Work to KE, Work to PE and Energy Transformation, Mr. Willson) ---------- */
+BioLab.addLearn((function(){
+const weC=(ctx,k,lines,x,y,w)=>{const f=Math.min(1,1.1/Math.min(k,1.3));foCard(ctx,k,lines.map(l=>{const o=typeof l==='string'?[l,500]:l.slice();o[2]=(o[2]||12.5)*f;return o;}),x,y,w);};
+const P=(ctx,k,L)=>weC(ctx,k,L,190,40,340),Lf=(ctx,k,L)=>weC(ctx,k,L,66,150,230),Sp=(ctx,k,L)=>weC(ctx,k,L,300,214,240);
+const M=(sim,id)=>emMet(sim,id),n0=v=>Math.round(v).toLocaleString(),n2=v=>(+v).toFixed(2);
+const RD='#c8102e',GR='#1b7a3a',BL2='#1f5fbf',PU='#6a3fa0';
+const gate=sim=>sim.st.vg!==null;
+const fx=sim=>{sim.gmode='live';sim.gMetric='fx';if(sim.ui&&sim.ui.gm){sim.ui.gm.value='fx';sim.ui.gm.dispatchEvent(new Event('change'));}};
+return {
+workenergy: {
+  goals: {
+    bio: ['How work (force × distance) becomes kinetic energy you can measure as speed', 'Why the same work gives a heavy cart and a light cart the same energy but different speeds', 'How lifting stores energy as height, and a spring stores it as a squeeze'],
+    honors: ['Why twice the work gives only √2 times the speed', 'How rolling resistance does negative work', 'Why twice the squeeze stores four times the energy (½kx²)'],
+    ap: ['How to find a mass from the slope of work against v²']
+  },
+  matters: 'Every time you push a cart, lift a bag or wind up a toy, the work you do becomes energy you can count in joules. It is the same bookkeeping engineers use for car brakes, roller coasters and phone batteries.',
+  question: 'Your friend’s car stalls in a parking lot, and three of you push it to get it rolling. Is it better to push harder, or to keep pushing for longer?',
+  startKey: 'push', startRun: true,
+  steps: [
+    { key: 'push', title: 'Work = force × distance', set: { mode: 'push', F: 60, d: 2, M: 20, th: 0, mu: 0 }, fresh: true, speed: 1,
+      see: 'You push a 20 kg shopping cart with 60 N for 2 m, then let go. Watch the red work bar fill while you push, then the speed gate.',
+      why: 'Work is the force times the distance it pushes: 60 N × 2 m = 120 joules. On a smooth floor nothing takes energy away, so all 120 J becomes kinetic energy, the green bar. KE = ½mv² gives 3.46 m/s at the gate.',
+      overlay(sim,ctx,LH,k){P(ctx,k,[['W = F × d = 60 N × 2 m = 120 J',700,13.5],['Kinetic energy now: '+n0(M(sim,'KE'))+' J',700,13,GR],gate(sim)?['Speed at the gate: '+n2(M(sim,'vg'))+' m/s',700,13,RD]:'Speed at the gate: …']);} },
+    { key: 'far', title: 'Push twice as far', set: { mode: 'push', F: 60, d: 4, M: 20, th: 0, mu: 0 }, fresh: true, speed: 1,
+      cause: { from: { d: 2 }, delay: 0.05, dur: 0.45, label: 'Push distance', at: [360, 116] },
+      see: 'Same cart, same 60 N. Watch the push zone stretch to 4 m.',
+      why: 'Twice the distance is twice the work: 240 J. But the speed doesn’t double. KE = ½mv² grows with speed squared, so twice the energy gives √2 ≈ 1.41 times the speed: 4.90 m/s instead of 3.46.',
+      overlay(sim,ctx,LH,k){P(ctx,k,[['W = 60 N × 4 m = 240 J (was 120)',700,13.5],gate(sim)?['Speed: '+n2(M(sim,'vg'))+' m/s (was 3.46)',700,13,RD]:'Speed at the gate: …','2 × the energy → 1.41 × the speed']);} },
+    { key: 'heavy', title: 'A heavier cart, the same work', set: { mode: 'push', F: 60, d: 2, M: 40, th: 0, mu: 0 }, fresh: true, speed: 1,
+      cause: { from: { M: 20 }, delay: 0.05, dur: 0.45, label: 'Cart + groceries', at: [360, 116] },
+      see: 'Watch the cart get loaded to 40 kg. You still push 60 N for 2 m.',
+      why: 'Your work is still 120 J, so the cart still gets 120 J of kinetic energy. With twice the mass, the same energy means a lower speed: v = √(2 × 120 ÷ 40) = 2.45 m/s.',
+      overlay(sim,ctx,LH,k){P(ctx,k,[['Same work: 120 J',700,13.5],['Kinetic energy: '+n0(M(sim,'KE'))+' J',700,13,GR],gate(sim)?['Speed: '+n2(M(sim,'vg'))+' m/s (20 kg: 3.46)',700,13,RD]:'Speed at the gate: …']);} },
+    { key: 'lift', title: 'Lifting stores energy as height', set: { mode: 'lift', m: 10, h: 1.9, how: 'steady' }, fresh: true, speed: 1,
+      see: 'A 10 kg carry-on lifted steadily into a 1.9 m overhead bin. Watch the blue bar.',
+      why: 'Lifting steadily, your force matches the weight, mg = 98 N, over 1.9 m: W = mgh ≈ 186 J. That energy is now stored as gravitational potential energy. Drop the bag and it turns back into speed.',
+      overlay(sim,ctx,LH,k){Lf(ctx,k,[['W = mgh',700,13.5],'= 10 × 9.8 × 1.9 ≈ 186 J',['Stored so far: '+n0(M(sim,'PE'))+' J',700,13,BL2]]);} },
+    { key: 'yank', title: 'Heave it, and the extra becomes speed', set: { mode: 'lift', m: 10, h: 1.9, how: 'hard', FL: 150 }, fresh: true, speed: 1,
+      cause: { from: { FL: 100 }, delay: 0.05, dur: 0.45, label: 'Your lifting force', at: [170, 116] },
+      see: 'Now you heave with 150 N the whole way up. Watch both bars.',
+      why: 'Your work is 150 N × 1.9 m = 285 J. Only 186 J can go into height, so the other 99 J becomes kinetic energy: the bag is still moving 4.4 m/s when it reaches the shelf, and something has to stop it.',
+      overlay(sim,ctx,LH,k){Lf(ctx,k,[['W = 150 × 1.9 = 285 J',700,13.5],['Height: '+n0(M(sim,'PE'))+' J',700,13,BL2],['Speed: '+n0(M(sim,'KE'))+' J',700,13,GR]]);} },
+    { key: 'spring', title: 'A squeezed spring stores energy', set: { mode: 'spring', k: 400, x: 0.08, mb: 0.1 }, fresh: true, speed: 0.5,
+      see: 'A 0.10 kg ball on a launcher spring squeezed 8 cm. Watch the purple, green and blue bars trade places in slow motion.',
+      why: 'The spring stores ½kx² = ½ × 400 × 0.08² = 1.28 J. As it relaxes it pushes the ball, turning spring energy into kinetic energy. Then gravity slows the ball, turning kinetic energy into height, until all 1.28 J is height: h = 1.28 ÷ (0.1 × 9.8) ≈ 1.31 m.',
+      overlay(sim,ctx,LH,k){Sp(ctx,k,[['Spring '+n2(M(sim,'Us'))+' J',700,13,PU],['Kinetic '+n2(M(sim,'KE'))+' J',700,13,GR],['Height '+n2(M(sim,'PE'))+' J',700,13,BL2],'Total stays 1.28 J']);} },
+    { key: 'squeeze', title: 'Twice the squeeze, four times as high', set: { mode: 'spring', k: 400, x: 0.1, mb: 0.1 }, fresh: true, speed: 1,
+      cause: { from: { x: 0.05 }, delay: 0.05, dur: 0.45, label: 'Squeeze', at: [400, 116] },
+      see: 'Watch the squeeze go from 5 cm to 10 cm, then where the ball tops out.',
+      why: 'Spring energy is ½kx², so doubling x quadruples it: 0.50 J becomes 2.00 J. All of it ends up as height, so the ball goes 4 times as high: 0.51 m becomes 2.04 m.',
+      so: 'That is why a slingshot or a bow pulled back twice as far is far more dangerous, not just twice as much.',
+      overlay(sim,ctx,LH,k){Sp(ctx,k,[['5 cm: 0.50 J → 0.51 m',600,12.5],['10 cm: 2.00 J → '+(sim.st.hm!==null?n2(sim.st.hm):'…')+' m',700,13,RD],'2 × squeeze = 4 × energy']);} },
+    { lvl: 'honors', key: 'handle', title: 'Pushing down on the handle', set: { mode: 'push', F: 60, d: 2, M: 20, th: 40, mu: 0 }, fresh: true, speed: 1,
+      cause: { from: { th: 0 }, delay: 0.05, dur: 0.45, label: 'Push angle', at: [360, 116] },
+      see: 'Same 60 N push, but now aimed 40° down into the handle.',
+      why: 'Only the part of your push along the motion does work: 60 cos 40° ≈ 46 N, so W ≈ 92 J instead of 120 J. The downward part only presses the cart into the floor.',
+      overlay(sim,ctx,LH,k){P(ctx,k,[['W = F d cos θ = 60 × 2 × cos 40°',700,13.5],['= '+n0(M(sim,'W'))+' J (level: 120 J)',700,13,RD],gate(sim)?'Speed: '+n2(M(sim,'vg'))+' m/s (level: 3.46)':'Speed at the gate: …']);} },
+    { lvl: 'honors', key: 'rolling', title: 'Rolling resistance takes its share', set: { mode: 'push', F: 60, d: 2, M: 20, th: 0, mu: 0.05 }, fresh: true, speed: 1,
+      cause: { from: { mu: 0 }, delay: 0.05, dur: 0.45, label: 'Rolling resistance', at: [360, 116] },
+      see: 'Same level 60 N push, now with rolling resistance. Watch the orange heat bar.',
+      why: 'Rolling resistance (μMg ≈ 9.8 N) pushes backward the whole time, so it does negative work: about −24 J by the gate. Your 120 J splits into about 96 J of motion and 24 J of heat. The net work still equals the change in KE.',
+      overlay(sim,ctx,LH,k){P(ctx,k,[['You: +'+n0(M(sim,'W'))+' J   Rolling: '+n0(M(sim,'Wf'))+' J',700,13.5],['KE = net work = '+n0(M(sim,'KE'))+' J',700,13,GR]]);} },
+    { lvl: 'honors', key: 'area', title: 'Spring energy is a triangle', set: { mode: 'spring', k: 400, x: 0.1, mb: 0.1 }, fresh: true, speed: 0.25,
+      run(sim){fx(sim);},
+      see: 'Watch the force–position graph below as the spring relaxes.',
+      why: 'The spring’s force, kx, falls from 40 N to 0 as it relaxes 10 cm. Work is the area under the force–position graph: a triangle, ½ × 0.10 m × 40 N = 2.0 J. That is where ½kx² comes from.',
+      overlay(sim,ctx,LH,k){Sp(ctx,k,[['Area = ½ × base × height',700,13.5],'= ½ × 0.10 m × 40 N = 2.0 J',['Released so far: '+n2(2-M(sim,'Us'))+' J',700,13,PU]]);} },
+    { lvl: 'ap', key: 'slope', title: 'Weigh a cart with a speed gate', set: { mode: 'push', F: 60, d: 3, M: 20, th: 0, mu: 0 }, fresh: true, speed: 1,
+      see: 'Pushes of 0.5 m to 3 m with 60 N. The card lists work against v² at the gate for each.',
+      why: 'W = ½mv², so W plotted against v² is a straight line through the origin with slope m/2. Every row gives W ÷ v² = 10 kg, so the cart is 20 kg. Record your own trials and graph them in the Trials view to do it with a mass you don’t know.',
+      overlay(sim,ctx,LH,k){const rows=[0.5,1,2,3].map(d=>{const W=60*d,v2=2*W/20;return 'd = '+d+' m: W = '+W+' J, v² = '+v2.toFixed(0)+' → '+(W/v2).toFixed(0)+' kg';});P(ctx,k,[['Slope = W ÷ v² = m/2',700,13.5]].concat(rows).concat([['m = 2 × 10 = 20 kg',700,13,RD]]));} }
+  ],
+  useIt: [
+    { do: 'Lift a heavy bag into an overhead bin steadily instead of heaving it.',
+      why: 'Steady, your work all becomes height. Heave it, and the extra work becomes speed that your arms, the bin or someone’s head has to absorb.' },
+    { do: 'Leave much more stopping distance when you drive faster.',
+      why: 'Kinetic energy grows with speed squared. At twice the speed your car carries four times the energy, so the brakes need about four times the distance to take it away.' },
+    { do: 'Push a cart, stroller or wheelbarrow along the direction it rolls.', lvl: 'honors',
+      why: 'Pushing down on the handle wastes part of your force: it does no work and it presses the wheels into the ground, which adds rolling resistance.' }
+  ],
+  tryIt: [
+    { title: 'the click-pen launcher (5 minutes)',
+      steps: ['Take the spring out of a click pen. Stand it upright on a table with a small paper ball on top.', 'Press it halfway down with a ruler and slide the ruler off. Note how high the paper ball flies.', 'Repeat pressing it all the way down. Point it at the ceiling, never at anyone.'],
+      look: 'Pressing twice as far sends it far more than twice as high, close to four times: spring energy is ½kx².' }
+  ]
+}
+};
+})());
+
 })();
