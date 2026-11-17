@@ -104,8 +104,29 @@ function ffY(sim,y,key){const ppm=(FF.GY-FF.TOPY)/sim.st.top;return FF.GY-y*ppm-
 function ffArrow(ctx,x,y,len,col,w){if(Math.abs(len)<0.5)return;ctx.save();ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w||3.5;const d=Math.sign(len);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+len-d*8);ctx.stroke();
   ctx.beginPath();ctx.moveTo(x,y+len);ctx.lineTo(x-7,y+len-d*11);ctx.lineTo(x+7,y+len-d*11);ctx.closePath();ctx.fill();ctx.restore();}
 function ffCard(ctx,k,lines,y){y=y||352;const h=12+lines.length*20;ctx.save();ctx.globalAlpha=0.97;ctx.fillStyle=PAL['cv-sol'];H.rr(ctx,506,y,284,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=PAL['cv-soft'];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
-  lines.forEach((L,i)=>H.txt(ctx,L[0],516,y+20+i*20,{s:(L[2]||12.5)*k,w:L[1]||500,c:L[3]||PAL['cv-ink']}));}
+  lines.forEach((L,i)=>{let sz=(L[2]||12.5)*k;ctx.font=(L[1]||500)+' '+sz+'px '+H.FONT;const tw=ctx.measureText(L[0]).width;if(tw>264)sz*=264/tw;H.txt(ctx,L[0],516,y+20+i*20,{s:sz,w:L[1]||500,c:L[3]||PAL['cv-ink']});});}
 const FFDEF={objA:'bowling',objB:'tennis',h:10,air:false,planet:'earth',bounce:false,v0:0};
+/* ---------- Think again: shared visual moves (pilot, Nov 17 2026) ----------
+   A purple badge marks a thinking moment; a dashed purple "ghost" is a prediction
+   (an old idea, or a model's rule) drawn beside what really happens. */
+const THINK='#6a4fc4';
+function thinkBadge(ctx,kind,label,k,tau){k=Math.min(k,1.3);const sz=12.5*k;ctx.save();ctx.font='700 '+sz+'px '+H.FONT;const tw=ctx.measureText(label).width,ic=22*k,w=tw+ic+sz*1.6,h=sz*2.2,x=20,y=18;
+  H.rr(ctx,x,y,w,h,h/2);ctx.fillStyle=PAL['cv-sol'];ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=THINK;ctx.stroke();
+  const cx=x+sz*0.7+ic/2,cy=y+h/2;ctx.strokeStyle=THINK;ctx.fillStyle=THINK;ctx.lineWidth=1.8;
+  if(kind==='old'){ctx.setLineDash([3,2.5]);ctx.beginPath();ctx.arc(cx+3*k,cy,6*k,0,6.29);ctx.stroke();ctx.setLineDash([]);[-3,0,3].forEach(d=>{ctx.beginPath();ctx.moveTo(cx-9*k,cy+d*k);ctx.lineTo(cx-4*k,cy+d*k);ctx.stroke();});}
+  else if(kind==='assume'){const f=ease(clamp(((tau||0)-0.4)/0.5,0,1)),sw=20*k,sh=11*k;H.rr(ctx,cx-sw/2,cy-sh/2,sw,sh,sh/2);ctx.globalAlpha=0.25+0.75*f;ctx.fill();ctx.globalAlpha=1;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx-sw/2+sh/2+f*(sw-sh),cy,sh/2-1.5,0,6.29);ctx.fillStyle='#fff';ctx.fill();ctx.stroke();}
+  else{ctx.beginPath();ctx.arc(cx-2*k,cy-2*k,5.5*k,0,6.29);ctx.stroke();ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(cx+2*k,cy+2*k);ctx.lineTo(cx+7*k,cy+7*k);ctx.stroke();}
+  H.txt(ctx,label,x+sz*0.7+ic+sz*0.4,cy+1,{s:sz,w:700,c:THINK,b:'middle'});ctx.restore();}
+function ghostBall(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle=THINK;ctx.fillStyle='rgba(106,79,196,.10)';ctx.beginPath();ctx.arc(x,y,r,0,6.29);ctx.fill();ctx.stroke();ctx.restore();}
+function ghostFeather(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.translate(x,y);ctx.rotate(-0.5);ctx.setLineDash([4,3]);ctx.lineWidth=1.8;ctx.strokeStyle=THINK;ctx.fillStyle='rgba(106,79,196,.10)';
+  ctx.beginPath();ctx.moveTo(-r+3,0);ctx.quadraticCurveTo(0,-11,r+3,-1);ctx.quadraticCurveTo(0,10,-r+3,0);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-r-1,0);ctx.lineTo(r+5,0);ctx.stroke();ctx.restore();}
+/* where the no-air rule says a dropped object is at time t */
+function ffRuleY(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.max(0,sim.p.h-0.5*g*sim.t*sim.t);}
+function ffRuleT(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.sqrt(2*sim.p.h/g);}
+/* the no-air feather ghost, in lane B */
+function ffFeatherGhost(sim,ctx,k,lab){const y=ffRuleY(sim),gy=ffY(sim,y,'feather');ghostFeather(ctx,FF.XB,gy,FF.R.feather);
+  if(y<=0)tag(ctx,lab||('No-air rule: '+ffRuleT(sim).toFixed(2)+' s'),FF.XB-78,FF.GY-62,k,{s:12,c:THINK});}
 
 BioLab.addLearn({
 freefall: {
@@ -128,6 +149,14 @@ freefall: {
       see: 'Both balls let go at the same instant, in slow motion. Watch the stopwatch: they hit the ground together, at 1.43 s.',
       why: 'Without air, mass makes no difference to how a thing falls. More than 100 times the mass, and they stay side by side all the way down.',
       overlay(sim,ctx,LH,k){const A=sim.st.A,B=sim.st.B;if(A.land!==null&&B.land!==null)tag(ctx,'Both landed at '+A.land.toFixed(2)+' s',305,360,k,{s:14,hi:true});else tag(ctx,'Which lands first?',305,250,k,{s:13});} },
+    { key: 'old', title: 'The old idea', set: FFDEF, fresh: true, speed: 0.5,
+      see: 'The dashed ball is the old idea. Aristotle taught that something 117 times heavier falls 117 times faster, so the bowling ball would hit the ground almost at once. The real balls still land together.',
+      why: 'People believed this for almost 2,000 years because it sounds right. Then it was tested. In 1586 Simon Stevin dropped two lead balls, one ten times heavier, from a church tower in Delft, and they landed together. A good story is not evidence. A test is.',
+      overlay(sim,ctx,LH,k,tau){thinkBadge(ctx,'old','What people used to think',k,tau);const gx=200,top=ffY(sim,10,'bowling'),bot=ffY(sim,0,'bowling'),landed=sim.t>0.012;
+        if(landed){const f=clamp(1-(tau||0)/2.5,0.25,1);ctx.save();ctx.globalAlpha=f;ctx.strokeStyle=THINK;ctx.setLineDash([3,6]);ctx.lineWidth=2;[-8,0,8].forEach(d=>{ctx.beginPath();ctx.moveTo(gx+d,top);ctx.lineTo(gx+d,bot-20);ctx.stroke();});ctx.restore();
+          ghostBall(ctx,gx,bot,17);tag(ctx,'0.01 s',gx,bot-40,k,{s:12,c:THINK});}else ghostBall(ctx,gx,top,17);
+        tag(ctx,'Old idea',gx-14,FF.GY+16,k,{s:11,c:THINK});
+        const A=sim.st.A,B=sim.st.B;if(A.land!==null&&B.land!==null)tag(ctx,'Real: both at '+A.land.toFixed(2)+' s',330,250,k,{s:13,hi:true});} },
     { key: 'gain', title: 'Faster every second', pause: true,
       see: 'The faint circles show where the bowling ball was every 0.1 s. The labels show how fast it was going at each point: 4.9 m/s after half a second, 9.8 m/s after one second, 14 m/s when it landed.',
       why: 'That is what <b>g = 9.8 m/s²</b> means: a falling object gains 9.8 m/s of speed every second. Because it keeps getting faster, it covers more ground in each tenth of a second, so the circles spread out as it falls.',
@@ -139,13 +168,13 @@ freefall: {
         tag(ctx,'pull: 69 N',FF.XA-60,ya+70,k,{s:12,hi:true});tag(ctx,'pull: 0.59 N',FF.XB+62,yb+12,k,{s:12,hi:true});
         ffCard(ctx,k,[['acceleration = pull ÷ mass',700],['bowling: 69 N ÷ 7 kg = 9.8 m/s²'],['tennis: 0.59 N ÷ 0.06 kg = 9.8 m/s²']]);} },
     { key: 'air', title: 'Now add air', set: { objA: 'tennis', objB: 'feather', air: true, h: 3 }, fresh: true, speed: 1,
-      see: 'A tennis ball and a feather from 3 m, with air. The ball drops in under a second. The feather drifts and takes about 5 seconds.',
-      why: 'Air pushes up on anything moving down through it, harder the faster it goes. A feather is so light and spread out that the air’s push almost matches its weight right away, so it barely speeds up. The heavy, compact ball hardly notices the air on a short drop.',
-      overlay(sim,ctx,LH,k){const B=sim.st.B;if(!B.rest){const yb=ffY(sim,B.y,'feather');ffArrow(ctx,FF.XB+30,yb,40,'#c8102e');ffArrow(ctx,FF.XB+44,yb,-38,'#1b6fb3');tag(ctx,'air pushes up',FF.XB+110,yb-24,k,{s:12,c:'#1b6fb3'});tag(ctx,'gravity pulls down',FF.XB+118,yb+30,k,{s:12,c:'#c8102e'});}} },
+      see: 'A tennis ball and a feather from 3 m, with air on. The dashed feather is what the rule from the last steps predicts: it lands with the ball in 0.78 s. The real feather drifts and takes about 5 seconds.',
+      why: 'Air pushes up on anything moving down through it, harder the faster it goes. A feather is so light and spread out that the air’s push almost matches its weight right away, so it barely speeds up. The heavy, compact ball hardly notices the air on a short drop. The rule “everything falls together” had a hidden assumption: no air.',
+      overlay(sim,ctx,LH,k,tau){thinkBadge(ctx,'assume','Hidden assumption: no air',k,tau);ffFeatherGhost(sim,ctx,k);const B=sim.st.B;if(!B.rest){const yb=ffY(sim,B.y,'feather');ffArrow(ctx,FF.XB+30,yb,40,'#c8102e');ffArrow(ctx,FF.XB+44,yb,-38,'#1b6fb3');tag(ctx,'air pushes up',FF.XB+110,yb-24,k,{s:12,c:'#1b6fb3'});tag(ctx,'gravity pulls down',FF.XB+118,yb+30,k,{s:12,c:'#c8102e'});}} },
     { key: 'moon', title: 'On the Moon', set: { objA: 'bowling', objB: 'feather', air: true, planet: 'moon', h: 3 }, fresh: true, speed: 1,
       see: 'Same drop on the Moon. The feather falls straight down beside the bowling ball, and they land together. Everything falls more slowly here, because the Moon’s gravity is only 1.62 m/s².',
-      why: 'The Moon has no air, so nothing pushes back on the feather. Only gravity acts, and it gives every object the same acceleration.',
-      overlay(sim,ctx,LH,k){ffCard(ctx,k,[['Apollo 15, 1971',700],['David Scott dropped a hammer and'],['a falcon feather on the Moon.'],['They landed at the same time.']],340);} },
+      why: 'The Moon has no air, so nothing pushes back on the feather. Only gravity acts, and it gives every object the same acceleration. The dashed feather, the no-air rule, stays right on top of the real one: where its assumption is true, the rule works.',
+      overlay(sim,ctx,LH,k,tau){thinkBadge(ctx,'know','How do we know?',k,tau);ffFeatherGhost(sim,ctx,k,'Rule holds: no air');ffCard(ctx,k,[['Apollo 15, 1971',700],['David Scott dropped a hammer and'],['a falcon feather on the Moon.'],['They landed at the same time.']],340);} },
     { key: 'throw', title: 'Throw it up', set: { v0: 10 }, fresh: true, speed: 0.5,
       see: 'Both balls are thrown straight up at 10 m/s. The label shows the bowling ball’s velocity: it slows down, stops for an instant at the top, then speeds up on the way down. The red arrow is its acceleration.',
       why: 'Gravity never switches off, so the acceleration is 9.8 m/s² <b>downward</b> the whole time, on the way up, at the top and on the way down. At the top the velocity is zero for an instant, but the acceleration isn’t: that is what turns it around.',
