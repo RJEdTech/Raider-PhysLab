@@ -935,7 +935,7 @@ workenergy:{
     steps:['Lifting steadily, your force equals the weight, mg = 12 × 9.8 = 117.6 N.','W = mgh = 117.6 × 1.5.','≈ 176 J, stored as gravitational potential energy.'],
     lab:{set:{mode:'lift',m:12,h:1.5,how:'steady'},look:'Read <b>Work done by you</b> and the height bar.'}},
   {id:'we-heave',kind:'test',lvl:'bio',q:'You heave a 10 kg bag up 1.9 m with 150 N. Where does the work beyond mgh go?',
-    choices:['Into the bag’s speed, which then hits the shelf','Nowhere; the extra work is lost','Into the bag’s weight','Into making the shelf higher'],correct:0,
+    choices:['Into the bag’s speed, which then hits the shelf','Nowhere; work beyond mgh is simply lost','Into the bag’s weight, which grows as it rises','Into heat in your arms, not into the bag'],correct:0,
     steps:['Your work: 150 × 1.9 = 285 J.','Height energy: mgh ≈ 186 J.','The other 99 J is kinetic energy: the bag is still moving fast at the shelf.'],
     lab:{set:{mode:'lift',m:10,h:1.9,how:'hard',FL:150},look:'Compare the <b>Kinetic</b> and <b>Height</b> bars at the shelf.'}},
   {id:'we-spr',kind:'test',lvl:'bio',q:'A launcher spring (k = 500 N/m) is squeezed 6 cm. How much energy does it store?',
