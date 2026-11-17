@@ -87,7 +87,7 @@ const SIM={
      baseline:{mode:'stairs',m:55,h:3.6,T:6},change:{m:110},changeText:'Mass doubled to 110 kg',watch:'Pst',at:1,reveal:9,
      explain:{bio:'Twice the weight lifted the same height is twice the work, done in the same time, so twice the power.'}},
     {lvl:'bio',q:'You pull a sled with the rope at 90°, straight up, but not hard enough to lift it. How much work does your pull do?',
-     choices:['Lots: you are pulling hard','Zero: the sled doesn’t move along your pull','It depends on the friction'],correct:1,
+     choices:['Lots: you are pulling hard','Zero: it doesn’t move along your pull','It depends on the friction'],correct:1,
      baseline:{mode:'pull',F:0,th:90,mu:0.2,M:20,prof:'const'},change:{F:80},changeText:'Pulling 80 N straight up',watch:'WF',at:0.5,reveal:5,
      explain:{bio:'Work needs motion along the force. Pulling straight up only lightens the sled; it doesn’t move it forward. With no horizontal pull, friction holds it still, and W = F × 0 m = 0 J.'}},
     {lvl:'honors',q:'The sled slides on ice (μ = 0). You add friction, μ = 0.20. During a run, what sign is the work done by friction?',

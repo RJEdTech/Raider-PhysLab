@@ -145,7 +145,7 @@ const SPRINGS={
     {lvl:'ap',q:'Take the same bouncing spring to the Moon. What happens to the period?',choices:['Longer, because gravity is weaker','Shorter','It does not change'],correct:2,
      baseline:{mass:200,k:50,damp:0,amp:6,planet:'earth'},change:{planet:'moon'},changeText:'Now on the Moon',watch:'stretchg',at:2.5,reveal:8,
      explain:'Gravity only sets where the rest position is (mg/k). The restoring force about that point is −kx no matter what g is, so T = 2π√(m/k) is unchanged. A pendulum is different.'},
-    {lvl:'ap',instant:true,q:'At the lowest point of the oscillation, which statement is true?',choices:['Velocity and acceleration are both zero','Velocity is zero and acceleration is maximum, pointing up','Velocity is maximum and acceleration is zero'],correct:1,
+    {lvl:'ap',instant:true,q:'At the lowest point of the oscillation, which statement is true?',choices:['Velocity and acceleration are both zero','Velocity is zero; acceleration is maximum, up','Velocity is maximum; acceleration is zero'],correct:1,
      explain:'At the turning point the mass is momentarily at rest, but the displacement is greatest, so a = −(k/m)x is greatest and points back toward equilibrium (up).'}
   ],
   lab:{bio:'<p><b>Question:</b> How does mass affect how far a spring stretches?</p><ol><li>Set damping to 1 so the mass settles quickly.</li><li>For 100, 200, 300, 400 and 500 g, wait until the mass is still, then Record trial.</li><li>Plot mass (x) against spring stretch (y).</li></ol><p>Describe the pattern. What happens to the stretch when the mass doubles?</p>',

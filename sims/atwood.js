@@ -80,7 +80,7 @@ const SIM={
   onLevel(sim){syncMode(sim);},
   challenges:[
     {lvl:'bio',q:'Both masses are 1.0 kg and the pair sits still. You add 0.5 kg to m₂. What does m₂ do?',
-     choices:['Falls as fast as a dropped ball','Falls, but speeds up much more slowly than a dropped ball','Nothing; the string holds it up'],correct:1,
+     choices:['Falls as fast as a dropped ball','Falls, but speeds up much more slowly','Nothing; the string holds it up'],correct:1,
      baseline:{mode:'atwood',m1:1.0,m2:1.0,Mp:0},change:{m2:1.5},changeText:'m₂ is now 1.5 kg',watch:'acc',reveal:2.3,
      explain:{bio:'Only the extra 0.5 kg of weight (4.9 N) pulls the pair, but it has to speed up all 2.5 kg. So a = 4.9 ÷ 2.5 = 1.96 m/s², one-fifth of free fall.',
               honors:'Treat both masses as one system: F_net = (m₂ − m₁)g = 4.9 N and total mass 2.5 kg, so a = 1.96 m/s² = g/5.'}},

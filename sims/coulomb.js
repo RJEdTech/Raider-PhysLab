@@ -123,7 +123,7 @@ const COUL={
     {lvl:'honors',q:'If you double q₁ from 3 μC to 6 μC, what happens to the force?',choices:['It doubles','It quadruples','It stays the same','It halves'],correct:0,
      baseline:{mode:'two',q1:3,q2:-2,r:10},change:{q1:6},changeText:'q₁ doubled to 6 μC',watch:'fr',
      explain:{honors:'F is proportional to q₁·q₂, so doubling one charge doubles the force: 5.39 N → 10.8 N. Only the distance appears squared.'}},
-    {lvl:'honors',instant:true,set:{mode:'two',q1:6,q2:-1,r:10},q:'q₁ = +6 μC and q₂ = −1 μC. Which charge feels the larger force?',choices:['q₁, because it has more charge','q₂, because it has less charge','Neither: the forces are equal and opposite'],correct:2,
+    {lvl:'honors',instant:true,set:{mode:'two',q1:6,q2:-1,r:10},q:'q₁ = +6 μC and q₂ = −1 μC. Which charge feels the larger force?',choices:['q₁, because it has more charge','q₂, because it has less charge','Neither: equal and opposite'],correct:2,
      explain:{honors:'The model is now set to these charges. Check the readouts: Force on q₁ and Force on q₂ have the same size and opposite signs. The force is one interaction between the pair, so Newton’s third law applies.'}},
     {lvl:'ap',instant:true,set:{mode:'three',q1:4,q2:1,r:12,q3:1,x3:5},q:'q₁ = +4 μC and q₂ = +1 μC are 12 cm apart. Where between them can q₃ sit with zero net force?',choices:['6 cm from q₁ (the midpoint)','8 cm from q₁ (closer to the smaller charge)','4 cm from q₁ (closer to the larger charge)'],correct:1,
      explain:{ap:'Set kq₁/x² = kq₂/(12−x)², so 4/x² = 1/(12−x)² → 2(12−x) = x → x = 8 cm. The model is now set up this way: the Zero-force point readout confirms 8.0 cm. Slide q₃ there and its net force reads 0. The balance point sits closer to the smaller charge.'}},

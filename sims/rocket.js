@@ -311,7 +311,7 @@ const SIM={
     {lvl:'honors',q:'Bottle rocket, 0.6 L of water. Raise the launch pressure from 60 psi to 90 psi. What happens?',choices:['It goes higher','It goes the same height','It goes lower'],correct:0,
      baseline:{mode:'bottle',psi:90,water:0.6},changeText:'Launched',watch:'bh',at:0,reveal:4.4,
      explain:'Higher pressure pushes the water out faster. Thrust = 2A(P − Pₐ), so the bottle gets more impulse from the same water and climbs to about 46 m instead of 38 m.'},
-    {lvl:'ap',q:'In deep space, double the burn rate (1,200 kg/s instead of 600 kg/s) with the same fuel and exhaust speed. The final speed?',choices:['Doubles','Stays the same, it just gets there sooner','Halves'],correct:1,
+    {lvl:'ap',q:'In deep space, double the burn rate (1,200 kg/s instead of 600 kg/s) with the same fuel and exhaust speed. The final speed?',choices:['Doubles','The same, reached sooner','Halves'],correct:1,
      baseline:{mode:'rocket',env:'space',stages:1,ve:3000,fuel:100,mdot:1200},changeText:'Engine ignition',watch:'ga',at:0,reveal:110,
      explain:'Thrust doubles, but the fuel lasts half as long. Δv = vₑ ln(m₀/m_f) has no burn rate in it: 6.5 km/s either way. With gravity, though, burning fast does matter, because less time climbing means less gravity loss.'},
     {lvl:'ap',q:'Two stages, 100 t of fuel, 4,500 m/s exhaust: the rocket equation gives 12.1 km/s. Launched from Earth, does it reach orbit?',choices:['Yes','No, gravity and drag take too much'],correct:0,

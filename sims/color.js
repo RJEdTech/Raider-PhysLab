@@ -570,7 +570,7 @@ const SIM={
     {lvl:'honors',q:'A magenta car under white light. You look through blue glasses. What color do you see?',choices:['Black','Blue','Magenta'],correct:1,
       baseline:{part:'color',obj:'magenta',filt:'none',R:100,G:100,B:100},change:{filt:'blue'},changeText:'Blue glasses put on',watch:'eye',
       explain:{honors:'Magenta paint reflects red and blue and absorbs green. The blue lens absorbs the red, so only the reflected blue reaches you. The car looks blue.'}},
-    {lvl:'honors',q:'Green light from the green bulb (525 nm) reaches your eye. Which cones respond?',choices:['Only the M cones','M cones strongly and L cones almost as strongly','All three kinds about equally'],correct:1,
+    {lvl:'honors',q:'Green light from the green bulb (525 nm) reaches your eye. Which cones respond?',choices:['Only the M cones','M strongly, L almost as strongly','All three kinds about equally'],correct:1,
       baseline:{part:'color',obj:'white',filt:'none',R:100,G:100,B:100},change:{R:0,B:0},changeText:'Only the green bulb on',watch:'eye',
       explain:{honors:'The M and L cone curves overlap heavily, with peaks only 30 nm apart. At 525 nm the M cones are near their peak and the L cones respond at roughly 70% of theirs. S cones barely respond. Your brain reads “much M, a bit less L, no S” as green.'}},
     {lvl:'honors',q:'Visible light and X-rays in empty space. Which travels faster?',choices:['X-rays, since they carry more energy','Visible light','Neither: both travel at 3.00 × 10⁸ m/s'],correct:2,

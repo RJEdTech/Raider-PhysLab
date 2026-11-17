@@ -85,14 +85,14 @@ const SIM={
      explain:{bio:'time = distance ÷ speed = 2.2 ÷ 0.785 = 2.80 s. In code that is wait(2800).'}},
     {lvl:'bio',q:'The robot spins at 150° per second. How long should line 2 run for a 90° left turn?',choices:['0.60 s','0.90 s','1.50 s','0.15 s'],correct:0,instant:true,
      explain:{bio:'90° ÷ 150°/s = 0.60 s.'}},
-    {lvl:'bio',q:'Your robot stopped 0.3 m short of the target on the last straight. What should you change?',choices:['Make line 3 longer by about 0.38 s','Make line 2 longer','Use less power on line 1'],correct:0,instant:true,
+    {lvl:'bio',q:'Your robot stopped 0.3 m short of the target on the last straight. What should you change?',choices:['Make line 3 about 0.38 s longer','Make line 2 longer instead','Use less power on line 1'],correct:0,instant:true,
      explain:{bio:'0.3 m ÷ 0.785 m/s ≈ 0.38 s more on line 3. Fix one line at a time and test again: that is how real robot code gets tuned.'}},
-    {lvl:'honors',q:'The program works, then you switch on “Right motor 2% weaker.” What happens?',choices:['Nothing','The robot curves to the right and misses','It goes faster'],correct:1,
+    {lvl:'honors',q:'The program works, then you switch on “Right motor 2% weaker.” What happens?',choices:['Nothing changes','It curves right and misses','It goes faster'],correct:1,
      baseline:{t1:2.8,t2:0.6,t3:1.55,tp:50,mis:false},change:{mis:true},changeText:'Right motor 2% weaker',watch:'miss',at:0.3,reveal:9,
      explain:{honors:'A slower right wheel turns the robot clockwise a little the whole time it drives. Over the first 2.8 s the heading drifts about 8°, the turn comes up short, and the robot ends about 0.28 m from the target center. Sensors (a gyro or line follower) fix what timing alone can’t.'}},
     {lvl:'honors',q:'You raise the spin power from 50% to 100%. How long should the 90° turn take now?',choices:['0.30 s','0.60 s','1.20 s'],correct:0,instant:true,
      explain:{honors:'Twice the wheel speed doubles the spin rate to 300°/s, so 90° takes 0.30 s. Faster turns are harder to stop exactly, though.'}},
-    {lvl:'ap',q:'The battery drops so the motors run at 85% speed. A program tuned on a full battery now…',choices:['undershoots every straight and turn by about 15%','still works','overshoots'],correct:0,instant:true,
+    {lvl:'ap',q:'The battery drops so the motors run at 85% speed. A program tuned on a full battery now…',choices:['undershoots everything by about 15%','still works, just slower','overshoots every straight'],correct:0,instant:true,
      explain:{ap:'Every distance and angle scales with speed × time. That is why competition robots measure wheel rotations with encoders instead of trusting time.'}}
   ],
   tour:[

@@ -259,7 +259,7 @@ const SIM={
     {lvl:'bio',q:'Drop the egg 1 m onto the foam pad. Does it survive?',choices:['Yes','No'],correct:0,
      baseline:{obj:'egg',surface:'foam',h:1},changeText:'Egg released',watch:'runs',at:0,reveal:2.4,
      explain:'Foam takes 30 ms to stop the egg, so the peak force is only about 14 N, below the ~30 N that cracks a shell.'},
-    {lvl:'bio',q:'A belted dummy crashes at 50 km/h. Now add an airbag. What does the airbag do?',choices:['It reduces the dummy’s change in momentum','It makes the stop take longer, so the force is smaller','Nothing, the seat belt already stops the dummy'],correct:1,
+    {lvl:'bio',q:'A belted dummy crashes at 50 km/h. Now add an airbag. What does the airbag do?',choices:['It reduces the dummy’s change in momentum','It makes the stop longer, so less force','Nothing; the seat belt already stops it'],correct:1,
      baseline:{obj:'car',kmh:50,rest:'belt',front:'rigid'},change:{rest:'airbag'},changeText:'Airbag added',watch:'runs',at:2.2,reveal:5.5,
      explain:'The dummy goes from 50 km/h to 0 either way, so the impulse is the same. The airbag lets the stop last longer (130 ms instead of 100 ms), which lowers the peak force.'},
     {lvl:'honors',q:'A clay ball (sticks) and a rubber ball (bounces) hit the same floor at the same speed. Which one gets the larger impulse from the floor?',choices:['The clay ball','The same impulse','The rubber ball'],correct:2,
@@ -275,7 +275,7 @@ const SIM={
     {lvl:'ap',q:'An egg drops onto foam from 1 m, then from 2 m. By what factor does the peak force change?',choices:['About 1.4×','2×','4×'],correct:0,
      baseline:{obj:'egg',surface:'foam',h:1},change:{h:2},changeText:'Drop height doubled',watch:'runs',at:1.4,reveal:4.2,
      explain:'Impact speed v = √(2gh), so doubling h multiplies v, Δp and the peak force by √2 ≈ 1.41 (with the same stopping time). The kinetic energy doubles, but the force does not.'},
-    {lvl:'ap',q:'An unbelted dummy at 50 km/h slides forward and hits the dashboard. Compared with a belted dummy, what does it get?',choices:['A smaller impulse','The same impulse, but more than 10 times the peak force','A larger impulse and a larger force'],correct:1,
+    {lvl:'ap',q:'An unbelted dummy at 50 km/h slides forward and hits the dashboard. Compared with a belted dummy, what does it get?',choices:['A smaller impulse','Same impulse, over 10× the peak force','A larger impulse and a larger force'],correct:1,
      baseline:{obj:'car',kmh:50,rest:'belt',front:'rigid'},change:{rest:'none'},changeText:'Seat belt removed',watch:'runs',at:2.2,reveal:4.6,
      explain:'Either way the dummy loses 1,040 kg·m/s. The belt spreads that over about 100 ms; the dashboard does it in about 8 ms, so the peak force jumps from about 16 kN to about 200 kN.'}
   ],

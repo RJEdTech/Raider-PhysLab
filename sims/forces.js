@@ -77,11 +77,11 @@ const SIM={
   defaultGraph:'vel',
   onLevel(sim){syncMode(sim);},
   challenges:[
-    {lvl:'bio',q:'You push a 50 kg crate on a wood floor with 100 N. What happens?',choices:['It slides slowly','It stays still: friction pushes back just as hard','It speeds up quickly'],correct:1,
+    {lvl:'bio',q:'You push a 50 kg crate on a wood floor with 100 N. What happens?',choices:['It slides slowly','It stays still: friction matches it','It speeds up quickly'],correct:1,
      baseline:{mode:'push',surface:'wood',mass:50,applied:0},change:{applied:100},changeText:'Pushing with 100 N',watch:'vel',
      explain:{bio:'The floor can push back with static friction up to 0.40 × 490 N = 196 N. A 100 N push is less than that, so friction matches it exactly. The forces balance and the crate stays put.',
               honors:'Static friction is not a fixed number. It grows to match the push, up to μs·N = 0.40 × 490 N = 196 N. At 100 N it equals 100 N, so F_net = 0 and a = 0.'}},
-    {lvl:'bio',q:'A crate is sliding on a frictionless floor while you push. You stop pushing. What does the crate do?',choices:['It stops right away','It keeps moving at a constant speed','It slowly comes to a stop'],correct:1,
+    {lvl:'bio',q:'A crate is sliding on a frictionless floor while you push. You stop pushing. What does the crate do?',choices:['It stops right away','It keeps moving at constant speed','It slowly comes to a stop'],correct:1,
      baseline:{mode:'push',surface:'none',mass:50,applied:100},change:{applied:0},changeText:'You let go',watch:'vel',
      explain:{bio:'With no friction and no push, nothing acts sideways on the crate, so its motion doesn’t change. It keeps sliding at the same speed. This is Newton’s first law: objects don’t need a force to keep moving.'}},
     {lvl:'bio',q:'In a tied tug-of-war (200 N each way), one more person joins the right team (now 300 N). What happens to the cart?',choices:['It moves right at a steady speed','It speeds up to the right','Nothing; the teams are still pulling'],correct:1,

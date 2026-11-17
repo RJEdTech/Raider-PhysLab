@@ -79,7 +79,7 @@ const SIM={
      baseline:{driver:40,driven:40,course:'flat'},change:{driven:80},changeText:'Wheel gear: 80 teeth',watch:'v',at:0.5,reveal:8,
      explain:{bio:'The wheel gear has twice the teeth, so it turns once for every two turns of the motor. Top speed halves, from 0.79 to 0.39 m/s, but the push doubles.'}},
     {lvl:'bio',q:'On the 20° ramp, the 1 : 4 geared-up robot (80-tooth motor gear, 20-tooth wheel gear) stalls. What fixes it?',
-     choices:['Gear down: a smaller motor gear or a bigger wheel gear','Gear up even more','Use smaller gears on both'],correct:0,
+     choices:['Gear down: smaller motor gear or bigger wheel gear','Gear up even more, so it climbs faster','Use smaller gears on both shafts'],correct:0,
      baseline:{driver:80,driven:20,course:'ramp',ang:20},change:{driver:20,driven:20},changeText:'Gears: 20 and 20 (1 : 1)',watch:'x',at:0.5,reveal:10,
      explain:{bio:'Geared up 1 : 4, the wheels push only 5.4 N, less than the 11.4 N the ramp takes. At 1 : 1 they push 21.6 N and the robot climbs.'}},
     {lvl:'honors',q:'Which gearing wins the 3 m flat sprint?',choices:['1 : 4 geared up (80 → 20)','1 : 2 geared up (40 → 20)','1 : 1','2 : 1 geared down'],correct:1,
