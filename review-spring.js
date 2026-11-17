@@ -121,7 +121,7 @@ circuit:{
   questions:[
   {id:'house',kind:'real',lvl:'bio',
     q:'When one light in your house burns out, the others stay on. How are your house lights wired?',
-    choices:['In parallel: each has its own path','In series: one long loop','Each switch makes its own circuit','Each light has its own battery'],correct:0,
+    choices:['In parallel: each has its own path','In series: one long loop','Some other way, not a loop','Each light has its own battery'],correct:0,
     steps:['In series, one broken bulb breaks the only loop and everything goes dark.','In parallel, each bulb has its own path, so the others keep their full voltage.','Old holiday light strings were in series, which is why one bad bulb killed the whole string.'],
     lab:{set:{circuit:'parallel2'},look:'Compare the brightness of each bulb with the single bulb.'}},
   {id:'ohm',kind:'test',lvl:'bio',

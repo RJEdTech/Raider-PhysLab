@@ -660,7 +660,7 @@ torque:{
     lab:{set:{mode:'wrench',F:120,r:0.3,ang:30},look:'Read <b>Torque on the bolt</b>.'}},
   {id:'lever',kind:'test',lvl:'honors',
     q:'What is the lever arm r⊥ of a force?',
-    choices:['The length of the force arrow','The distance from the pivot to the point of push','The force multiplied by the distance','The perpendicular distance to the force’s line'],correct:3,
+    choices:['The length of the force arrow','The distance from the pivot to the push point, always','The force multiplied by the distance','The perpendicular distance to the force’s line'],correct:3,
     steps:['Draw the force’s line of action through its arrow.','The lever arm is the shortest (perpendicular) distance from the pivot to that line.','r⊥ = r sinθ, so τ = r⊥F.']},
   {id:'needr',kind:'test',lvl:'honors',
     q:'A bolt needs 45 N·m to loosen. You can push at most 150 N, straight across the handle. What is the shortest distance from the bolt you can push at?',
