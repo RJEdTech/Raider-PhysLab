@@ -77,7 +77,7 @@ const SIM={
     {lvl:'honors',q:'A 2 kg block slides down a wooden ramp at 40°. You swap it for a 10 kg block. What happens to the acceleration?',choices:['5 times bigger','The same','5 times smaller'],correct:1,
      baseline:{angle:40,mass:2,surface:'wood',push:0,phi:0},change:{mass:10},changeText:'Mass changed to 10 kg',watch:'acc',
      explain:{honors:'Every force here is proportional to m: mg·sinθ, and friction μk·mg·cosθ. Dividing by m cancels it: a = g(sinθ − μk cosθ) = 9.8(0.643 − 0.30 × 0.766) = 4.05 m/s² for any mass.'}},
-    {lvl:'honors',q:'A block sits on a rubber ramp at 10°. You raise the ramp to 44° and the block still holds. What happens to the normal force?',choices:['It stays equal to the weight','It gets smaller','It gets bigger'],correct:1,
+    {lvl:'honors',q:'A block sits on a rubber ramp at 10°. You raise the ramp to 44° and the block still holds. What happens to the normal force?',choices:['It stays the same','It gets smaller','It gets bigger'],correct:1,
      baseline:{angle:10,mass:10,surface:'rubber',push:0,phi:0},change:{angle:44},changeText:'Ramp raised to 44°',watch:'comp',
      explain:{honors:'Only the part of gravity into the ramp, mg·cosθ, presses the block onto it: 98 × cos10° = 96.5 N, but 98 × cos44° = 70.5 N. Meanwhile mg·sinθ rose from 17 N to 68 N, still less than μs·N = 70.5 N.'}},
     {lvl:'honors',instant:true,q:'You slowly tilt a ramp; the block first starts to slide at 31°. What is μs between them?',choices:['0.31','0.52','0.60','0.86'],correct:2,

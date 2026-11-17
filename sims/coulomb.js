@@ -117,7 +117,7 @@ const COUL={
     {lvl:'bio',q:'The charges are 10 cm apart. If you pull them to 20 cm apart, the force becomes…',choices:['half as strong','one quarter as strong','twice as strong','the same'],correct:1,
      baseline:{mode:'two',q1:3,q2:-2,r:10},change:{r:20},changeText:'Distance doubled from 10 cm to 20 cm',watch:'fr',
      explain:{bio:'The force dropped from 5.39 N to 1.35 N, one quarter. Electric force fades with the square of distance, so doubling the distance gives 1/4 of the force.',honors:'F ∝ 1/r²: (10/20)² = 1/4. The force went from 5.39 N to 1.35 N.'}},
-    {lvl:'bio',q:'In the balloon setup, a rubbed balloon is moved close to the electroscope but does not touch it. What do the leaves do?',choices:['They spread apart','Nothing until the balloon touches','They pull together'],correct:0,
+    {lvl:'bio',q:'In the balloon setup, a rubbed balloon is moved close to the electroscope but does not touch it. What do the leaves do?',choices:['They spread apart','Nothing until it touches','They pull together'],correct:0,
      baseline:{mode:'static',r:18},baselineAction:'rub',change:{r:3},changeText:'Balloon moved to 3 cm from the electroscope',
      explain:{bio:'The balloon’s extra electrons push the electroscope’s own electrons down into the leaves. Both leaves become negative and repel each other. Charging without touching is called induction.'}},
     {lvl:'honors',q:'If you double q₁ from 3 μC to 6 μC, what happens to the force?',choices:['It doubles','It quadruples','It stays the same','It halves'],correct:0,

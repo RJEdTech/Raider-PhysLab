@@ -98,7 +98,7 @@ const SIM={
      baseline:{method:'pull',surface:'wood',added:0,face:'large'},change:{},changeText:'Watch the scale',watch:'force',at:0.2,reveal:5,
      explain:{bio:'The reading climbs to a peak just before the block moves (about 2.2 N), then drops to a steady 1.5 N while it slides. Surfaces at rest settle into each other, so they grip harder than surfaces that are already sliding.',
               honors:'The peak is maximum static friction, μs·N = 0.45 × 4.9 = 2.2 N. The plateau is kinetic friction, μk·N = 0.30 × 4.9 = 1.5 N. For almost every pair of surfaces μs > μk.'}},
-    {lvl:'bio',q:'The block is on sandpaper. You switch the table surface to ice. What happens to the pull needed to keep it moving?',choices:['It goes up','It goes down a lot','It stays the same, because the block didn’t change'],correct:1,
+    {lvl:'bio',q:'The block is on sandpaper. You switch the table surface to ice. What happens to the pull needed to keep it moving?',choices:['It goes up','It goes down a lot','It stays the same'],correct:1,
      baseline:{method:'pull',surface:'sandpaper',added:0,face:'large'},change:{surface:'ice'},changeAction:'again',changeText:'Surface switched to ice',watch:'force',
      explain:{bio:'Sandpaper is full of sharp bumps that catch the block; ice is smooth and slippery. The same block needed about 3.2 N on sandpaper but only about 0.25 N on ice.'}},
     {lvl:'honors',q:'You flip the block onto its narrow face, so far less of it touches the table. What happens to kinetic friction?',choices:['It drops to about a third','It stays about the same','It roughly triples'],correct:1,
@@ -109,7 +109,7 @@ const SIM={
     {lvl:'ap',q:'The block slides across wood (μk = 0.30) launched at 2.0 m/s. How far does it slide before stopping?',choices:['0.34 m','0.68 m','1.36 m','2.0 m'],correct:1,
      baseline:{method:'slide',surface:'wood',added:0,v0:2},change:{},changeText:'Launched at 2.0 m/s',watch:'vel',at:0.1,reveal:3,
      explain:{ap:'Friction is the only horizontal force, so a = −μk·g = −2.94 m/s², independent of mass. v² = v0² + 2aΔx gives d = v0²/(2μk g) = 4 ÷ 5.88 = 0.68 m.'}},
-    {lvl:'ap',instant:true,q:'You graph kinetic friction (y) against normal force (x) for one surface with several masses. What does the slope of the best-fit line mean?',choices:['The block’s mass','The coefficient μk','The acceleration due to gravity','The pulling speed'],correct:1,
+    {lvl:'ap',instant:true,q:'You graph kinetic friction (y) against normal force (x) for one surface with several masses. What does the slope of the best-fit line mean?',choices:['The block’s mass','The coefficient μk','The acceleration g','The pulling speed'],correct:1,
      explain:{ap:'f_k = μk·N is a line through the origin with slope μk. Fitting a line through many trials averages out sensor noise, which is why the graph gives a better μk than any single pull. A non-zero intercept would hint at a systematic error, such as an un-zeroed scale.'}}
   ],
   narrate(sim){const p=sim.p,s=sim.st,N=normalOf(p),mu=muOf(p),hon=atLeast('honors'),sf=SURF[p.surface].l.toLowerCase();

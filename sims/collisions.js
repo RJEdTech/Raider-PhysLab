@@ -277,7 +277,7 @@ const SIM={
     {lvl:'bio',q:'A bouncy (elastic) collision between two identical 1 kg carts. A moves at 0.8 m/s and B is at rest. What happens?',choices:['They both move forward at 0.4 m/s','A stops and B moves off at 0.8 m/s','A bounces back and B barely moves'],correct:1,
      baseline:{mode:'track',type:'elastic',mA:1,mB:1,vA:0.8,vB:0},changeText:'Carts released',watch:'vel',at:0,reveal:2.6,
      explain:'With equal masses in an elastic collision, the carts swap velocities: A stops dead and B leaves at 0.8 m/s. That is the only result that keeps both momentum and kinetic energy the same.'},
-    {lvl:'bio',q:'A 1 kg cart and a 0.5 kg cart start at rest and a spring pushes them apart. Which one moves faster?',choices:['The 1 kg cart','They move at the same speed','The 0.5 kg cart'],correct:2,
+    {lvl:'bio',q:'A 1 kg cart and a 0.5 kg cart start at rest and a spring pushes them apart. Which one moves faster?',choices:['The 1 kg cart','The same speed','The 0.5 kg cart'],correct:2,
      baseline:{mode:'track',type:'explode',mA:1,mB:0.5,spring:0.4},changeText:'Spring released',watch:'vel',at:0,reveal:2.4,
      explain:'Before, the total momentum is zero, so afterwards the carts must have equal and opposite momenta. The 0.5 kg cart needs twice the speed to match the 1 kg cart’s momentum.'},
     {lvl:'honors',q:'A 1.0 kg cart at 0.6 m/s sticks to a 0.5 kg cart at rest. How fast do they move together?',choices:['0.3 m/s','0.4 m/s','0.6 m/s'],correct:1,

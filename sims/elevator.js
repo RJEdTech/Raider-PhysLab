@@ -124,7 +124,7 @@ const SIM={
      baseline:{ride:'up',vmax:4.0},watch:'N',reveal:3.0,
      explain:{honors:'The scale depends on the acceleration, not the speed. a is still +1.0 m/s², so N = 60 × 10.8 = 648 N. Speeding up to 4.0 m/s just takes 4.0 s instead of 2.0 s.'}},
     {lvl:'honors',instant:true,q:'A 60 kg rider’s scale reads 480 N. Is the elevator moving down?',
-     choices:['Yes, it must be moving down','Not necessarily: up and slowing, or down and speeding up','No, it must be moving up'],correct:1,
+     choices:['Yes, it must be moving down','Not necessarily','No, it must be moving up'],correct:1,
      explain:{honors:'a = N/m − g = 480 ÷ 60 − 9.8 = 8.0 − 9.8 = −1.8 m/s². The acceleration points down. That happens going down while speeding up, or going up while slowing down. The scale tells you the direction of a, not of v.'}},
     {lvl:'ap',q:'An elevator car (M = 1000 kg) carries a 60 kg rider and speeds up going up at 1.0 m/s². What is the cable tension? No counterweight.',
      choices:['11,448 N','10,388 N','9,328 N','648 N'],correct:0,

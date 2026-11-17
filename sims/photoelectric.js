@@ -136,7 +136,7 @@ const SIM={
     if(M.V>0)s+=' The '+M.V.toFixed(2)+' V stopping voltage turns back the slower ones; '+Math.round(M.frac*100)+'% still reach the collector.';
     return s;},
   challenges:[
-    {lvl:'bio',q:'Red light (700 nm) frees no electrons from zinc. What happens if you make the red light four times brighter?',choices:['Electrons start coming out','Still no electrons','A few electrons trickle out after a delay'],correct:1,
+    {lvl:'bio',q:'Red light (700 nm) frees no electrons from zinc. What happens if you make the red light four times brighter?',choices:['Electrons start coming out','Still no electrons','A few, after a delay'],correct:1,
       baseline:{metal:'zinc',lam:700,I:25},change:{I:100},changeText:'Brightness raised from 25% to 100%',watch:'budget',
       explain:{bio:'Brighter light means more photons, but each red photon still has only 1.77 eV, far short of zinc’s 4.33 eV. One photon has to do the whole job, so piling on more weak photons never frees an electron.',
         ap:'Each photon is absorbed by one electron, so E = hf must exceed φ. With hf = 1.77 eV < 4.33 eV, the rate of ejection is zero at any intensity. The wave model predicted the opposite.'}},
@@ -144,7 +144,7 @@ const SIM={
       baseline:{metal:'zinc',lam:250,I:25},change:{I:100},changeText:'Brightness raised from 25% to 100%',watch:'budget',
       explain:{bio:'The fastest electron gets one photon’s energy minus the escape cost: 4.96 − 4.33 = 0.63 eV, whatever the brightness. Brighter light just frees more electrons per second.',
         ap:'KEmax = hf − φ has no intensity term. Intensity sets the photon flux, so it scales the number of photoelectrons (the current), not their maximum energy.'}},
-    {lvl:'bio',q:'Red light (650 nm) frees no electrons from sodium. Keep the same brightness and switch to blue light (450 nm). What happens?',choices:['Still nothing, because blue is no brighter','Electrons come out','Fewer electrons than before'],correct:1,
+    {lvl:'bio',q:'Red light (650 nm) frees no electrons from sodium. Keep the same brightness and switch to blue light (450 nm). What happens?',choices:['Still nothing','Electrons come out','Fewer electrons than before'],correct:1,
       baseline:{metal:'sodium',lam:650,I:60},change:{lam:450},changeText:'Switched from 650 nm red to 450 nm blue',watch:'budget',
       explain:{bio:'A blue photon carries 2.76 eV, more than the 2.28 eV sodium needs, while a red photon carries only 1.91 eV. Color, not brightness, decides whether each photon can free an electron.',
         honors:'Sodium’s threshold wavelength is 1240/2.28 ≈ 544 nm. Light shorter than that (higher frequency) has hf > φ and frees electrons; longer wavelengths never do.'}},
@@ -169,7 +169,7 @@ const SIM={
     {lvl:'ap',q:'Sodium under 400 nm light has KEmax = 0.82 eV. You halve the wavelength to 200 nm, doubling the frequency. KEmax becomes…',choices:['Exactly double (1.64 eV)','More than double','Less than double'],correct:1,
       baseline:{metal:'sodium',lam:400,I:60},change:{lam:200},changeText:'Wavelength halved to 200 nm',watch:'kef',
       explain:{ap:'Photon energy doubles from 3.10 to 6.20 eV, but the 2.28 eV work function is paid only once: KEmax = 6.20 − 2.28 = 3.92 eV, nearly 5 times larger. KEmax is linear in f, not proportional to it.'}},
-    {lvl:'ap',q:'250 nm UV on zinc, with the stopping voltage held at 0.30 V. You double the brightness from 40% to 80%. The current…',choices:['Doubles','Stays the same, because the voltage sets the current','Rises, but less than double'],correct:0,
+    {lvl:'ap',q:'250 nm UV on zinc, with the stopping voltage held at 0.30 V. You double the brightness from 40% to 80%. The current…',choices:['Doubles','Stays the same','Rises, but less than double'],correct:0,
       baseline:{metal:'zinc',lam:250,I:40,V:0.3},change:{I:80},changeText:'Brightness doubled',watch:'iv',
       explain:{ap:'At a fixed retarding voltage, the same fraction of electrons (those with KE > 0.30 eV) reaches the collector. Doubling the photon flux doubles the number freed, so the current doubles: I ∝ intensity at every V below V stop.'}}
   ],

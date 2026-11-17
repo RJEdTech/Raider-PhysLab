@@ -105,7 +105,7 @@ const SIM={
      baseline:{mode:'push',m1:1.0,m2:2.0,F:0},change:{F:6},changeText:'Pushing with 6 N',watch:'contact',reveal:2.7,
      explain:{honors:'The whole 3.0 kg system accelerates at 6 ÷ 3 = 2 m/s². The front block only needs m₂a = 2.0 × 2 = 4 N to keep up. The other 2 N of your push accelerates the 1.0 kg block itself.'}},
     {lvl:'ap',q:'m₁ = 1.0 kg, m₂ = 1.5 kg. You replace the ideal pulley with a 2.0 kg solid disk. What happens to the acceleration?',
-     choices:['Same: the pulley just turns','Smaller','Larger'],correct:1,
+     choices:['The same','Smaller','Larger'],correct:1,
      baseline:{mode:'atwood',m1:1.0,m2:1.5,Mp:0},change:{Mp:2.0},changeText:'Pulley is now a 2.0 kg disk',watch:'acc',at:1.0,reveal:3.0,
      explain:{ap:'The pulley needs a net torque to spin up, which adds rotational inertia: a = (m₂ − m₁)g/(m₁ + m₂ + M/2) = 4.9/3.5 = 1.40 m/s², down from 1.96 m/s².'}},
     {lvl:'ap',instant:true,q:'With the 2.0 kg disk pulley (m₁ = 1.0 kg, m₂ = 1.5 kg, a = 1.40 m/s²), how do the two string tensions compare?',

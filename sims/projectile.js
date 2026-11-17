@@ -244,7 +244,7 @@ const SIM={
     {lvl:'ap',q:'Air resistance on, ping-pong ball at 20 m/s. Which angle in the fan goes farthest?',choices:['Exactly 45°','Less than 45°','More than 45°'],correct:1,
       baseline:{mode:'free',air:true,obj:'pingpong',cd:0.5,dia:0.04,v0:20,h0:0},baselineAction:'clear',changeAction:'fan',changeText:'Firing a fan with drag',at:0.4,reveal:4.4,watch:'dist',
       explain:{ap:'The 35° shot wins (about 10.0 m versus 9.6 m at 45°). Drag hurts most where the ball spends the most time and speed, so a flatter shot that reaches the ground sooner keeps more of its horizontal velocity. A heavy cannonball barely shifts from 45°; a light ping-pong ball shifts a lot, because drag per unit mass, ρC<sub>d</sub>A/2m, is far larger.'}},
-    {lvl:'ap',q:'With air resistance on, which half of a ping-pong ball’s flight takes longer?',choices:['Launch to peak','Peak to landing','Both halves take the same time'],correct:1,
+    {lvl:'ap',q:'With air resistance on, which half of a ping-pong ball’s flight takes longer?',choices:['Launch to peak','Peak to landing','Both the same'],correct:1,
       baseline:{mode:'free',air:true,obj:'pingpong',cd:0.5,dia:0.04,v0:20,ang:60,h0:0},baselineAction:'clear',changeAction:'fire',changeText:'Fired with drag',at:0.4,reveal:4.4,watch:'ht',
       explain:{ap:'The way down takes longer. Going up, drag and gravity both point down, so v<sub>y</sub> drops faster than g alone. Coming down, drag points up against gravity, so the ball speeds up more slowly than g. The path is no longer a symmetric parabola.'}}
   ],

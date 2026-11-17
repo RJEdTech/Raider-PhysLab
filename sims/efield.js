@@ -148,7 +148,7 @@ const EF={
   onTourExit(sim){BioLab.setValues(sim,{preset:'single',q:2,tx:24,ty:9,vx:24,vy:3,eq:false});},
   onChallenge(sim,ch,phase){if(ch&&ch.instant&&ch.set&&phase==='done')BioLab.setValues(sim,ch.set);},
   challenges:[
-    {lvl:'bio',instant:true,set:{preset:'dipole',q:2,lines:true,vec:false},q:'In a + and − pair, where do electric field lines begin and end?',choices:['They begin on − and end on +','They begin on + and end on −','They form closed loops around each charge'],correct:1,
+    {lvl:'bio',instant:true,set:{preset:'dipole',q:2,lines:true,vec:false},q:'In a + and − pair, where do electric field lines begin and end?',choices:['They begin on − and end on +','They begin on + and end on −','They form closed loops'],correct:1,
      explain:{bio:'Field lines show the direction a + test charge is pushed: away from + and toward −. So they start on the + charge and end on the − charge. The scene now shows the pair with field lines on.'}},
     {lvl:'bio',q:'Field lines are packed closer together near the charge. If the test charge moves from 8 cm away to 4 cm away, the field it feels becomes…',choices:['twice as strong','four times as strong','half as strong'],correct:1,
      baseline:{preset:'single',q:2,tx:24,ty:9,lines:true},change:{tx:20},changeText:'Test charge moved from 8 cm to 4 cm from the charge',watch:'eline',

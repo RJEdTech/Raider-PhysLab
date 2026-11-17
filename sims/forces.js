@@ -77,7 +77,7 @@ const SIM={
   defaultGraph:'vel',
   onLevel(sim){syncMode(sim);},
   challenges:[
-    {lvl:'bio',q:'You push a 50 kg crate on a wood floor with 100 N. What happens?',choices:['It slides slowly','It stays still: friction matches it','It speeds up quickly'],correct:1,
+    {lvl:'bio',q:'You push a 50 kg crate on a wood floor with 100 N. What happens?',choices:['It slides slowly','It stays still','It speeds up quickly'],correct:1,
      baseline:{mode:'push',surface:'wood',mass:50,applied:0},change:{applied:100},changeText:'Pushing with 100 N',watch:'vel',
      explain:{bio:'The floor can push back with static friction up to 0.40 × 490 N = 196 N. A 100 N push is less than that, so friction matches it exactly. The forces balance and the crate stays put.',
               honors:'Static friction is not a fixed number. It grows to match the push, up to μs·N = 0.40 × 490 N = 196 N. At 100 N it equals 100 N, so F_net = 0 and a = 0.'}},
@@ -93,7 +93,7 @@ const SIM={
     {lvl:'honors',q:'Pushing a 50 kg crate on wood, you raise your push from 180 N to 220 N and it breaks free. What happens to the friction force once it starts sliding?',choices:['Friction gets bigger','Friction gets smaller','Friction stays at 180 N'],correct:1,
      baseline:{mode:'push',surface:'wood',mass:50,applied:180},change:{applied:220},changeText:'Push raised to 220 N',watch:'fnet',
      explain:{honors:'Before sliding, static friction was 180 N. Once moving, kinetic friction is μk·N = 0.30 × 490 = 147 N. That’s less than the 196 N it took to break free. So the net force jumps to 220 − 147 = 73 N.'}},
-    {lvl:'honors',instant:true,q:'You push a 200 kg fridge with 300 N, but it doesn’t move. How hard does the fridge push back on you?',choices:['0 N, because it isn’t moving','300 N','Less than 300 N, because the fridge is winning','1960 N, its weight'],correct:1,
+    {lvl:'honors',instant:true,q:'You push a 200 kg fridge with 300 N, but it doesn’t move. How hard does the fridge push back on you?',choices:['0 N, because it isn’t moving','300 N','Less than 300 N','1960 N'],correct:1,
      explain:{honors:'Newton’s third law: the force the fridge exerts on you is always equal and opposite to the force you exert on it, 300 N. That’s true whether or not anything moves. The fridge stays still because static friction from the floor balances your push on it.'}},
     {lvl:'ap',instant:true,q:'A 40 kg crate on a floor with μk = 0.30 is pushed horizontally with 200 N while sliding. What is its acceleration?',choices:['5.0 m/s²','2.1 m/s²','2.9 m/s²','0 m/s²'],correct:1,
      explain:{ap:'f_k = μk·m·g = 0.30 × 40 × 9.8 = 117.6 N. F_net = 200 − 117.6 = 82.4 N, and a = 82.4 / 40 = 2.06 m/s².'}},

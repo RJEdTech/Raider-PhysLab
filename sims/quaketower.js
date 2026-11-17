@@ -92,7 +92,7 @@ const SIM={
      baseline:{f:1.5,brace:'none',load:0.5},change:{f:2.2},changeText:'Shaking at 2.2 Hz',watch:'sway',at:1,reveal:9,
      explain:{bio:'Shaking at the tower’s own natural frequency is resonance: each shake adds to the sway, and the tower breaks. At 1.5 Hz the sway stays about half a centimeter.'}},
     {lvl:'bio',q:'The tower is collapsing at 2.2 Hz. You add X-braces and rebuild. What happens?',
-     choices:['It still collapses at 2.2 Hz','It survives: braces push its natural frequency up','It survives only if you add more load'],correct:1,
+     choices:['It still collapses at 2.2 Hz','It survives','It survives only if you add more load'],correct:1,
      baseline:{f:2.2,brace:'none',load:0.5},change:{brace:'x'},changeText:'X-braces added',watch:'sway',at:1,reveal:9,
      explain:{bio:'X-braces stop the frame from leaning, so it is about 9 times stiffer and its natural frequency jumps to about 6.5 Hz. Shaking at 2.2 Hz is now far from resonance and the sway stays tiny.'}},
     {lvl:'honors',q:'An X-braced tower survives 2.2 Hz. You pile more load on top. What happens to its natural frequency?',

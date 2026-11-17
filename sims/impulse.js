@@ -265,7 +265,7 @@ const SIM={
     {lvl:'honors',q:'A clay ball (sticks) and a rubber ball (bounces) hit the same floor at the same speed. Which one gets the larger impulse from the floor?',choices:['The clay ball','The same impulse','The rubber ball'],correct:2,
      baseline:{obj:'ball',ball:'clay',surface:'carpet',h:1},change:{ball:'rubber'},changeText:'Now the rubber ball',watch:'runs',at:1.2,reveal:3.4,
      explain:'The clay ball’s momentum goes from mv to 0. The rubber ball’s goes from mv downward to 0.8mv upward, a change of 1.8mv. The floor has to supply the extra impulse to throw it back.'},
-    {lvl:'honors',q:'Seat belt on, 50 km/h. Replace the rigid frame with a crumple zone. What happens to the peak force on the dummy?',choices:['It goes up, because the car is damaged more','It goes down','It stays the same'],correct:1,
+    {lvl:'honors',q:'Seat belt on, 50 km/h. Replace the rigid frame with a crumple zone. What happens to the peak force on the dummy?',choices:['It goes up','It goes down','It stays the same'],correct:1,
      baseline:{obj:'car',kmh:50,rest:'belt',front:'rigid'},change:{front:'crumple'},changeText:'Crumple zone fitted',watch:'runs',at:2.2,reveal:6.6,
      explain:'The crumple zone crushes about 80 cm instead of 30 cm, stretching the car’s stop from 40 ms to 120 ms. The dummy’s stop gets longer too, so the same impulse comes with a smaller force: about 9 kN instead of 16 kN.'},
     {lvl:'honors',instant:true,q:'The 0.06 kg egg hits foam at 4.4 m/s and stops in 30 ms. What is the average force on it?',choices:['About 0.13 N','About 9 N','About 130 N'],correct:1,
