@@ -124,6 +124,12 @@ function ghostFeather(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.
 /* where the no-air rule says a dropped object is at time t */
 function ffRuleY(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.max(0,sim.p.h-0.5*g*sim.t*sim.t);}
 function ffRuleT(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.sqrt(2*sim.p.h/g);}
+/* Commit first: guess buttons in the step text. Real buttons, so keyboards work. The pick is kept in sim._picks[key]. */
+function pickHTML(key,q,choices){return '<span class="think-pick" data-pick="'+key+'" role="group" aria-label="Your guess" style="display:block;margin-top:8px"><b style="color:'+THINK+'">'+q+'</b><br>'+choices.map(([v,l])=>'<button type="button" class="btn" data-pv="'+v+'" aria-pressed="false" style="border:2px solid '+THINK+';color:'+THINK+';background:transparent;margin:6px 8px 0 0">'+l+'</button>').join('')+'</span>';}
+function pickSync(sim){const b0=sim.ui&&sim.ui.tourbar;if(!b0)return;b0.querySelectorAll('[data-pick]').forEach(g=>{const v=(sim._picks||{})[g.dataset.pick];g.querySelectorAll('[data-pv]').forEach(b=>{const on=b.dataset.pv===v;b.setAttribute('aria-pressed',String(on));b.style.background=on?THINK:'transparent';b.style.color=on?'#fff':THINK;});});}
+function pickWire(sim){if(!sim._pickWired&&sim.ui&&sim.ui.tourbar){sim._pickWired=true;sim.ui.tourbar.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pv]');if(!b)return;const g=b.closest('[data-pick]');sim._picks=sim._picks||{};sim._picks[g.dataset.pick]=b.dataset.pv;pickSync(sim);});}setTimeout(()=>pickSync(sim),0);}
+const pickOf=(sim,key)=>(sim._picks||{})[key];
+const FFGUESS={A:'Bowling first',T:'Together',B:'Tennis first'};
 /* the no-air feather ghost, in lane B */
 function ffFeatherGhost(sim,ctx,k,lab){const y=ffRuleY(sim),gy=ffY(sim,y,'feather');ghostFeather(ctx,FF.XB,gy,FF.R.feather);
   if(y<=0)tag(ctx,lab||('No-air rule: '+ffRuleT(sim).toFixed(2)+' s'),FF.XB-78,FF.GY-62,k,{s:12,c:THINK});}
@@ -142,13 +148,16 @@ freefall: {
     tag(ctx,'10 m: about the roof of a 3-story building',300,250,k,{s:12});},
   steps: [
     { key: 'setup', title: 'The drop tower', set: FFDEF, fresh: true, pause: true,
-      see: 'Two balls sit on a ledge 10 m up. The ruler measures height above the ground. The stopwatch on the right will stop for each ball when it lands.',
+      see: 'Two balls sit on a ledge 10 m up. The ruler measures height above the ground. The stopwatch on the right will stop for each ball when it lands.'+pickHTML('ff','Your guess first: with no air, which lands first?',[['A','Bowling ball first'],['T','They land together'],['B','Tennis ball first']]),
+      run(sim){pickWire(sim);},
       why: 'To test one thing, change only one thing. Both balls start at the same height at the same moment, with the air switched off, so the only difference between them is their mass. The balls are drawn several times bigger than the tower’s scale so you can see them: a real bowling ball is 22 cm across and a tennis ball 6.7 cm.',
-      overlay(sim,ctx,LH,k){tag(ctx,'7 kg, 22 cm',FF.XA-60,ffY(sim,10,'bowling')-30,k,{s:12});tag(ctx,'60 g, 6.7 cm',FF.XB+56,ffY(sim,10,'tennis')-30,k,{s:12});tag(ctx,'Air: off',300,250,k,{s:13,hi:true});} },
+      overlay(sim,ctx,LH,k){tag(ctx,'7 kg, 22 cm',FF.XA-60,ffY(sim,10,'bowling')-30,k,{s:12});tag(ctx,'60 g, 6.7 cm',FF.XB+56,ffY(sim,10,'tennis')-30,k,{s:12});tag(ctx,'Air: off',300,250,k,{s:13,hi:true});
+        const g=pickOf(sim,'ff');if(g)tag(ctx,'Your guess: '+FFGUESS[g],647,345,Math.min(k,1.1),{s:13,c:THINK});} },
     { key: 'drop', title: 'Release both', set: FFDEF, fresh: true, speed: 0.5,
       see: 'Both balls let go at the same instant, in slow motion. Watch the stopwatch: they hit the ground together, at 1.43 s.',
       why: 'Without air, mass makes no difference to how a thing falls. More than 100 times the mass, and they stay side by side all the way down.',
-      overlay(sim,ctx,LH,k){const A=sim.st.A,B=sim.st.B;if(A.land!==null&&B.land!==null)tag(ctx,'Both landed at '+A.land.toFixed(2)+' s',305,360,k,{s:14,hi:true});else tag(ctx,'Which lands first?',305,250,k,{s:13});} },
+      overlay(sim,ctx,LH,k){const A=sim.st.A,B=sim.st.B,g=pickOf(sim,'ff'),done=A.land!==null&&B.land!==null;if(done)tag(ctx,'Both landed at '+A.land.toFixed(2)+' s',305,360,k,{s:14,hi:true});else tag(ctx,'Which lands first?',305,250,k,{s:13});
+        if(g)tag(ctx,'Your guess: '+FFGUESS[g]+(done?(g==='T'?'  ✓':'  ✗'):''),647,345,Math.min(k,1.1),{s:13,c:THINK});} },
     { key: 'old', title: 'The old idea', set: FFDEF, fresh: true, speed: 0.5,
       see: 'The dashed ball is the old idea. Aristotle taught that something 117 times heavier falls 117 times faster, so the bowling ball would hit the ground almost at once. The real balls still land together.',
       why: 'People believed this for almost 2,000 years because it sounds right. Then it was tested. In 1586 Simon Stevin dropped two lead balls, one ten times heavier, from a church tower in Delft, and they landed together. A good story is not evidence. A test is.',
