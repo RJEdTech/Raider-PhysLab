@@ -107,32 +107,34 @@ function ffCard(ctx,k,lines,y){y=y||352;const h=12+lines.length*20;ctx.save();ct
   lines.forEach((L,i)=>{let sz=(L[2]||12.5)*k;ctx.font=(L[1]||500)+' '+sz+'px '+H.FONT;const tw=ctx.measureText(L[0]).width;if(tw>264)sz*=264/tw;H.txt(ctx,L[0],516,y+20+i*20,{s:sz,w:L[1]||500,c:L[3]||PAL['cv-ink']});});}
 const FFDEF={objA:'bowling',objB:'tennis',h:10,air:false,planet:'earth',bounce:false,v0:0};
 /* ---------- Think again: shared visual moves (pilot, Nov 17 2026) ----------
-   A purple badge marks a thinking moment; a dashed purple "ghost" is a prediction
+   A magenta badge marks a thinking moment; a dashed magenta "ghost" is a prediction
    (an old idea, or a model's rule) drawn beside what really happens. */
-const THINK='#6a4fc4';
-function thinkBadge(ctx,kind,label,k,tau){k=Math.min(k,1.3);const sz=12.5*k;ctx.save();ctx.font='700 '+sz+'px '+H.FONT;const tw=ctx.measureText(label).width,ic=22*k,w=tw+ic+sz*1.6,h=sz*2.2,x=20,y=18;
-  H.rr(ctx,x,y,w,h,h/2);ctx.fillStyle=PAL['cv-sol'];ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=THINK;ctx.stroke();
-  const cx=x+sz*0.7+ic/2,cy=y+h/2;ctx.strokeStyle=THINK;ctx.fillStyle=THINK;ctx.lineWidth=1.8;
+/* Magenta, because the series colors (s1–s6) already use purple, blue, red, green, orange and teal. */
+function TK(){const c=(PAL['cv-bg']||'#fff').replace('#','');if(c.length>=6){const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);if((r*0.3+g*0.59+b*0.11)<110)return '#ec74da';}return '#a8178f';}
+function TKA(a){return TK()==='#a8178f'?'rgba(168,23,143,'+a+')':'rgba(236,116,218,'+a+')';}
+function thinkBadge(ctx,kind,label,k,tau,pos){k=Math.min(k,1.3);const sz=12.5*k;ctx.save();ctx.font='700 '+sz+'px '+H.FONT;const tw=ctx.measureText(label).width,ic=22*k,w=tw+ic+sz*1.6,h=sz*2.2;let x=pos&&pos.x!=null?pos.x:20,y=pos&&pos.y!=null?pos.y:18;if(pos&&pos.right)x=pos.right-w;
+  H.rr(ctx,x,y,w,h,h/2);ctx.fillStyle=PAL['cv-sol'];ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=TK();ctx.stroke();
+  const cx=x+sz*0.7+ic/2,cy=y+h/2;ctx.strokeStyle=TK();ctx.fillStyle=TK();ctx.lineWidth=1.8;
   if(kind==='old'){ctx.setLineDash([3,2.5]);ctx.beginPath();ctx.arc(cx+3*k,cy,6*k,0,6.29);ctx.stroke();ctx.setLineDash([]);[-3,0,3].forEach(d=>{ctx.beginPath();ctx.moveTo(cx-9*k,cy+d*k);ctx.lineTo(cx-4*k,cy+d*k);ctx.stroke();});}
   else if(kind==='assume'){const f=ease(clamp(((tau||0)-0.4)/0.5,0,1)),sw=20*k,sh=11*k;H.rr(ctx,cx-sw/2,cy-sh/2,sw,sh,sh/2);ctx.globalAlpha=0.25+0.75*f;ctx.fill();ctx.globalAlpha=1;ctx.stroke();
     ctx.beginPath();ctx.arc(cx-sw/2+sh/2+f*(sw-sh),cy,sh/2-1.5,0,6.29);ctx.fillStyle='#fff';ctx.fill();ctx.stroke();}
   else{ctx.beginPath();ctx.arc(cx-2*k,cy-2*k,5.5*k,0,6.29);ctx.stroke();ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(cx+2*k,cy+2*k);ctx.lineTo(cx+7*k,cy+7*k);ctx.stroke();}
-  H.txt(ctx,label,x+sz*0.7+ic+sz*0.4,cy+1,{s:sz,w:700,c:THINK,b:'middle'});ctx.restore();}
-function ghostBall(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle=THINK;ctx.fillStyle='rgba(106,79,196,.10)';ctx.beginPath();ctx.arc(x,y,r,0,6.29);ctx.fill();ctx.stroke();ctx.restore();}
-function ghostFeather(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.translate(x,y);ctx.rotate(-0.5);ctx.setLineDash([4,3]);ctx.lineWidth=1.8;ctx.strokeStyle=THINK;ctx.fillStyle='rgba(106,79,196,.10)';
+  H.txt(ctx,label,x+sz*0.7+ic+sz*0.4,cy+1,{s:sz,w:700,c:TK(),b:'middle'});ctx.restore();}
+function ghostBall(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle=TK();ctx.fillStyle=TKA(.10);ctx.beginPath();ctx.arc(x,y,r,0,6.29);ctx.fill();ctx.stroke();ctx.restore();}
+function ghostFeather(ctx,x,y,r,a){ctx.save();ctx.globalAlpha=a==null?0.9:a;ctx.translate(x,y);ctx.rotate(-0.5);ctx.setLineDash([4,3]);ctx.lineWidth=1.8;ctx.strokeStyle=TK();ctx.fillStyle=TKA(.10);
   ctx.beginPath();ctx.moveTo(-r+3,0);ctx.quadraticCurveTo(0,-11,r+3,-1);ctx.quadraticCurveTo(0,10,-r+3,0);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-r-1,0);ctx.lineTo(r+5,0);ctx.stroke();ctx.restore();}
 /* where the no-air rule says a dropped object is at time t */
 function ffRuleY(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.max(0,sim.p.h-0.5*g*sim.t*sim.t);}
 function ffRuleT(sim){const g=sim.p.planet==='moon'?1.62:sim.p.planet==='mars'?3.71:9.8;return Math.sqrt(2*sim.p.h/g);}
 /* Commit first: guess buttons in the step text. Real buttons, so keyboards work. The pick is kept in sim._picks[key]. */
-function pickHTML(key,q,choices){return '<span class="think-pick" data-pick="'+key+'" role="group" aria-label="Your guess" style="display:block;margin-top:8px"><b style="color:'+THINK+'">'+q+'</b><br>'+choices.map(([v,l])=>'<button type="button" class="btn" data-pv="'+v+'" aria-pressed="false" style="border:2px solid '+THINK+';color:'+THINK+';background:transparent;margin:6px 8px 0 0">'+l+'</button>').join('')+'</span>';}
-function pickSync(sim){const b0=sim.ui&&sim.ui.tourbar;if(!b0)return;b0.querySelectorAll('[data-pick]').forEach(g=>{const v=(sim._picks||{})[g.dataset.pick];g.querySelectorAll('[data-pv]').forEach(b=>{const on=b.dataset.pv===v;b.setAttribute('aria-pressed',String(on));b.style.background=on?THINK:'transparent';b.style.color=on?'#fff':THINK;});});}
+function pickHTML(key,q,choices){return '<span class="think-pick" data-pick="'+key+'" role="group" aria-label="Your guess" style="display:block;margin-top:8px"><b style="color:'+TK()+'">'+q+'</b><br>'+choices.map(([v,l])=>'<button type="button" class="btn" data-pv="'+v+'" aria-pressed="false" style="border:2px solid '+TK()+';color:'+TK()+';background:transparent;margin:6px 8px 0 0">'+l+'</button>').join('')+'</span>';}
+function pickSync(sim){const b0=sim.ui&&sim.ui.tourbar;if(!b0)return;b0.querySelectorAll('[data-pick]').forEach(g=>{const v=(sim._picks||{})[g.dataset.pick];g.querySelectorAll('[data-pv]').forEach(b=>{const on=b.dataset.pv===v;b.setAttribute('aria-pressed',String(on));b.style.background=on?TK():'transparent';b.style.color=on?'#fff':TK();});});}
 function pickWire(sim){if(!sim._pickWired&&sim.ui&&sim.ui.tourbar){sim._pickWired=true;sim.ui.tourbar.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pv]');if(!b)return;const g=b.closest('[data-pick]');sim._picks=sim._picks||{};sim._picks[g.dataset.pick]=b.dataset.pv;pickSync(sim);});}setTimeout(()=>pickSync(sim),0);}
 const pickOf=(sim,key)=>(sim._picks||{})[key];
 const FFGUESS={A:'Bowling first',T:'Together',B:'Tennis first'};
 /* the no-air feather ghost, in lane B */
 function ffFeatherGhost(sim,ctx,k,lab){const y=ffRuleY(sim),gy=ffY(sim,y,'feather');ghostFeather(ctx,FF.XB,gy,FF.R.feather);
-  if(y<=0)tag(ctx,lab||('No-air rule: '+ffRuleT(sim).toFixed(2)+' s'),FF.XB-78,FF.GY-62,k,{s:12,c:THINK});}
+  if(y<=0)tag(ctx,lab||('No-air rule: '+ffRuleT(sim).toFixed(2)+' s'),FF.XB-78,FF.GY-62,k,{s:12,c:TK()});}
 
 BioLab.addLearn({
 freefall: {
@@ -152,19 +154,19 @@ freefall: {
       run(sim){pickWire(sim);},
       why: 'To test one thing, change only one thing. Both balls start at the same height at the same moment, with the air switched off, so the only difference between them is their mass. The balls are drawn several times bigger than the tower’s scale so you can see them: a real bowling ball is 22 cm across and a tennis ball 6.7 cm.',
       overlay(sim,ctx,LH,k){tag(ctx,'7 kg, 22 cm',FF.XA-60,ffY(sim,10,'bowling')-30,k,{s:12});tag(ctx,'60 g, 6.7 cm',FF.XB+56,ffY(sim,10,'tennis')-30,k,{s:12});tag(ctx,'Air: off',300,250,k,{s:13,hi:true});
-        const g=pickOf(sim,'ff');if(g)tag(ctx,'Your guess: '+FFGUESS[g],647,345,Math.min(k,1.1),{s:13,c:THINK});} },
+        const g=pickOf(sim,'ff');if(g)tag(ctx,'Your guess: '+FFGUESS[g],647,345,Math.min(k,1.1),{s:13,c:TK()});} },
     { key: 'drop', title: 'Release both', set: FFDEF, fresh: true, speed: 0.5,
       see: 'Both balls let go at the same instant, in slow motion. Watch the stopwatch: they hit the ground together, at 1.43 s.',
       why: 'Without air, mass makes no difference to how a thing falls. More than 100 times the mass, and they stay side by side all the way down.',
       overlay(sim,ctx,LH,k){const A=sim.st.A,B=sim.st.B,g=pickOf(sim,'ff'),done=A.land!==null&&B.land!==null;if(done)tag(ctx,'Both landed at '+A.land.toFixed(2)+' s',305,360,k,{s:14,hi:true});else tag(ctx,'Which lands first?',305,250,k,{s:13});
-        if(g)tag(ctx,'Your guess: '+FFGUESS[g]+(done?(g==='T'?'  ✓':'  ✗'):''),647,345,Math.min(k,1.1),{s:13,c:THINK});} },
+        if(g)tag(ctx,'Your guess: '+FFGUESS[g]+(done?(g==='T'?'  ✓':'  ✗'):''),647,345,Math.min(k,1.1),{s:13,c:TK()});} },
     { key: 'old', title: 'The old idea', set: FFDEF, fresh: true, speed: 0.5,
       see: 'The dashed ball is the old idea. Aristotle taught that something 117 times heavier falls 117 times faster, so the bowling ball would hit the ground almost at once. The real balls still land together.',
       why: 'People believed this for almost 2,000 years because it sounds right. Then it was tested. In 1586 Simon Stevin dropped two lead balls, one ten times heavier, from a church tower in Delft, and they landed together. A good story is not evidence. A test is.',
       overlay(sim,ctx,LH,k,tau){thinkBadge(ctx,'old','What people used to think',k,tau);const gx=200,top=ffY(sim,10,'bowling'),bot=ffY(sim,0,'bowling'),landed=sim.t>0.012;
-        if(landed){const f=clamp(1-(tau||0)/2.5,0.25,1);ctx.save();ctx.globalAlpha=f;ctx.strokeStyle=THINK;ctx.setLineDash([3,6]);ctx.lineWidth=2;[-8,0,8].forEach(d=>{ctx.beginPath();ctx.moveTo(gx+d,top);ctx.lineTo(gx+d,bot-20);ctx.stroke();});ctx.restore();
-          ghostBall(ctx,gx,bot,17);tag(ctx,'0.01 s',gx,bot-40,k,{s:12,c:THINK});}else ghostBall(ctx,gx,top,17);
-        tag(ctx,'Old idea',gx-14,FF.GY+16,k,{s:11,c:THINK});
+        if(landed){const f=clamp(1-(tau||0)/2.5,0.25,1);ctx.save();ctx.globalAlpha=f;ctx.strokeStyle=TK();ctx.setLineDash([3,6]);ctx.lineWidth=2;[-8,0,8].forEach(d=>{ctx.beginPath();ctx.moveTo(gx+d,top);ctx.lineTo(gx+d,bot-20);ctx.stroke();});ctx.restore();
+          ghostBall(ctx,gx,bot,17);tag(ctx,'0.01 s',gx,bot-40,k,{s:12,c:TK()});}else ghostBall(ctx,gx,top,17);
+        tag(ctx,'Old idea',gx-14,FF.GY+16,k,{s:11,c:TK()});
         const A=sim.st.A,B=sim.st.B;if(A.land!==null&&B.land!==null)tag(ctx,'Real: both at '+A.land.toFixed(2)+' s',330,250,k,{s:13,hi:true});} },
     { key: 'gain', title: 'Faster every second', pause: true,
       see: 'The faint circles show where the bowling ball was every 0.1 s. The labels show how fast it was going at each point: 4.9 m/s after half a second, 9.8 m/s after one second, 14 m/s when it landed.',
@@ -270,24 +272,27 @@ projectile: {
       why: 'A common mistake is to think the ball stops at the top. It only stops going <b>up</b>. Its forward speed is the same as at launch, so at the top its speed is 13.8 m/s, the slowest point of the whole flight but not zero.',
       overlay(sim,ctx,LH,k,tau){const s=pjS(sim);if(!s)return;if(s.tPeak!==null&&s.tPeak>0&&(s.done||s.vy<=0)){const a=0.5+0.5*Math.sin(tau*4);ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=3;ctx.globalAlpha=0.55+0.45*a;ctx.beginPath();ctx.arc(pjX(sim,s.peakX),pjY(sim,s.peakY),16,0,6.29);ctx.stroke();ctx.restore();}
         const vx=18*Math.cos(pjDeg(40));pjCard(ctx,k,[['At the top',700,13],'up-and-down: 0 m/s','forward: '+vx.toFixed(1)+' m/s',['speed: '+vx.toFixed(1)+' m/s, not zero',800,13,'#c8102e']]);} },
-    { key: 'twin', title: 'Thrown sideways vs dropped', base: { mode: 'free', ang: 0, v0: 12, h0: 10, obj: 'cannon', twin: true, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.3,
-      see: 'From 10 m up, one ball is fired straight sideways at 12 m/s while a twin is dropped at the same instant. The dashed lines join the two at each tick: they are always at the same height, and they hit the ground together after 1.43 s.',
+    { key: 'twin', title: 'Thrown sideways vs dropped', base: { mode: 'free', ang: 0, v0: 12, h0: 10, obj: 'cannon', twin: true, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.3, run(sim){pickWire(sim);},
+      see: 'From 10 m up, one ball is fired straight sideways at 12 m/s while a twin is dropped at the same instant. The dashed lines join the two at each tick: they are always at the same height, and they hit the ground together after 1.43 s.'+pickHTML('pj','Your guess before the next step: on level ground, which launch angle throws farthest?',[['30','30°'],['45','45°'],['60','60°']]),
       why: 'Firing a ball sideways gives it no up-and-down speed at all, so it falls exactly like the dropped one: 10 m takes 1.43 s either way. The sideways speed only decides <b>where</b> it lands (12 × 1.43 ≈ 17 m out), not <b>when</b>.',
       overlay(sim,ctx,LH,k){const s=pjS(sim);if(!s)return;ctx.save();ctx.strokeStyle='#c8102e';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);s.dots.forEach(d=>{const y=pjY(sim,d.y);ctx.beginPath();ctx.moveTo(pjX(sim,0),y);ctx.lineTo(pjX(sim,d.x),y);ctx.stroke();});ctx.restore();
         tag(ctx,'same height at every tick',pjX(sim,8),pjY(sim,10)-20,k,{s:12.5,hi:true});} },
     { key: 'fan', title: 'Which angle goes farthest?', base: { mode: 'free', ang: 40, v0: 18, h0: 0, obj: 'cannon', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 1, run(sim){pjClear(sim);pjAct(sim,'fan');},
       see: 'Eleven balls leave at the same 18 m/s, at angles from 20° to 70°. The 45° shot lands farthest, about 33 m. The 30° and 60° shots land in the same place, about 28.6 m, but the 60° one is in the air much longer.',
       why: 'A low shot moves forward fast but falls back down quickly. A high shot stays up a long time but barely moves forward. On level ground with no air, 45° is the best balance between the two. Pairs that add to 90° (30° and 60°, 20° and 70°) land in the same spot.',
-      overlay(sim,ctx,LH,k){const R=a=>18*18*Math.sin(2*pjDeg(a))/9.8;tag(ctx,'45°: '+R(45).toFixed(1)+' m',pjX(sim,R(45)),PJGY-26,k,{s:12.5,hi:true});tag(ctx,'30° and 60°: '+R(30).toFixed(1)+' m',pjX(sim,R(30))-70,PJGY-62,k,{s:12});} },
+      overlay(sim,ctx,LH,k){const g=pickOf(sim,'pj');if(g)tag(ctx,'Your guess: '+g+'°'+(g==='45'?'  ✓':'  ✗'),280,30,Math.min(k,1.1),{s:13,c:TK()});const R=a=>18*18*Math.sin(2*pjDeg(a))/9.8;tag(ctx,'45°: '+R(45).toFixed(1)+' m',pjX(sim,R(45)),PJGY-26,k,{s:12.5,hi:true});tag(ctx,'30° and 60°: '+R(30).toFixed(1)+' m',pjX(sim,R(30))-70,PJGY-62,k,{s:12});} },
     { lvl: 'honors', key: 'range', title: 'The range equation', base: { mode: 'free', ang: 40, v0: 18, h0: 0, obj: 'cannon', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 0.6, run(sim){pjClear(sim);pjAct(sim,'fire');},
       see: 'One 40° shot again. The card works out its landing distance with R = v²sin2θ/g, and the ruler and the distance readout show the same answer when it lands.',
       why: 'Time in the air comes from the vertical part: t = 2v sinθ / g. Distance is the horizontal part times that time: R = v cosθ × 2v sinθ / g = v² sin 2θ / g. It only works when the ball lands at the height it left from, with no air.',
       overlay(sim,ctx,LH,k){const s=pjS(sim),R=18*18*Math.sin(2*pjDeg(40))/9.8;pjCard(ctx,k,[['R = v² sin 2θ ÷ g',700,13],'= 18² × sin 80° ÷ 9.8',['= '+R.toFixed(1)+' m',800,14,'#c8102e'],[s&&s.done?'landed at '+s.x.toFixed(1)+' m':'in flight…',600,12,PAL['cv-soft']]]);} },
-    { lvl: 'ap', key: 'air', title: 'Add air resistance', base: { mode: 'free', ang: 35, v0: 35, h0: 0, obj: 'baseball', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 1,
+    { key: 'air', title: 'The hidden assumption: no air', base: { mode: 'free', ang: 35, v0: 35, h0: 0, obj: 'baseball', twin: false, strobe: '0.25', vecs: false, air: false }, fresh: true, speed: 1,
       run(sim){pjClear(sim);BioLab.setValues(sim,{air:false});pjAct(sim,'fire');BioLab.setValues(sim,{air:true});pjAct(sim,'fire');},
-      see: 'Two baseballs leave at 35 m/s (78 mph) and 35°: one with no air, one through real air. The path through air is lower, shorter and lopsided, falling more steeply at the end.',
-      why: 'Drag pushes against the velocity and grows with speed squared, so it robs the ball of forward speed the whole way. The no-air ball would go about 117 m. Because drag hurts high, long flights most, the best angle with air is below 45°.',
-      overlay(sim,ctx,LH,k){const s=pjS(sim),R=35*35*Math.sin(2*pjDeg(35))/9.8;pjCard(ctx,k,[['Baseball, 35 m/s at 35°',700,13],'no air: '+R.toFixed(0)+' m',['with air: '+(s&&s.done?s.x.toFixed(0)+' m':'in flight…'),800,13,'#c8102e']]);} }
+      see: 'Two baseballs leave at 35 m/s (78 mph) and 35°. The dashed path is the no-air rule from the last steps: about 117 m. The real ball flies through air: lower, shorter and lopsided, falling more steeply at the end.',
+      why: { bio: 'Air pushes back on the ball the whole way, and harder the faster it goes. “45° goes farthest” assumed no air. With air, the best angle is lower, which is why real long throws and hits leave below 45°.',
+        ap: 'Drag pushes against the velocity and grows with speed squared, so it robs the ball of forward speed the whole way. The no-air ball would go about 117 m. Because drag hurts high, long flights most, the best angle with air is below 45°: the 45° result assumed no air.' },
+      overlay(sim,ctx,LH,k,tau){thinkBadge(ctx,'assume','Hidden assumption: no air',k,tau);const g0=(sim.st.shots||[]).find(q=>!q.air);
+        if(g0&&g0.trail.length>1){ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle=TK();ctx.lineWidth=3;ctx.beginPath();g0.trail.forEach((q,i)=>{const X=pjX(sim,q[0]),Y=pjY(sim,q[1]);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});ctx.stroke();ctx.restore();
+          if(g0.done)tag(ctx,'No-air rule',Math.min(pjX(sim,g0.x),740),PJGY-52,Math.min(k,1.1),{s:12,c:TK()});}const s=pjS(sim),R=35*35*Math.sin(2*pjDeg(35))/9.8;pjCard(ctx,k,[['Baseball, 35 m/s at 35°',700,13],'no air: '+R.toFixed(0)+' m',['with air: '+(s&&s.done?s.x.toFixed(0)+' m':'in flight…'),800,13,'#c8102e']]);} }
   ],
   useIt: [
     { do: 'On a free throw, aim for an arc whose top is about level with the top of the backboard, and aim toward the back of the rim.',
@@ -465,6 +470,11 @@ const inCard=(ctx,k,lines)=>{const f=Math.min(1,1.1/Math.min(k,1.3));foCard(ctx,
 const in1=v=>Number.isFinite(v)?(Math.round(v*10)/10).toFixed(1):'…';
 const INB={angle:20,mass:5,surface:'wood',push:0,phi:0,strobe:true};
 const inGrip=(sim,mus)=>mus*foM(sim,'normal');
+/* ghost block that follows the no-friction rule a = g sinθ from the release point (same geometry as sims/incline.js) */
+function inGhost(sim,ctx,k){const p=sim.p,st=sim.st,th=p.angle*Math.PI/180,R=430,ppm=R/3.7,rt=st.rt||0,sg=Math.min(0.4+0.5*9.8*Math.sin(th)*rt*rt,3.4),bw=46+p.mass*1.2,bh=26+p.mass*0.9;
+  ctx.save();ctx.translate(60,405);ctx.rotate(-th);const x=R-sg*ppm;ctx.setLineDash([5,4]);ctx.strokeStyle=TK();ctx.lineWidth=2.2;ctx.fillStyle=TKA(.12);H.rr(ctx,x-bw/2,-6-bh,bw,bh,4);ctx.fill();ctx.stroke();ctx.restore();
+  if(sg>=3.4){const tg=Math.sqrt(2*3.0/(9.8*Math.sin(th)));tag(ctx,'a = g sinθ rule: '+tg.toFixed(2)+' s',190,262,k,{s:12,c:TK()});}}
+const INGUESS={L:'Lower angle',S:'Same angle',H:'Higher angle'};
 
 BioLab.addLearn({
 incline: {
@@ -488,12 +498,13 @@ incline: {
       overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: '+in1(foM(sim,'par'))+' N',700],['Most grip the wood can give: '+in1(inGrip(sim,0.45))+' N',700,12.5,PAL['s4']],'Still holding, just barely']);} },
     { key: 'slip', cause: { from: { angle: 20 } }, title: 'Tilt to 25°: it slides', base: INB, set: { angle: 25 }, fresh: true, speed: 0.6,
       see: 'One more degree. Now the block slides down the ramp, and the strobe images spread out as it speeds up.',
-      why: 'At 25° the downhill pull, about 20.7 N, is more than the 20.0 N of grip the wood can give. Once it slides, sliding friction is even smaller, so the block speeds up at about 1.5 m/s². This is the answer to the question: the 5 kg box holds up to 24° and slides at 25°.',
+      why: 'At 25° the downhill pull, about 20.7 N, is more than the 20.0 N of grip the wood can give. Once it slides, sliding friction is even smaller, so the block speeds up at about 1.5 m/s². This is the answer to the question: the 5 kg box holds up to 24° and slides at 25°.'+pickHTML('inc','Your guess before the next step: an 18 kg box, 3.6 times as heavy, starts sliding at…',[['L','a lower angle'],['S','the same angle'],['H','a higher angle']]),
+      run(sim){pickWire(sim);},
       overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: '+in1(foM(sim,'par'))+' N',700],['Most grip: '+in1(inGrip(sim,0.45))+' N, not enough',700,12.5,PAL['s4']],['It slides: a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
     { key: 'heavy', title: 'An 18 kg box at the same angle', base: INB, set: { angle: 25, mass: 18 }, fresh: true, speed: 0.6,
       see: 'Same ramp, same 25°, but the block is 18 kg, 3.6 times as heavy. The force box keeps the same shape, because every force grew by the same factor, and the block slides with the same acceleration and the same time to the bottom.',
       why: 'More weight means a bigger downhill pull, but it also presses into the ramp harder, so the grip grows by the same factor. The downhill pull and the grip go up together, so the heavy box slips at exactly the same angle. Weight doesn’t decide when things slide; the angle and the surfaces do.',
-      overlay(sim,ctx,LH,k){inCard(ctx,k,[['Down the ramp: 20.7 → '+in1(foM(sim,'par'))+' N',700],['Most grip: 20.0 → '+in1(inGrip(sim,0.45))+' N',700,12.5,PAL['s4']],'Both grew 3.6 times',['Same a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
+      overlay(sim,ctx,LH,k){const g=pickOf(sim,'inc');if(g)tag(ctx,'Your guess: '+INGUESS[g]+(g==='S'?'  ✓':'  ✗'),640,428,Math.min(k,1.1),{s:13,c:TK()});inCard(ctx,k,[['Down the ramp: 20.7 → '+in1(foM(sim,'par'))+' N',700],['Most grip: 20.0 → '+in1(inGrip(sim,0.45))+' N',700,12.5,PAL['s4']],'Both grew 3.6 times',['Same a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
     { key: 'steep', cause: { from: { angle: 25 } }, title: 'Steeper still: 40°', base: INB, set: { angle: 40 }, fresh: true, speed: 0.6,
       see: 'The 5 kg block on a 40° ramp. The downhill arrow is now almost as long as the into-the-ramp arrow, and the block races down in about half the time.',
       why: 'At 40°, about 31.5 N pulls downhill and only 37.5 N presses into the ramp, so the grip is weak and the downhill pull wins by a lot: a ≈ 4.1 m/s². Most avalanches release on slopes of 30° to 45° for the same reason: the downhill pull on the snow beats its grip.',
@@ -502,6 +513,11 @@ incline: {
       see: 'Same 40° ramp with no friction at all. The friction arrow is gone and the block reaches the bottom faster still; the strobe images spread out more.',
       why: 'With no friction, the whole downhill part of gravity speeds the block up: a = 9.8 × sin 40° ≈ 6.3 m/s². A steeper ramp gets closer to free fall (9.8 m/s² at 90°); a flat one gives 0.',
       overlay(sim,ctx,LH,k){inCard(ctx,k,['No friction: only the downhill pull',['a = 9.8 × sin 40° = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e'],'With wood it was 4.05 m/s²']);} },
+    { key: 'assume', title: 'What the formula assumes', base: INB, set: { angle: 40 }, fresh: true, speed: 0.6,
+      see: 'Back to wood at 40°. The dashed block follows the formula from the last step, a = 9.8 × sin 40°, and reaches the bottom in 0.98 s. The real block falls behind and takes 1.22 s.',
+      why: 'a = g sinθ is only true with no friction. Real ramps have friction, so real things speed up less. A formula is only as good as what it assumes, so before you use one, ask what it leaves out.',
+      overlay(sim,ctx,LH,k,tau){inGhost(sim,ctx,k);thinkBadge(ctx,'assume','Hidden assumption: no friction',k,tau,{right:780,y:410});
+        inCard(ctx,k,['Dashed: a = 9.8 × sin 40° = 6.30 m/s²',['Real wood: a = '+foM(sim,'acc').toFixed(2)+' m/s²',800,12.5,'#c8102e']]);} },
     { lvl: 'honors', key: 'repose', title: 'Angle of repose: μs = tanθ', base: INB, set: { surface: 'ice', angle: 6 }, fresh: true, speed: 0.6,
       see: 'An icy ramp at just 6°. Even this gentle slope is enough: the block slides.',
       why: 'Right at the slipping angle, mg sinθ = μs·mg cosθ, so <b>μs = tanθ</b> and the mass cancels. Ice has μs ≈ 0.10, so it slips above tan⁻¹(0.10) = 5.7°. Wood (0.45) holds to 24.2°, rubber (1.0) to 45°. Tilting until something slips is a quick way to measure μs.',
