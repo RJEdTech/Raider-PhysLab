@@ -38,7 +38,15 @@ coulomb:{
   {id:'triple',kind:'ap',lvl:'ap',
     q:'You triple both charges and triple the distance between them. What happens to the force?',
     choices:['It stays the same','It triples','It goes up 9 times','It drops to one third'],correct:0,
-    steps:['F ∝ q₁q₂/r².','Charges: 3 × 3 = 9 times. Distance: 1/3² = 1/9.','9 × 1/9 = 1: the force is unchanged.']}
+    steps:['F ∝ q₁q₂/r².','Charges: 3 × 3 = 9 times. Distance: 1/3² = 1/9.','9 × 1/9 = 1: the force is unchanged.']},
+  {id:'cltriple',kind:'test',lvl:'bio',
+    q:'<p>Two charges are 6 cm apart. You move them to 18 cm apart. The force between them becomes…</p>',
+    choices:['1/9 as strong','1/3 as strong','3 times as strong','the same'],correct:0,
+    steps:['F ∝ 1/r².','Three times the distance gives 1/3² = 1/9.','So the force is 1/9 as strong.']},
+  {id:'clsign',kind:'test',lvl:'bio',
+    q:'<p>A balloon with extra electrons is brought near a positively charged rod. What happens?</p>',
+    choices:['They attract each other','They repel each other','Nothing: only like charges act','The balloon loses its charge'],correct:0,
+    steps:['Extra electrons make the balloon negative.','Opposite charges attract.','So the balloon and the rod pull toward each other.']}
   ]},
 efield:{
   apNote:'Released questions from College Board. Field and potential questions use field lines, equipotentials, E = V/d and W = qΔV.',
@@ -76,7 +84,16 @@ efield:{
     q:'At the midpoint between +q and −q, what are E and V?',
     choices:['E points toward −q; V = 0','E = 0 and V = 0','E = 0 and V is large','E points toward +q; V is large'],correct:0,
     steps:['Voltage adds as a number: kq/r + k(−q)/r = 0.','Field adds as a vector: both charges’ fields point from + toward − at the midpoint, so they add.','Zero voltage does not mean zero field.'],
-    lab:{set:{preset:'dipole',q:2,eq:true},look:'Put the test charge at the midpoint and read the field and voltage.'}}
+    lab:{set:{preset:'dipole',q:2,eq:true},look:'Put the test charge at the midpoint and read the field and voltage.'}},
+  {id:'efdir',kind:'test',lvl:'bio',
+    q:'<p>Which way does the electric field point near a negative charge?</p>',
+    choices:['Toward the charge','Away from the charge','In circles around it','There is no field'],correct:0,
+    steps:['Field direction is the push on a positive test charge.','A positive charge is pulled toward a negative one.','So the field points toward a negative charge.'],
+    lab:{set:{preset:"single",q:-2},look:'A −2 μC source: every arrow points inward.'}},
+  {id:'efhalf',kind:'test',lvl:'honors',
+    q:'<p>A point charge makes a field of 40,000 N/C at 2 cm. What is the field at 4 cm?</p>',
+    choices:['10,000 N/C','20,000 N/C','80,000 N/C','160,000 N/C'],correct:0,
+    steps:['For a point charge, E ∝ 1/r².','Twice the distance gives 1/2² = 1/4 of the field.','40,000 ÷ 4 = 10,000 N/C.']}
   ]},
 capacitor:{
   apNote:'Released questions from College Board. Capacitor questions use C = κε₀A/d, U = ½CV² and RC time constants.',
@@ -113,7 +130,11 @@ capacitor:{
   {id:'current',kind:'ap',lvl:'ap',
     q:'An empty capacitor starts charging through R = 10 kΩ from 9.0 V. What is the current at the very first instant?',
     num:{ans:.9,tol:.01,unit:'mA'},
-    steps:['At t = 0 the capacitor has no charge, so no voltage across it.','All 9.0 V is across R: I = V/R = 9.0 ÷ 10 000.','= 0.90 mA. The current then falls as e^(−t/RC).']}
+    steps:['At t = 0 the capacitor has no charge, so no voltage across it.','All 9.0 V is across R: I = V/R = 9.0 ÷ 10 000.','= 0.90 mA. The current then falls as e^(−t/RC).']},
+  {id:'curve63',kind:'test',lvl:'bio',
+    q:'<p>The graph shows a capacitor charging from a 9 V battery. About what is its time constant τ?</p><svg viewBox="0 0 420 230" style="display:block;width:100%;max-width:440px;height:auto;margin:10px 0 4px;color:inherit" role="img" aria-label="Graph of capacitor voltage against time while charging from a 9 V battery: it rises quickly, passes 5.7 V at about 2 s, and levels off near 9 V."><path d="M58 16V180H406" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M58.0 180v4" stroke="currentColor"/><text x="58.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">0</text><path d="M126.4 180v4" stroke="currentColor"/><text x="126.4" y="196" font-size="12" text-anchor="middle" fill="currentColor">2</text><path d="M194.8 180v4" stroke="currentColor"/><text x="194.8" y="196" font-size="12" text-anchor="middle" fill="currentColor">4</text><path d="M263.2 180v4" stroke="currentColor"/><text x="263.2" y="196" font-size="12" text-anchor="middle" fill="currentColor">6</text><path d="M331.6 180v4" stroke="currentColor"/><text x="331.6" y="196" font-size="12" text-anchor="middle" fill="currentColor">8</text><path d="M400.0 180v4" stroke="currentColor"/><text x="400.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">10</text><path d="M54 180.0h4" stroke="currentColor"/><text x="51" y="184.0" font-size="12" text-anchor="end" fill="currentColor">0</text><path d="M54 127.3h4" stroke="currentColor"/><text x="51" y="131.3" font-size="12" text-anchor="end" fill="currentColor">3</text><path d="M54 74.7h4" stroke="currentColor"/><text x="51" y="78.7" font-size="12" text-anchor="end" fill="currentColor">6</text><path d="M54 22.0h4" stroke="currentColor"/><text x="51" y="26.0" font-size="12" text-anchor="end" fill="currentColor">9</text><text x="229.0" y="216" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">Time (s)</text><text transform="translate(16 101.0) rotate(-90)" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">Voltage (V)</text><path d="M58 79.9H400" stroke="currentColor" stroke-dasharray="4 4" opacity=".55"/><text x="400" y="74.9" font-size="12" text-anchor="end" fill="currentColor">5.7 V</text><path d="M58.0 180.0L59.7 176.1L61.4 172.3L63.1 168.6L64.8 165.0L66.5 161.4L68.3 158.0L70.0 154.6L71.7 151.4L73.4 148.2L75.1 145.1L76.8 142.0L78.5 139.0L80.2 136.2L81.9 133.3L83.7 130.6L85.4 127.9L87.1 125.3L88.8 122.7L90.5 120.3L92.2 117.8L93.9 115.5L95.6 113.2L97.3 110.9L99.0 108.7L100.8 106.6L102.5 104.5L104.2 102.4L105.9 100.5L107.6 98.5L109.3 96.6L111.0 94.8L112.7 93.0L114.4 91.2L116.1 89.5L117.8 87.9L119.6 86.2L121.3 84.7L123.0 83.1L124.7 81.6L126.4 80.1L128.1 78.7L129.8 77.3L131.5 75.9L133.2 74.6L134.9 73.3L136.7 72.0L138.4 70.8L140.1 69.6L141.8 68.4L143.5 67.3L145.2 66.2L146.9 65.1L148.6 64.0L150.3 63.0L152.1 61.9L153.8 61.0L155.5 60.0L157.2 59.1L158.9 58.1L160.6 57.3L162.3 56.4L164.0 55.5L165.7 54.7L167.4 53.9L169.2 53.1L170.9 52.3L172.6 51.6L174.3 50.9L176.0 50.2L177.7 49.5L179.4 48.8L181.1 48.1L182.8 47.5L184.5 46.8L186.2 46.2L188.0 45.6L189.7 45.0L191.4 44.5L193.1 43.9L194.8 43.4L196.5 42.9L198.2 42.3L199.9 41.8L201.6 41.3L203.3 40.9L205.1 40.4L206.8 40.0L208.5 39.5L210.2 39.1L211.9 38.7L213.6 38.2L215.3 37.8L217.0 37.4L218.7 37.1L220.4 36.7L222.2 36.3L223.9 36.0L225.6 35.6L227.3 35.3L229.0 35.0L230.7 34.6L232.4 34.3L234.1 34.0L235.8 33.7L237.6 33.4L239.3 33.2L241.0 32.9L242.7 32.6L244.4 32.4L246.1 32.1L247.8 31.9L249.5 31.6L251.2 31.4L252.9 31.1L254.6 30.9L256.4 30.7L258.1 30.5L259.8 30.3L261.5 30.1L263.2 29.9L264.9 29.7L266.6 29.5L268.3 29.3L270.0 29.1L271.8 28.9L273.5 28.8L275.2 28.6L276.9 28.4L278.6 28.3L280.3 28.1L282.0 28.0L283.7 27.8L285.4 27.7L287.1 27.5L288.9 27.4L290.6 27.3L292.3 27.1L294.0 27.0L295.7 26.9L297.4 26.8L299.1 26.7L300.8 26.5L302.5 26.4L304.2 26.3L305.9 26.2L307.7 26.1L309.4 26.0L311.1 25.9L312.8 25.8L314.5 25.7L316.2 25.6L317.9 25.5L319.6 25.4L321.3 25.4L323.1 25.3L324.8 25.2L326.5 25.1L328.2 25.0L329.9 25.0L331.6 24.9L333.3 24.8L335.0 24.8L336.7 24.7L338.4 24.6L340.1 24.6L341.9 24.5L343.6 24.4L345.3 24.4L347.0 24.3L348.7 24.3L350.4 24.2L352.1 24.1L353.8 24.1L355.5 24.0L357.2 24.0L359.0 23.9L360.7 23.9L362.4 23.8L364.1 23.8L365.8 23.8L367.5 23.7L369.2 23.7L370.9 23.6L372.6 23.6L374.4 23.5L376.1 23.5L377.8 23.5L379.5 23.4L381.2 23.4L382.9 23.4L384.6 23.3L386.3 23.3L388.0 23.3L389.7 23.2L391.4 23.2L393.2 23.2L394.9 23.1L396.6 23.1L398.3 23.1L400.0 23.1" fill="none" stroke="#1b7a3a" stroke-width="3"/></svg>',
+    choices:['About 2 s','About 1 s','About 5 s','About 10 s'],correct:0,
+    steps:['After one time constant a charging capacitor reaches 63% of the battery voltage.','63% of 9 V is about 5.7 V.','The curve passes 5.7 V at about 2 s, so τ ≈ 2 s.']}
   ]},
 circuit:{
   apNote:'Released questions from College Board. Circuit questions combine Ohm’s law, series and parallel rules, and meter placement.',
@@ -153,7 +174,15 @@ circuit:{
     q:'In the series + parallel circuit, B1 is in the main line and B2 and B3 are in parallel after it. Which bulb is brightest?',
     choices:['B1','B2','B3','All the same'],correct:0,
     steps:['All the current passes through B1: 0.60 A.','It splits between B2 and B3: 0.30 A each.','Power = I²R, so B1 gets 4 times the power of B2 or B3.'],
-    lab:{set:{circuit:'combo'},look:'Compare the brightness readouts.'}}
+    lab:{set:{circuit:'combo'},look:'Compare the brightness readouts.'}},
+  {id:'ciout',kind:'test',lvl:'bio',
+    q:'<p>Two identical bulbs are in parallel on a battery. One burns out. What happens to the other?</p>',
+    choices:['It stays just as bright','It goes out too, the loop is broken','It gets twice as bright','It gets about half as bright'],correct:0,
+    steps:['Each parallel bulb has its own path across the battery.','The working bulb still gets the full voltage.','So it stays as bright. That is how house lights are wired.']},
+  {id:'ci3',kind:'test',lvl:'honors',
+    q:'<p>Three identical bulbs are in series on 12 V. What is the voltage across each one?</p>',
+    choices:['4 V','12 V','36 V','6 V'],correct:0,
+    steps:['In series, the bulbs share the battery’s voltage.','Identical bulbs share it equally.','12 V ÷ 3 = 4 V each.']}
   ]},
 magnetism:{
   apNote:'Released questions from College Board. Magnetism questions use right-hand rules, F = qvB sin θ and F = BIL sin θ.',
@@ -191,7 +220,16 @@ magnetism:{
     q:'That proton (m = 1.67 × 10⁻²⁷ kg) circles in the 0.10 T field. What is the radius?',
     num:{ans:5.2,tol:.1,unit:'cm'},
     steps:['qvB = mv²/r, so r = mv/(qB).','= (1.67 × 10⁻²⁷ × 5.0 × 10⁵) ÷ (1.6 × 10⁻¹⁹ × 0.10).','= 0.052 m = 5.2 cm. Mass spectrometers use this: heavier ions make bigger circles.'],
-    lab:{set:{scene:'charge',angle:90,bmag:0.1,speed:5},look:'Read <b>Radius of the circle</b>.'},verify:[['radius',5.2,.1]]}
+    lab:{set:{scene:'charge',angle:90,bmag:0.1,speed:5},look:'Read <b>Radius of the circle</b>.'},verify:[['radius',5.2,.1]]},
+  {id:'mgrev',kind:'test',lvl:'bio',
+    q:'<p>You reverse the current in a wire. What happens to its magnetic field?</p>',
+    choices:['It points the other way','It gets twice as strong','It turns into an electric field','It stays exactly the same'],correct:0,
+    steps:['The field’s direction follows the current (right-hand rule).','Reverse the current and the field reverses.','Its strength stays the same.'],
+    lab:{set:{scene:"wire",cur:-5},look:'Current reversed: every compass around the wire flips.'}},
+  {id:'mgdist',kind:'test',lvl:'honors',
+    q:'<p>A long straight wire makes a 20 µT field 2 cm away. What is the field 4 cm away?</p>',
+    choices:['10 µT','5 µT','40 µT','20 µT'],correct:0,
+    steps:['Around a long straight wire, B = μ₀I/2πr.','That is 1/r, not 1/r².','Twice the distance gives half the field: 10 µT.']}
   ]},
 induction:{
   apNote:'Released questions from College Board. Induction questions use Faraday’s law, Lenz’s law and transformer ratios.',
@@ -229,7 +267,11 @@ induction:{
     q:'A magnet falls much more slowly through a copper tube than a plastic one. What happens to the energy that would have been kinetic energy?',
     choices:['It becomes heat from currents in the copper','It is stored in the magnet’s field','It disappears as the magnet slows','It turns into sound in the tube'],correct:0,
     steps:['The falling magnet changes the flux through each ring of copper.','That induces circling (eddy) currents, which by Lenz’s law push back on the magnet.','The currents warm the copper slightly. Many roller coasters and some train brakes use this to slow down without touching.'],
-    lab:{set:{scene:'tube',tmat:'copper',wall:1.5},act:'drop',look:'Read <b>Speed in the metal tube</b> and <b>Speed in the plastic tube</b>.'}}
+    lab:{set:{scene:'tube',tmat:'copper',wall:1.5},act:'drop',look:'Read <b>Speed in the metal tube</b> and <b>Speed in the plastic tube</b>.'}},
+  {id:'dcxf',kind:'test',lvl:'bio',
+    q:'<p>Why won’t a transformer change the voltage of steady DC?</p>',
+    choices:['A steady field induces no voltage','DC is too weak to reach the iron core','Iron blocks DC but lets AC pass','DC flows the wrong way in the coils'],correct:0,
+    steps:['A transformer works by induction in the secondary coil.','Induction needs a changing magnetic field.','Steady DC makes a steady field, so the secondary gets 0 V.']}
   ]},
 waves:{
   apNote:'Released questions from College Board. Wave questions use v = fλ, standing-wave patterns and what sets wave speed.',
@@ -266,7 +308,16 @@ waves:{
   {id:'nodes',kind:'ap',lvl:'ap',
     q:'A 1.2 m string clamped at both ends shows 4 antinodes. What is the wavelength?',
     num:{ans:.6,tol:.01,unit:'m'},
-    steps:['Each loop (antinode) is half a wavelength.','4 loops = 2 wavelengths = 1.2 m.','λ = 0.60 m.']}
+    steps:['Each loop (antinode) is half a wavelength.','4 loops = 2 wavelengths = 1.2 m.','λ = 0.60 m.']},
+  {id:'wvhalf',kind:'test',lvl:'bio',
+    q:'<p>On the same rope, you double the frequency. What happens to the wavelength?</p>',
+    choices:['It is cut in half','It doubles','It stays the same','It is cut to a quarter'],correct:0,
+    steps:['The rope sets the speed, and v = fλ.','With v fixed, doubling f halves λ.','The waves just get packed closer together.'],
+    lab:{set:{mode:"osc",end:"none",freq:2,tension:1},look:'At 2 Hz the waves are 1.0 m long, half of 2.0 m.'}},
+  {id:'wvnode',kind:'test',lvl:'honors',
+    q:'<p>On a standing wave, what is a node?</p>',
+    choices:['A point that never moves','The highest point of a loop','Where the wave starts','A point that moves the most'],correct:0,
+    steps:['At a node, the two overlapping waves always cancel.','So that point of the rope stays still.','The points that move the most are antinodes.']}
   ]},
 sound:{
   apNote:'Released questions from College Board. Sound questions cover v = fλ, resonance in tubes, beats and the Doppler effect.',
@@ -305,7 +356,11 @@ sound:{
     q:'A tube closed at one end is 0.50 m long in 20 °C air (343 m/s). What is its lowest resonant frequency?',
     num:{ans:171.5,tol:1.5,unit:'Hz'},
     steps:['Closed at one end: the fundamental has L = λ/4, so λ = 2.0 m.','f = v ÷ λ = 343 ÷ 2.0.','= 171.5 Hz.'],
-    lab:{set:{mode:'tube',tubeEnd:'closed',tubeL:.5,harm:1,temp:20},look:'Read <b>Resonant frequency</b>.'},verify:[['fres',171.5,1.5]]}
+    lab:{set:{mode:'tube',tubeEnd:'closed',tubeL:.5,harm:1,temp:20},look:'Read <b>Resonant frequency</b>.'},verify:[['fres',171.5,1.5]]},
+  {id:'octave',kind:'test',lvl:'bio',
+    q:'<p>You play a note one octave higher, twice the frequency. What happens to its speed and wavelength in air?</p>',
+    choices:['Same speed, half the wavelength','Twice the speed, same wavelength','Same speed, twice the wavelength','Half the speed, half the wavelength'],correct:0,
+    steps:['The air sets the speed: 343 m/s at 20 °C.','λ = v ÷ f.','Twice the frequency at the same speed gives half the wavelength.']}
   ]},
 color:{
   apNote:'Released questions from College Board. Light questions link wavelength, frequency and photon energy across the spectrum.',
@@ -339,7 +394,16 @@ color:{
     q:'Ionizing an atom takes about 10 eV. Which light can do it with a single photon?',
     choices:['X-rays and high-energy UV','Bright visible light','Strong infrared','High-power radio waves'],correct:0,
     steps:['Visible photons carry about 1.6 to 3.3 eV.','Only far-UV, X-rays and gamma rays carry 10 eV or more per photon.','That is why X-rays need lead shields and radio waves do not.'],
-    lab:{set:{part:'em',band:'xray'},look:'Read <b>Can one photon ionize an atom?</b>'}}
+    lab:{set:{part:'em',band:'xray'},look:'Read <b>Can one photon ionize an atom?</b>'}},
+  {id:'cofilt',kind:'test',lvl:'bio',
+    q:'<p>A blue shirt is seen under pure red light. What color does it look?</p>',
+    choices:['Black','Blue','Purple','Red'],correct:0,
+    steps:['Blue dye reflects blue light and absorbs red.','Under red light only, there is no blue to reflect.','Almost nothing comes back, so it looks black.'],
+    lab:{set:{part:"color",R:100,G:0,B:0,obj:"blue",filt:"none"},look:'A blue object under red light only.'}},
+  {id:'coen',kind:'test',lvl:'honors',
+    q:'<p>Which photon carries the most energy?</p>',
+    choices:['Violet light','Red light','Infrared','A radio wave'],correct:0,
+    steps:['Photon energy E = hf = hc/λ.','Shorter wavelength means more energy.','Violet has the shortest wavelength of these.']}
   ]},
 refraction:{
   apNote:'Released questions from College Board. Refraction questions use Snell’s law, critical angle and wave speed in materials.',
@@ -378,7 +442,11 @@ refraction:{
     q:'How fast does light travel in diamond (n = 2.42)?',
     num:{ans:1.24,tol:.01,unit:'× 10⁸ m/s'},
     steps:['v = c ÷ n.','= 3.00 × 10⁸ ÷ 2.42.','= 1.24 × 10⁸ m/s, less than half its speed in air.'],
-    lab:{set:{mode:'intro',top:'air',bot:'diamond',angle:30},look:'Read <b>Speed in bottom material</b>.'},verify:[['v2',1.24,.01]]}
+    lab:{set:{mode:'intro',top:'air',bot:'diamond',angle:30},look:'Read <b>Speed in bottom material</b>.'},verify:[['v2',1.24,.01]]},
+  {id:'outbend',kind:'test',lvl:'bio',
+    q:'<p>Light goes from water into air at an angle. Which way does it bend, and why?</p>',
+    choices:['Away from the normal, as it speeds up','Toward the normal, as it speeds up','Away from the normal, as it slows down','It goes straight, since air is clear'],correct:0,
+    steps:['Light travels faster in air than in water.','Speeding up bends light away from the normal.','That is why a pool looks shallower than it is.']}
   ]},
 lenses:{
   apNote:'Released questions from College Board. Lens and mirror questions use ray diagrams, 1/f = 1/dₒ + 1/dᵢ and magnification.',
@@ -417,7 +485,16 @@ lenses:{
   {id:'diopter',kind:'ap',lvl:'ap',
     q:'An eyeglass prescription says −2.5 diopters. What is the focal length?',
     num:{ans:-40,tol:.5,unit:'cm'},
-    steps:['Power in diopters = 1 ÷ f in meters.','f = 1 ÷ (−2.5) = −0.40 m = −40 cm.','Negative means a diverging lens, used for nearsightedness.']}
+    steps:['Power in diopters = 1 ÷ f in meters.','f = 1 ÷ (−2.5) = −0.40 m = −40 cm.','Negative means a diverging lens, used for nearsightedness.']},
+  {id:'lnreal',kind:'test',lvl:'bio',
+    q:'<p>Which kind of image can appear on a screen?</p>',
+    choices:['A real image','A virtual image','Both kinds','Neither kind'],correct:0,
+    steps:['A real image forms where light rays actually meet.','A virtual image is only where rays seem to come from.','So only a real image can be caught on a screen.']},
+  {id:'ln2f',kind:'test',lvl:'honors',
+    q:'<p>An object sits at 2f from a converging lens. Where is its image?</p>',
+    choices:['At 2f on the other side, same size','At f on the other side, half size','At infinity: no image forms','On the same side, upright and larger'],correct:0,
+    steps:['1/dₒ + 1/dᵢ = 1/f with dₒ = 2f gives dᵢ = 2f.','m = −dᵢ/dₒ = −1: same size, upside down.','No image forms only when the object sits exactly at f.'],
+    lab:{set:{el:"conv",f:15,dobj:30},look:'The candle at 30 cm, twice f: the image is the same size, 30 cm away.'}}
   ]},
 pendulum:{
   apNote:'Released questions from College Board. Pendulum questions ask what sets the period and test energy in simple harmonic motion.',
@@ -455,7 +532,16 @@ pendulum:{
   {id:'gfromT',kind:'ap',lvl:'ap',
     q:'On Planet X, a 0.80 m pendulum has a period of 2.4 s. What is g there?',
     num:{ans:5.48,tol:.05,unit:'m/s²'},
-    steps:['g = 4π²L/T².','= 4π² × 0.80 ÷ 2.4².','= 31.58 ÷ 5.76 = 5.48 m/s².']}
+    steps:['g = 4π²L/T².','= 4π² × 0.80 ÷ 2.4².','= 31.58 ÷ 5.76 = 5.48 m/s².']},
+  {id:'pdgraph',kind:'test',lvl:'honors',
+    q:'<p>Using the graph, about how long is a pendulum with a 3.0 s period?</p><svg viewBox="0 0 420 230" style="display:block;width:100%;max-width:440px;height:auto;margin:10px 0 4px;color:inherit" role="img" aria-label="Graph of pendulum period against length: a curve rising steeply at first and then more slowly, 1 s at 0.25 m, 2 s at 1 m, 3 s at about 2.2 m."><path d="M58 16V180H406" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M58.0 180v4" stroke="currentColor"/><text x="58.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">0</text><path d="M115.0 180v4" stroke="currentColor"/><text x="115.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">0.5</text><path d="M172.0 180v4" stroke="currentColor"/><text x="172.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">1.0</text><path d="M229.0 180v4" stroke="currentColor"/><text x="229.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">1.5</text><path d="M286.0 180v4" stroke="currentColor"/><text x="286.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">2.0</text><path d="M343.0 180v4" stroke="currentColor"/><text x="343.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">2.5</text><path d="M400.0 180v4" stroke="currentColor"/><text x="400.0" y="196" font-size="12" text-anchor="middle" fill="currentColor">3.0</text><path d="M54 180.0h4" stroke="currentColor"/><text x="51" y="184.0" font-size="12" text-anchor="end" fill="currentColor">0</text><path d="M54 140.5h4" stroke="currentColor"/><text x="51" y="144.5" font-size="12" text-anchor="end" fill="currentColor">1</text><path d="M54 101.0h4" stroke="currentColor"/><text x="51" y="105.0" font-size="12" text-anchor="end" fill="currentColor">2</text><path d="M54 61.5h4" stroke="currentColor"/><text x="51" y="65.5" font-size="12" text-anchor="end" fill="currentColor">3</text><path d="M54 22.0h4" stroke="currentColor"/><text x="51" y="26.0" font-size="12" text-anchor="end" fill="currentColor">4</text><text x="229.0" y="216" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">Length (m)</text><text transform="translate(16 101.0) rotate(-90)" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">Period (s)</text><path d="M58 140.5H400" stroke="currentColor" stroke-dasharray="2 5" opacity=".35"/><path d="M58 101.0H400" stroke="currentColor" stroke-dasharray="2 5" opacity=".35"/><path d="M58 61.5H400" stroke="currentColor" stroke-dasharray="2 5" opacity=".35"/><path d="M58.0 180.0L59.7 170.3L61.4 166.3L63.1 163.2L64.8 160.6L66.5 158.3L68.3 156.2L70.0 154.3L71.7 152.5L73.4 150.9L75.1 149.3L76.8 147.8L78.5 146.4L80.2 145.0L81.9 143.7L83.7 142.4L85.4 141.2L87.1 140.0L88.8 138.8L90.5 137.7L92.2 136.6L93.9 135.5L95.6 134.5L97.3 133.4L99.0 132.4L100.8 131.5L102.5 130.5L104.2 129.5L105.9 128.6L107.6 127.7L109.3 126.8L111.0 125.9L112.7 125.1L114.4 124.2L116.1 123.4L117.8 122.6L119.6 121.7L121.3 120.9L123.0 120.1L124.7 119.4L126.4 118.6L128.1 117.8L129.8 117.1L131.5 116.3L133.2 115.6L134.9 114.9L136.7 114.1L138.4 113.4L140.1 112.7L141.8 112.0L143.5 111.3L145.2 110.7L146.9 110.0L148.6 109.3L150.3 108.6L152.1 108.0L153.8 107.3L155.5 106.7L157.2 106.1L158.9 105.4L160.6 104.8L162.3 104.2L164.0 103.5L165.7 102.9L167.4 102.3L169.2 101.7L170.9 101.1L172.6 100.5L174.3 99.9L176.0 99.3L177.7 98.8L179.4 98.2L181.1 97.6L182.8 97.0L184.5 96.5L186.2 95.9L188.0 95.4L189.7 94.8L191.4 94.2L193.1 93.7L194.8 93.2L196.5 92.6L198.2 92.1L199.9 91.5L201.6 91.0L203.3 90.5L205.1 90.0L206.8 89.4L208.5 88.9L210.2 88.4L211.9 87.9L213.6 87.4L215.3 86.9L217.0 86.4L218.7 85.9L220.4 85.4L222.2 84.9L223.9 84.4L225.6 83.9L227.3 83.4L229.0 82.9L230.7 82.4L232.4 81.9L234.1 81.5L235.8 81.0L237.6 80.5L239.3 80.0L241.0 79.6L242.7 79.1L244.4 78.6L246.1 78.2L247.8 77.7L249.5 77.2L251.2 76.8L252.9 76.3L254.6 75.9L256.4 75.4L258.1 75.0L259.8 74.5L261.5 74.1L263.2 73.6L264.9 73.2L266.6 72.8L268.3 72.3L270.0 71.9L271.8 71.4L273.5 71.0L275.2 70.6L276.9 70.1L278.6 69.7L280.3 69.3L282.0 68.9L283.7 68.4L285.4 68.0L287.1 67.6L288.9 67.2L290.6 66.8L292.3 66.3L294.0 65.9L295.7 65.5L297.4 65.1L299.1 64.7L300.8 64.3L302.5 63.9L304.2 63.5L305.9 63.1L307.7 62.7L309.4 62.3L311.1 61.9L312.8 61.5L314.5 61.1L316.2 60.7L317.9 60.3L319.6 59.9L321.3 59.5L323.1 59.1L324.8 58.7L326.5 58.3L328.2 57.9L329.9 57.6L331.6 57.2L333.3 56.8L335.0 56.4L336.7 56.0L338.4 55.7L340.1 55.3L341.9 54.9L343.6 54.5L345.3 54.1L347.0 53.8L348.7 53.4L350.4 53.0L352.1 52.7L353.8 52.3L355.5 51.9L357.2 51.6L359.0 51.2L360.7 50.8L362.4 50.5L364.1 50.1L365.8 49.7L367.5 49.4L369.2 49.0L370.9 48.6L372.6 48.3L374.4 47.9L376.1 47.6L377.8 47.2L379.5 46.9L381.2 46.5L382.9 46.2L384.6 45.8L386.3 45.5L388.0 45.1L389.7 44.8L391.4 44.4L393.2 44.1L394.9 43.7L396.6 43.4L398.3 43.0L400.0 42.7" fill="none" stroke="#1f6feb" stroke-width="3"/></svg>',
+    choices:['About 2.2 m','About 1.5 m','About 3.0 m','About 4.5 m'],correct:0,
+    steps:['Find 3 s on the period axis.','Go across to the curve and down to the length axis.','It reads about 2.2 m (from T = 2π√(L/g), L = 9.8 × (3/2π)² ≈ 2.23 m).']},
+  {id:'pdamp',kind:'test',lvl:'bio',
+    q:'<p>You pull a pendulum back to 10° instead of 5°. What happens to its period?</p>',
+    choices:['Almost no change','It doubles','It is cut in half','It gets 4 times longer'],correct:0,
+    steps:['For small angles, the period depends on length and g, not on the swing size.','A bigger swing travels farther but also moves faster.','The two cancel, so the period barely changes.'],
+    lab:{set:{L:1,mass:200,theta:10,planet:"earth",damp:0},look:'A 1.0 m pendulum from 10°: still about 2.0 s per swing.'}}
   ]},
 buoyancy:{
   apNote:'Released questions from College Board. Fluids questions use P = ρgh and Archimedes’ principle.',
@@ -494,7 +580,11 @@ buoyancy:{
     q:'A wood block (600 kg/m³) floats in oil (900 kg/m³). What fraction is submerged?',
     num:{ans:66.7,tol:1,unit:'%'},
     steps:['Fraction submerged = ρ_wood ÷ ρ_oil.','= 600 ÷ 900.','= 0.667, about 67%. It floats lower in oil than in water (60%), because oil is less dense.'],
-    lab:{set:{block:'wood',fluid:'oil',lower:100},look:'Read <b>Below the surface</b>.'},verify:[['sub',66.7,1.5]]}
+    lab:{set:{block:'wood',fluid:'oil',lower:100},look:'Read <b>Below the surface</b>.'},verify:[['sub',66.7,1.5]]},
+  {id:'sinkfloat',kind:'test',lvl:'bio',
+    q:'<p>A 1 L block weighs 15 N. Fully under water, the water pushes up on it with 9.8 N. Does it float?</p>',
+    choices:['No: its 15 N weight beats the 9.8 N push','Yes: water pushes up on everything in it','Yes: it floats once it is fully under','No: buoyancy only acts on things like wood'],correct:0,
+    steps:['The most water can push up is the weight of water pushed aside: 9.8 N for 1 L.','The block weighs 15 N, more than that.','So it sinks. It is denser than water: 1.5 kg per liter.']}
   ]},
 fluidflow:{
   apNote:'Released questions from College Board. Flow questions use the continuity equation and Bernoulli’s equation.',
@@ -554,7 +644,16 @@ fluidflow:{
   {id:'damp',kind:'ap',lvl:'ap',
     q:'Driven exactly at resonance, the steady sway is the ground motion times 1/(2ζ). How much does raising ζ from 0.03 to 0.15 cut the sway?',
     choices:['By 5 times','By half','Not at all','By 25 times'],correct:0,
-    steps:['1/(2 × 0.03) ≈ 16.7.','1/(2 × 0.15) ≈ 3.3.','16.7 ÷ 3.3 = 5. Dampers matter most at resonance, which is why tall buildings use them.']}
+    steps:['1/(2 × 0.03) ≈ 16.7.','1/(2 × 0.15) ≈ 3.3.','16.7 ÷ 3.3 = 5. Dampers matter most at resonance, which is why tall buildings use them.']},
+  {id:'qtres',kind:'test',lvl:'bio',
+    q:'<p>Soldiers marching in step at a bridge’s natural sway rate can make it swing dangerously. What is this called?</p>',
+    choices:['Resonance','Damping','Friction','Inertia'],correct:0,
+    steps:['Every structure has a natural frequency.','Pushing at that rate adds energy each cycle, and the sway grows.','That is resonance, which is why soldiers break step on bridges.']},
+  {id:'qtdamp',kind:'test',lvl:'honors',
+    q:'<p>What does a damper do for a tower shaken near its natural frequency?</p>',
+    choices:['Limits how big the sway grows','Changes its natural frequency','Makes the table shake slower','Makes the tower much stiffer'],correct:0,
+    steps:['A damper turns some sway energy into heat every cycle.','So energy can’t keep piling up, and the sway levels off.','It barely changes f_n; bracing does that.'],
+    lab:{set:{f:2.2,brace:"none",load:0.5,damp:true},look:'The unbraced tower at 2.2 Hz with a damper: the sway levels off near 1.7 cm.'}}
   ]}
 ,gears:{
   apNote:'Torque and rotational motion are AP Physics 1 Unit 5. Engineering and robotics classes use gear ratios to design drive trains.',
@@ -584,7 +683,11 @@ fluidflow:{
     q:'A 3.0 kg robot is on a 20° ramp with rolling resistance coefficient 0.05. What total force must the wheels push to climb at steady speed? (g = 9.8)',
     num:{ans:11.4,tol:.1,unit:'N'},
     steps:['Gravity along the ramp: mg sin θ = 3.0 × 9.8 × sin 20° = 10.06 N.','Rolling resistance: 0.05 × mg cos θ = 0.05 × 3.0 × 9.8 × cos 20° = 1.38 N.','Total ≈ 11.4 N.'],
-    lab:{set:{course:'ramp',ang:20,m:3},look:'Read <b>Resistance to beat</b>.'},verify:[['R',11.44,.05]],wait:0.1}
+    lab:{set:{course:'ramp',ang:20,m:3},look:'Read <b>Resistance to beat</b>.'},verify:[['R',11.44,.05]],wait:0.1},
+  {id:'trade',kind:'test',lvl:'bio',
+    q:'<p>Gearing a robot up for a higher top speed always costs what?</p>',
+    choices:['Pushing force at the wheels','Battery voltage','Motor turns per second','The robot’s total mass'],correct:0,
+    steps:['Gears trade speed for force.','Gearing up spins the wheels faster than the motor.','The wheels then push with less force, so climbs get harder.']}
   ]}
 ,botdrive:{
   apNote:'Speed, distance and time come from AP Physics 1 Unit 1. Robotics classes use the same math to time a program before they add sensors.',
@@ -618,6 +721,68 @@ fluidflow:{
     q:'You swap 10 cm wheels for 12 cm wheels and keep the same program. What happens?',
     choices:['Every move grows 20%, so it overshoots','Nothing; the program is the same','It undershoots every target'],correct:0,
     steps:['Speed = rpm × πD, so it scales with D.','12 ÷ 10 = 1.2.','Every distance and angle is 20% bigger. Retime the program or measure in wheel turns.'],
-    lab:{set:{t1:2.8,t2:0.6,t3:1.55,wd:12},act:'run',look:'Read <b>Result</b>.'}}
+    lab:{set:{t1:2.8,t2:0.6,t3:1.55,wd:12},act:'run',look:'Read <b>Result</b>.'}},
+  {id:'bddist',kind:'test',lvl:'bio',
+    q:'<p>A robot drives at 0.5 m/s. How long should it drive to go 2.0 m?</p>',
+    choices:['4.0 s','1.0 s','2.5 s','0.25 s'],correct:0,
+    steps:['time = distance ÷ speed.','2.0 m ÷ 0.5 m/s.','= 4.0 s.']},
+  {id:'bdenc',kind:'test',lvl:'honors',
+    q:'<p>Why do wheel encoders make a robot drive more accurately than timing alone?</p>',
+    choices:['They measure distance, not time','They make the motors spin faster','They keep the battery from draining','They steer around obstacles'],correct:0,
+    steps:['Encoders count wheel turns, so the robot drives a set distance.','Timing assumes a speed, which changes with the battery and motors.','With encoders, a weak battery only makes the trip slower, not shorter.']}
   ]}
+});
+
+/* Nov 18 rework: practice questions for a tool that had none */
+BioLab.addReview({
+atwood: {questions:[
+  {id:'addsmall',kind:'test',lvl:'bio',
+    q:'<p>Two 2.0 kg masses hang over a pulley and don’t move. You add 0.5 kg to one side. What happens?</p>',
+    choices:['They start moving slowly, heavy side down','Nothing, unless the masses differ a lot','The heavy side falls at the full 9.8 m/s²','The lighter side moves down instead'],correct:0,
+    steps:['Only the difference in weight pulls the pair: 0.5 × 9.8 = 4.9 N.','That force has to speed up all 4.5 kg, so a = 4.9 ÷ 4.5 ≈ 1.1 m/s².','So they move, slowly, with the heavier side going down.']},
+  {id:'counterq',kind:'real',lvl:'bio',
+    q:'<p>Why does an elevator hang its car against a heavy counterweight?</p>',
+    choices:['The motor only supplies the small difference','It lets the car drop at 9.8 m/s² in a power cut','It doubles the force the motor can give','It keeps the car from swinging side to side'],correct:0,
+    steps:['The counterweight balances the car plus about half a full load.','Only the difference in weight has to be pulled by the motor.','That saves energy and gives a gentle start.']},
+  {id:'anum',kind:'test',lvl:'honors',
+    q:'<p>A 3.0 kg mass and a 1.0 kg mass hang over a light, frictionless pulley. What is their acceleration? (g = 9.8 m/s²)</p>',
+    choices:['4.9 m/s²','9.8 m/s²','2.5 m/s²','19.6 m/s²'],correct:0,
+    steps:['Net force = (3.0 − 1.0) × 9.8 = 19.6 N.','Total mass = 4.0 kg.','a = 19.6 ÷ 4.0 = 4.9 m/s².']}
+]}
+});
+
+/* Nov 18 rework: practice questions for a tool that had none */
+BioLab.addReview({
+shotspotter: {questions:[
+  {id:'dist',kind:'test',lvl:'bio',
+    q:'<p>Sound travels about 343 m/s. Mic B hears a bang 0.20 s before mic A. How much closer is the bang to mic B?</p>',
+    choices:['About 69 m','About 343 m','About 1,715 m','About 34 m'],correct:0,
+    steps:['Distance difference = speed × time difference.','343 m/s × 0.20 s ≈ 69 m.','So the bang is about 69 m closer to B than to A.']},
+  {id:'curveq',kind:'test',lvl:'bio',
+    q:'<p>Why does one time difference between two microphones give a curve, not a single point?</p>',
+    choices:['Many spots share that same distance difference','Sound bends around buildings into a curve','The mics hear the bang at different volumes','Sound always travels in curves, not lines'],correct:0,
+    steps:['The time difference tells you how much closer the bang is to one mic.','Every point with that same difference lies on one curve, a hyperbola.','A third mic adds a second curve, and they cross at the bang.']},
+  {id:'base',kind:'real',lvl:'honors',
+    q:'<p>A sensor flags 90% of real gunshots and 5% of other loud bangs. If gunshots become rarer among loud bangs, what happens to the share of alerts that are false?</p>',
+    choices:['It grows, though the sensor didn’t change','It shrinks, since there is less gunfire','It stays at 5%, set by the sensor','It drops to zero with enough bangs'],correct:0,
+    steps:['False alerts come from the many non-gunfire bangs.','With fewer real gunshots, true alerts drop but false ones don’t.','So a bigger share of alerts send officers where there was no gunfire.']}
+]}
+});
+
+/* Nov 18 rework: practice questions for a tool that had none */
+BioLab.addReview({
+oximeter: {questions:[
+  {id:'twocolors',kind:'test',lvl:'bio',
+    q:'<p>Why does a pulse oximeter shine two colors of light through your finger?</p>',
+    choices:['Low-oxygen blood absorbs red far more than infrared','Red measures heart rate; infrared measures oxygen','One color warms the finger so blood flows faster','Two colors make the light bright enough to pass'],correct:0,
+    steps:['Oxygen-poor hemoglobin soaks up red light about 10 times as strongly as oxygen-rich hemoglobin.','Infrared changes much less with oxygen.','Comparing the two pulses (R) tells the device how much oxygen the blood carries.']},
+  {id:'rcalc',kind:'test',lvl:'honors',
+    q:'<p>A device measures R = 0.60. Using SpO₂ ≈ 110 − 25R, what does it read?</p>',
+    choices:['95%','85%','125%','60%'],correct:0,
+    steps:['25 × 0.60 = 15.','110 − 15 = 95.','The screen reads 95%.']},
+  {id:'calibq',kind:'real',lvl:'bio',
+    q:'<p>An oximeter was calibrated mostly on light-skinned volunteers. What is the risk for patients with darker skin?</p>',
+    choices:['It can read too high and hide low oxygen','It can’t pick up a pulse through dark skin','It always reads too low and sets off alarms','None, since light crosses all skin alike'],correct:0,
+    steps:['The device turns R into a percent using a curve fit on the people it was tested on.','If those people don’t match the patient, the curve can be off.','Studies found readings too high more often in Black patients, hiding low oxygen.']}
+]}
 });
