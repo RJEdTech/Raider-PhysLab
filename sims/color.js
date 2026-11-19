@@ -579,7 +579,7 @@ const SIM={
     {lvl:'ap',q:'A red car under white light. You switch to the Color-blind views and change the car to green. For a protan viewer, how do the red and green cars compare?',choices:['Clearly different hues, as for a typical viewer','Nearly the same hue, differing mainly in brightness','The green car now looks red'],correct:1,
       baseline:{part:'color',obj:'red',filt:'none',deep:'cb',R:100,G:100,B:100},change:{obj:'green'},changeText:'Car changed from red to green',watch:'eye',
       explain:{ap:'Without L cones, the red–green comparison L − M is gone. Red and green light both land on the same yellowish line of possible colors and differ mainly in how strongly they drive the M cones, so the cars look like dim and bright versions of one olive-yellow.'}},
-    {lvl:'ap',q:'You mix cyan, magenta and yellow paint. The mixture looks…',choices:['White','Dark brown or nearly black','Bright green'],correct:1,
+    {lvl:'ap',q:'You mix cyan, magenta and yellow paint. The mixture looks…',choices:['White, like mixing colored light','Dark brown or nearly black','Bright green, from the yellow and cyan'],correct:1,
       baseline:{part:'color',deep:'spectra'},change:{deep:'mix'},changeText:'Showing light vs paint',watch:'eye',
       explain:{ap:'Each paint’s reflectance multiplies: cyan absorbs most red, magenta most green, yellow most blue. Real pigments reflect 6% to 10% even where they absorb, so a little light of every color survives, about 5% to 8% of white, which looks dark brown.'}},
     {lvl:'ap',q:'A fluorescent yellow-green car sits in the dark. You turn on only the UV bulb. What does it look like?',choices:['Black','It glows green','It glows violet'],correct:1,

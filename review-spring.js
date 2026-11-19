@@ -7,7 +7,7 @@ coulomb:{
   questions:[
   {id:'balloon',kind:'real',lvl:'bio',
     q:'You rub a balloon on your hair and it sticks to the wall. The wall had no charge. Why does it stick?',
-    choices:['Its charge pushes the wall’s electrons back, leaving the surface +','The wall was secretly charged from the start','Rubbing makes the balloon’s surface sticky','Gravity pulls the balloon sideways toward the wall'],correct:0,
+    choices:['Its charge pushes the wall’s electrons back, leaving the surface +','The wall already had a hidden charge from being painted','Rubbing makes the balloon’s surface sticky, like a piece of tape','Gravity pulls the balloon sideways toward the nearby wall'],correct:0,
     steps:['Rubbing moves electrons from your hair onto the balloon, so the balloon is negative.','Near the wall, its electrons nudge the wall’s electrons a tiny bit away, leaving the surface slightly positive.','Opposite charges attract, and the nearer charges win, so the balloon clings.'],
     lab:{set:{mode:'static'},act:'rub',look:'Rub the balloon, bring it near the electroscope and watch the leaves.'}},
   {id:'likes',kind:'test',lvl:'bio',

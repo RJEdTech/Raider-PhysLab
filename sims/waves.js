@@ -122,7 +122,7 @@ const WAVES={
   ],
   onTourExit(sim){BioLab.setValues(sim,{slinky:false,mode:'osc',end:'fixed',freq:1,tension:1});},
   challenges:[
-    {lvl:'bio',q:'The oscillator speeds up from 1 Hz to 2 Hz. What happens to the wavelength?',choices:['It gets longer','It gets shorter (half as long)','It stays the same'],correct:1,
+    {lvl:'bio',q:'The oscillator speeds up from 1 Hz to 2 Hz. What happens to the wavelength?',choices:['It gets longer (twice as long)','It gets shorter (half as long)','It stays the same, since the speed is fixed'],correct:1,
      baseline:{end:'none',freq:1},change:{freq:2},changeText:'Frequency doubled to 2 Hz',watch:'shape',
      explain:{bio:'The rope carries waves at the same speed no matter how fast you shake it. Shaking twice as often squeezes twice as many waves into the same distance, so each one is half as long.',honors:'v = fλ and v is fixed by the rope. Doubling f halves λ: 2.00 m becomes 1.00 m.'}},
     {lvl:'bio',q:'A pulse hits the clamped end of the rope. How does it come back?',choices:['Upside down','Right-side up, the same way','It does not come back'],correct:0,

@@ -921,7 +921,7 @@ collisions:{
   questions:[
   {id:'whichp',kind:'test',lvl:'bio',
     q:'Which has more momentum: a 2 kg ball at 3 m/s, or a 6 kg ball at 1 m/s?',
-    choices:['The 2 kg ball','The 6 kg ball','They have the same momentum','Can’t tell'],correct:2,
+    choices:['The 2 kg ball, because it is faster','The 6 kg ball, because it is heavier','They have the same momentum','Can’t tell without more information'],correct:2,
     steps:['Momentum p = mass × velocity.','2 × 3 = 6 kg·m/s and 6 × 1 = 6 kg·m/s.','They are equal. (Their kinetic energies are not: 9 J and 3 J.)']},
   {id:'stickynum',kind:'test',lvl:'bio',
     q:'A 2 kg cart moving at 0.6 m/s hits a 1 kg cart at rest, and they stick. How fast do they move together?',

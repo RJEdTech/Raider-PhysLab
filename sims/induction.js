@@ -135,7 +135,7 @@ const SIM={
     {lvl:'honors',q:'You switch the transformer’s primary from 120 V AC to a 120 V battery (DC). What does the secondary give?',choices:['120 V','The same as before','Nothing (0 V)'],correct:2,
      baseline:{scene:'transformer',vp:120,np:200,ns:100,ac:true},change:{ac:false},changeText:'Switched to DC',watch:'vsec',
      explain:{honors:'A steady current makes a steady flux in the core. Induction needs a changing flux, so the secondary gets nothing. That is why the power grid uses AC.'}},
-    {lvl:'ap',q:'Two identical magnets are dropped down 1 m tubes: one plastic, one copper. How do the fall times compare?',choices:['Both take about 0.45 s','The copper tube’s magnet falls much more slowly','The copper one falls faster'],correct:1,
+    {lvl:'ap',q:'Two identical magnets are dropped down 1 m tubes: one plastic, one copper. How do the fall times compare?',choices:['Both take about 0.45 s, the same as in air','The copper tube’s magnet falls much more slowly','The copper tube’s magnet falls faster, pulled by the metal'],correct:1,
      baseline:{scene:'tube',tmat:'plastic',wall:1.5},change:{tmat:'copper'},changeText:'Metal tube switched to copper',watch:'tfall',
      explain:{ap:'Copper is not magnetic, but it conducts. The moving magnet changes the flux through each ring of the tube, inducing eddy currents whose field opposes the motion (Lenz). The drag is proportional to speed, F = bv, so the magnet reaches terminal speed mg/b ≈ 0.2 m/s and takes about 5 s.'}},
     {lvl:'ap',q:'The flux through a 50-turn coil falls steadily from 2.0 mWb to zero in 0.10 s. What is the average induced EMF?',choices:['0.02 V','1.0 V','0.04 V','10 V'],correct:1,instant:true,
