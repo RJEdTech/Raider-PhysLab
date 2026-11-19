@@ -13,6 +13,10 @@ gravity: {
   ],
   stops: 'Physics finds the law, measures G and predicts orbits to astonishing precision. It cannot say why there are laws, or why they can be written in mathematics. Those questions sit underneath every experiment.',
   church: 'The Church teaches that research done in a truly scientific way can never conflict with faith, “because the things of the world and the things of faith derive from the same God” (Catechism no. 159).',
+  faith: { items: [
+    { who: 'Fr. Giovanni Battista Riccioli and Fr. Francesco Grimaldi', when: 'Jesuits in Bologna, 1640s', says: 'They dropped clay balls from a 97-meter tower, timed the falls with pendulums and confirmed Galileo’s rule for falling bodies: one of the first careful measurements of g.' },
+    { who: 'The Jesuit Moon map', when: '1651', says: 'Riccioli and Grimaldi’s map named the Moon’s craters after scientists, including Copernicus and Galileo. Many names are still used, and Newton later tested his law of gravity on the Moon’s orbit.' }
+  ], link: { href: 'faith.html#riccioli-g', label: 'Read the full stories on Faith and Physics, and do their math' } },
   views: [
     { who: 'Isaac Newton', when: '1713', says: 'He wrote that the elegant system of the Sun, planets and comets could only come from the design and rule of an intelligent and powerful Being.' },
     { who: 'David Hume', when: '1748', says: 'We never see a cause, only one event following another. We expect the pattern to continue from habit, and reason cannot prove it will.' },
@@ -40,6 +44,10 @@ photoelectric: {
   ],
   stops: 'Physics shows that light gives up energy in packets and predicts every meter reading. Whether the photon is a “thing” out there or our best description of what we measure is the question of scientific realism. That is philosophy, and physicists still disagree.',
   church: 'The Church teaches that faith and reason are “like two wings” lifting the mind toward truth (John Paul II, <i>Fides et Ratio</i>, 1998), and that truth is one: what is really discovered about light cannot contradict what faith holds (Catechism no. 159). The Church does not decide whether the photon is a thing or a tool for calculating. It leaves that to physics and philosophy.',
+  faith: { items: [
+    { who: 'Fr. Francesco Grimaldi', when: 'Jesuit, Bologna, 1665', says: 'He discovered and named diffraction: light spreading into bands as it passes the edge of an obstacle. It was early evidence that light behaves like a wave, the other half of the puzzle you just saw.' },
+    { who: 'Fr. Angelo Secchi', when: 'Jesuit astronomer, 1860s', says: 'He sorted stars into classes by the colors in their light, one of the first steps toward reading what stars are made of from their spectra.' }
+  ], link: { href: 'faith.html#grimaldi-secchi', label: 'Read Grimaldi and Secchi’s story on Faith and Physics' } },
   views: [
     { who: 'Albert Einstein', when: '1905', says: 'Light really comes in quanta. He held that physics describes a world that exists whether or not anyone is measuring it.' },
     { who: 'Robert Millikan', when: '1916', says: 'He spent years testing Einstein’s equation, confirmed it and measured h, yet for years still found the idea of light particles hard to accept.' },
@@ -69,6 +77,10 @@ relativity: {
   ],
   stops: 'Physics tells us exactly how clocks compare, well enough to run GPS. It does not settle whether time “flows,” whether the past and future are as real as the present, or why we live time as a “now.” Philosophers still argue about these questions.',
   church: 'The Church teaches that faith and reason are “like two wings” lifting the mind toward truth (John Paul II, <i>Fides et Ratio</i>, 1998), and that honest science and faith cannot truly conflict, because both come from the same God (Vatican II, <i>Gaudium et Spes</i> 36). Fr. Georges Lemaître, a Belgian priest, used Einstein’s equations in 1927 to propose that the universe is expanding: the start of the Big Bang theory. When Pius XII seemed to treat it as proof of creation in 1951, Lemaître urged caution, because physics and faith answer different questions.',
+  faith: { items: [
+    { who: 'Boethius', when: 'Catholic philosopher, 524', says: 'Eternity is not endless time but the complete possession of life all at once. God sees all of time together, the way someone on a hilltop sees a whole road (an image Aquinas later used).' },
+    { who: 'The Fourth Lateran Council', when: '1215', says: 'It taught that God created all things “from the beginning of time,” so time itself is part of creation, not a stage God stands on. The Catechism adds that “to God, all moments of time are present in their immediacy” (no. 600).' }
+  ], link: { href: 'faith.html#lemaitre-vatt', label: 'Read Lemaître’s story on Faith and Physics, and do its math' } },
   views: [
     { who: 'Aristotle', when: '4th century BC', says: 'Time is the measure of change. If nothing ever changed, there would be no time to count.' },
     { who: 'Augustine', when: '<i>Confessions</i>, about 400', says: 'If no one asks me what time is, I know; when I try to explain it, I cannot. We live time in the mind, as memory, attention and hope.' },
@@ -84,6 +96,102 @@ relativity: {
       { what: 'Muon lifetime at rest', value: '2.197 µs', range: 'Known to about 1 part per million', how: 'Timing millions of muon decays in the lab', enough: 'Explaining why muons made high in the sky reach the ground.' }
     ],
     note: 'Two clocks disagreeing is not an error. Relativity predicts how much they disagree, and the measurements land inside the predicted range.'
+  }
+}
+});
+
+/* Nov 19, 2026: chaos, color and the new double-slit tool (borders session), with the Catholic tradition on each card. */
+BioLab.addBorder({
+chaos: {
+  q: 'If the pendulum follows exact laws, why can’t we predict it, and does that leave room for free will?',
+  saw: 'Two double pendulums started a hair apart. For a few seconds they swung together; then they went completely different ways. The law never changed, only a tiny difference at the start.',
+  assumes: [
+    'The same exact equations govern both pendulums at every instant (in the model, the future is fully set by the start).',
+    'We can never measure a starting position perfectly, only within a range.',
+    'A computer’s rounded numbers follow the real motion closely enough, at least for a while.'
+  ],
+  stops: 'Physics shows that exact laws can still make the future impossible to predict, because tiny errors grow fast. It cannot settle whether the universe is fully determined, or whether people make real choices. And unpredictable is not the same as free: a chaotic pendulum is not choosing anything.',
+  church: 'The Church teaches that human freedom is real: “God created man a rational being, conferring on him the dignity of a person who can initiate and control his own actions” (Catechism no. 1730). It also teaches that God’s providence works through natural causes and through free human choices without canceling them (Catechism nos. 306–308).',
+  faith: { items: [
+    { who: 'Pierre Duhem', when: 'Catholic physicist, 1906', says: 'He pointed out that some exact mathematical predictions are useless in physics, because no measurement of the start is ever perfect. It was one of the first descriptions of what we now call chaos.' },
+    { who: 'Fr. Luis de Molina (Jesuit) and Fr. Domingo Báñez (Dominican)', when: '1580s–1607', says: 'They argued fiercely over how God’s knowledge of the future fits with human free choice. In 1607 Pope Paul V let both sides keep teaching and forbade either to call the other heretical. The Church left an open question open.' }
+  ] },
+  views: [
+    { who: 'Pierre-Simon Laplace', when: '1814', says: 'A mind that knew every force and the position of every particle at one instant could see the whole future as clearly as the past.' },
+    { who: 'Henri Poincaré', when: '1908', says: 'A tiny difference in the starting state can produce a huge difference later, so prediction becomes impossible, even though the laws are exact.' },
+    { who: 'Thomas Aquinas', when: '13th century', says: 'People have free choice because reason sees that no limited good is the only good. The will is not forced to pick any one of them, so a person truly decides.' },
+    { who: 'Daniel Dennett', when: '2003', says: 'Free will can exist even if the universe is determined. What matters is being able to weigh reasons and act on them, and humans evolved to do that.' },
+    { who: 'Sam Harris', when: '2012', says: 'Free will is an illusion. Your choices come from brain events you did not choose, whether they are determined or random.' }
+  ],
+  margin: {
+    lead: 'In chaos the question “how exact?” has a hard answer: no measurement is ever exact enough to predict forever.',
+    rows: [
+      { what: 'Copy B’s head start', value: '0.01° in this tool (Closer look lets you change it)', range: 'Make it 10 times smaller and the pendulums stay together only a little longer', how: 'Watching when the two drawings split apart', enough: 'Seeing that better measurement buys only a little more time.' },
+      { what: 'Edward Lorenz’s rounding', value: 'He typed 0.506 instead of 0.506127 (1961)', range: 'A difference of about 1 part in 4,000', how: 'Rerunning a computer weather model from the middle', enough: 'Nothing: the new forecast matched at first, then drifted into completely different weather.' },
+      { what: 'How far ahead weather can be forecast', value: 'Reliable daily forecasts about 9 to 10 days out', range: 'The limit is about two weeks, even with nearly perfect models and data (Zhang and colleagues, 2019)', how: 'Running the best weather models many times from slightly different starts', enough: 'Planning a ski trip next week. Not for a forecast next month.' }
+    ],
+    note: 'A chaotic system is objective and exact in its laws, and still unpredictable in practice. Predictable and determined are two different ideas.'
+  }
+},
+color: {
+  q: 'Is red in the apple, or in me?',
+  saw: 'The same car looked red, black or gray depending on the lamp and the glasses. The car reflects some wavelengths and absorbs others; your three kinds of cones turn that light into the color you see.',
+  assumes: [
+    'An instrument that measures wavelength reports something real about the light.',
+    'Other people’s eyes and brains work enough like yours that “red” means the same thing.',
+    'Your senses report the world rather than invent it.'
+  ],
+  stops: 'Physics measures the wavelengths a surface reflects, and biology traces the signal from the cones to the brain. Neither explains why 650 nm light looks like this to you: the experience itself. Philosophers call that the “hard problem” of consciousness.',
+  church: 'The Church teaches that the human person is one, body and soul together (Catechism no. 365), so seeing is a real act of the whole person, not a picture shown to a mind trapped inside. It also teaches that the order and beauty of creation, discovered “progressively as the laws of nature,” can lead the mind to God (Catechism nos. 32 and 341).',
+  faith: { items: [
+    { who: 'Theodoric of Freiberg', when: 'Dominican friar, about 1304–1310', says: 'Using glass globes filled with water as giant raindrops, he worked out how sunlight bends and reflects inside drops to make a rainbow, including the second, fainter bow.' },
+    { who: 'Fr. Francesco Grimaldi and Fr. Angelo Secchi', when: 'Jesuits, 1665 and 1860s', says: 'Grimaldi discovered diffraction, light spreading into colored bands at an edge. Secchi sorted the stars by the colors in their light, and a star’s color tells its temperature.' }
+  ], link: { href: 'faith.html#grimaldi-secchi', label: 'Read their story on Faith and Physics, and find a star’s temperature from its color' } },
+  views: [
+    { who: 'Democritus', when: 'about 400 BC', says: 'Sweet, bitter and color exist only by convention. In reality there are only atoms and empty space.' },
+    { who: 'Galileo Galilei', when: '1623', says: 'Tastes, smells and colors exist only in the one who senses them. Outside us there are only shapes, sizes and motions.' },
+    { who: 'John Locke', when: '1690', says: 'Color is a power in the object to produce an idea of color in us. The power is real; the color we see is in our minds.' },
+    { who: 'Aristotle and Aquinas', says: 'Color is really in the apple, as a quality of its surface. When you see it, the apple’s color and your seeing are one act: the red becomes present in you.' },
+    { who: 'Thomas Nagel', when: '1974', says: 'No physical description, however complete, can tell you what an experience is like from the inside. Science leaves that part out.' }
+  ],
+  margin: {
+    lead: 'Two people can agree on a wavelength to the nanometer and still not know whether they see the same red. That is the line between what we measure and what we experience.',
+    rows: [
+      { what: 'The visible band', value: 'About 380 to 750 nm', range: 'The edges differ from person to person and with brightness', how: 'Asking many people when a light stops looking dark', enough: 'Every color problem in class. Not a sharp line: the eye fades out gradually.' },
+      { what: 'Peak sensitivity of the three cones', value: 'S about 420 nm, M about 534 nm, L about 564 nm', range: 'Each cone responds over a wide range around its peak, and the M and L curves overlap heavily', how: 'Shining light through single cones taken from human eyes (Bowmaker and Dartnall, 1980)', enough: 'Explaining how three signals make every color you see.' },
+      { what: 'Red-green color blindness', value: 'About 8% of men and 0.5% of women of Northern European descent', range: 'Lower in many other populations', how: 'Color-vision tests on large groups', enough: 'Knowing that a classroom of 30 likely has someone who sees red and green differently.' }
+    ]
+  }
+},
+doubleslit: {
+  q: 'Does the electron go through both slits, and does looking change what is real?',
+  saw: 'Electrons sent one at a time each landed as a single dot, yet together they built wave bands. When a detector recorded which slit each one used, the bands disappeared.',
+  assumes: [
+    'Each dot is a real event caused by a real electron, even though no one sees the electron in flight.',
+    'The rule that predicts the pattern holds for every electron, not only the ones we counted.',
+    'A probability can describe what one single particle will do, not only what a crowd does.'
+  ],
+  stops: 'Quantum physics predicts the pattern perfectly, dot by dot. It does not say what the electron is doing between the source and the screen. Physicists hold several interpretations that make exactly the same predictions, and no experiment so far can choose between them.',
+  church: 'The Church teaches that research done in a truly scientific way “can never conflict with the faith” (Catechism no. 159), and it does not teach any interpretation of quantum physics. It does teach that God holds every creature in being at every moment (Catechism no. 301), whether or not anyone is watching.',
+  faith: { items: [
+    { who: 'Fr. Francesco Grimaldi', when: 'Jesuit, Bologna, 1665', says: 'He let sunlight through a tiny hole, put a thin rod in its path and saw colored bands at the edges of the shadow. He named the effect diffraction, the first step toward this experiment.' },
+    { who: 'St. John Paul II', when: 'letter to the Vatican Observatory’s director, 1988', says: '“Science can purify religion from error and superstition; religion can purify science from idolatry and false absolutes.” Quantum physics is a place where both warnings matter.' }
+  ], link: { href: 'faith.html#grimaldi-secchi', label: 'Read Grimaldi’s story on Faith and Physics' } },
+  views: [
+    { who: 'Niels Bohr', when: '1927 onward', says: 'Wave and particle are two complementary pictures, and an experiment shows one or the other, never both. Asking which slit the electron “really” used, without measuring, has no meaning.' },
+    { who: 'Albert Einstein', when: 'as remembered by Abraham Pais', says: 'Physics should describe a world that is there whether or not we look. He once asked Pais whether he really believed the Moon exists only when he looks at it.' },
+    { who: 'Werner Heisenberg', when: '1958', says: 'The quantum wave is like Aristotle’s “potentia”: a real tendency, something between a mere possibility and an actual fact. A measurement turns the tendency into a fact.' },
+    { who: 'Hugh Everett', when: '1957', says: 'The wave never collapses. Every possible result happens, each in its own branch of reality, and we find ourselves in one of them.' },
+    { who: 'Thomas Aquinas', when: '13th century, read today', says: 'Every change is a real potential becoming actual. Many Thomists today read the electron’s spread-out wave as real potency, and each dot on the screen as act.' }
+  ],
+  margin: {
+    lead: 'Quantum physics is the most precisely tested theory we have. What stays open is not the numbers but what they mean.',
+    rows: [
+      { what: 'Wavelength of a 50,000-volt electron', value: '5.36 pm (in this tool)', range: 'Set by the voltage; λ = h/p is exact for a given speed', how: 'Tonomura’s team sent electrons one at a time and watched the bands build up dot by dot (1989)', enough: 'Predicting where every band falls. Not which spot the next single electron will hit.' },
+      { what: 'Heaviest thing ever shown to interfere', value: 'Molecules of about 2,000 atoms, over 25,000 atomic mass units', range: 'Their wavelength was as small as 53 fm, far smaller than the molecules themselves (Fein and colleagues, 2019)', how: 'A 2-meter interferometer in a vacuum, kept free of gas so no molecule is bumped on the way', enough: 'Showing that size alone does not end quantum behavior. Isolation is what matters.' },
+      { what: 'Band contrast with gas in the beam', value: 'Falls as more particles are hit', range: 'Each collision that records the path removes that particle from the bands (Hornberger and colleagues, 2003)', how: 'Letting small amounts of gas into a buckyball interferometer', enough: 'Explaining why a baseball, bumped by air and light all the time, never shows bands.' }
+    ],
+    note: 'Objective here means every lab gets the same pattern, within the noise of counting dots. Labs agree on the pattern; they disagree only about what it means.'
   }
 }
 });

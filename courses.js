@@ -37,7 +37,7 @@ BioLab.COURSES = [
       { n: 'Unit 8', t: 'Optics', ids: ['color', 'refraction', 'lenses'] },
       { n: 'Unit 9', t: 'Circuits and electricity', ids: ['coulomb', 'circuit', 'magnetism'] }
     ],
-    further: ['rocket', 'chaos', 'relativity', 'photoelectric'] },
+    further: ['rocket', 'chaos', 'relativity', 'photoelectric', 'doubleslit'] },
   { id: 'ap1',finals:[{"t": "AP Physics 1 fall final review", "units": [0, 1, 2, 3], "note": "Covers AP Units 1 to 4: kinematics, dynamics, energy and momentum. Your teacher decides what is on the final, so check the study guide."}], name: 'AP Physics 1',
     blurb: 'Tools in the order AP Physics 1 covers them, matching the AP units.',
     units: [
@@ -50,7 +50,7 @@ BioLab.COURSES = [
       { n: 'Unit 7', t: 'Oscillations', ids: ['pendulum', 'springs'] },
       { n: 'Unit 8', t: 'Fluids', ids: ['buoyancy', 'fluidflow'] }
     ],
-    further: ['rocket', 'chaos', 'relativity', 'photoelectric'] },
+    further: ['rocket', 'chaos', 'relativity', 'photoelectric', 'doubleslit'] },
   { id: 'apc',finals:[{"t": "AP Physics C fall final review", "units": [0, 1, 2], "note": "Covers kinematics, Newton’s laws, work, energy and momentum. Add rotation if your class has reached it. Your teacher decides what is on the final, so check the study guide."}], name: 'AP Physics C',
     blurb: 'Tools in the order AP Physics C covers them: Mechanics in the fall, Electricity and Magnetism in the spring.',
     units: [
@@ -63,7 +63,7 @@ BioLab.COURSES = [
       { n: 'Spring', t: 'Circuits', ids: ['circuit', 'capacitor'] },
       { n: 'Spring', t: 'Magnetism and induction', ids: ['magnetism', 'induction'] }
     ],
-    further: ['chaos', 'rocket', 'relativity', 'photoelectric'] },
+    further: ['chaos', 'rocket', 'relativity', 'photoelectric', 'doubleslit'] },
   { id: 'eng', name: 'Engineering Principles & Design',
     blurb: 'Tools for each spring build in Engineering Principles & Design: the physics behind the truss, the earthquake tower, the mousetrap car and the egg drop.',
     units: [
@@ -117,5 +117,5 @@ BioLab.TOPIC_ORDER = {
   10: ['coulomb', 'efield', 'capacitor'],
   11: ['circuit'],
   12: ['magnetism', 'induction'],
-  13: ['rocket', 'chaos', 'relativity', 'photoelectric']
+  13: ['rocket', 'chaos', 'relativity', 'photoelectric', 'doubleslit']
 };
