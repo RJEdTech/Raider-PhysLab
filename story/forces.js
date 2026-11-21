@@ -265,6 +265,7 @@ function sbSync(){const po=$('sb-po'),no=$('sb-no');if(po)po.textContent=S.sbP+'
 
 Story.run({id:'forces',lab:'PhysLab',H:H,off:0,chapters:CH,beats:BEATS,
   title:'Raider PhysLab · What keeps it moving? (Forces, story version)',
+  order:['Your hands push. The net force is 50 N forward, and the cart speeds up.','Your hands leave. The push is gone at once.','Friction is now the only sideways force: the net force is 10 N backward.','The cart loses a little speed every second until it stops.'],
   words:[['net force',/net force/i],['friction',/friction/i],['zero',/\bzero\b|\b0\b|balanced/i],['speed',/speed|velocity/i],['mass',/\bmass\b/i],['acceleration',/accelerat/i]],
   state:{cam:0,pick:{},hv:2,hx:0,hP:0,hT:0,hist:[],hold:0,won:false,touched5:false,sk:new Array(71).fill(null),skPrev:null,mAns:null,mN:1,mSeen:{},mT:0,sbP:80,sbN:3,sbRun:-1},
   frozen(S,qs){if(qs.has('picks'))for(const k of qs.get('picks'))S.pick[k]=1;if(qs.has('sim')){S.hP=+(qs.get('hp')||10);const n=+qs.get('sim')*50;for(let i=0;i<n;i++)holdStep(.02);S.touched5=true;}

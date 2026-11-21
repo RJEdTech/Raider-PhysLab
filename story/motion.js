@@ -314,6 +314,7 @@ function sbSync(){const b=S.sb,vo=$('sb-vo'),to=$('sb-to');if(vo)vo.textContent=
 
 Story.run({id:'motion1d',lab:'PhysLab',confusedId:'motion-story',H:H,off:OFF,chapters:CH,beats:BEATS,
   title:'Raider PhysLab · Can you stop in time? (Motion in one dimension, story version)',
+  order:['You see the deer. For 1 second your foot is still moving, so the car holds 20 m/s.','The brakes go on. The car loses 5 m/s every second.','Each second the car covers less road than the second before.','After 5 seconds and 60 m, the car is still.'],
   words:[['position',/position/i],['velocity',/velocit/i],['acceleration',/accelerat/i],['distance',/distance/i],['slope or steepness',/slope|steep/i]],
   state:{vx1:85.5,g1:null,g2:null,scrub:2.2,sMin:9,sMax:0,touched:false,touched8:false,n:1,ans:null,tau:1.5,tauMax:0,tile:10,tiles:{},sb:{v:20,tr:1,a:5},sbRun:-1},
   frozen(S,qs){if(qs.has('sbv'))S.sb.v=+qs.get('sbv');if(qs.has('sbt'))S.sb.tr=+qs.get('sbt');if(qs.has('sba'))S.sb.a=+qs.get('sba');S.sMin=0;S.sMax=6;S.tauMax=4;S.tiles={10:1,20:1,30:1};S.touched=true;},

@@ -103,13 +103,22 @@ function wire(){nextB.onclick=next;$('back').onclick=()=>go(S.beat-1);$('replay'
 function tiQs(){return[...document.querySelectorAll('#turnin textarea')];}
 function tiWords(){const el=$('ti-words');if(!el||!CFG.words)return;const txt=tiQs().map(t=>t.value).join(' ');
   el.innerHTML='<span class="small">Words to use: </span>'+CFG.words.map(w=>'<span class="chip'+(w[1].test(txt)?' on':'')+'">'+w[0]+'</span>').join('');}
-function tiInit(){const KEY='rjphyslab-story-'+CFG.id;
+function tiOrder(){const el=$('ti-order');if(!el||!CFG.order)return;const n=CFG.order.length,sh=[2,0,3,1,5,4].filter(i=>i<n);let ord=sh.concat(CFG.order.map((_,i)=>i).filter(i=>!sh.includes(i)));
+  S.order={tries:0,done:false,msg:''};
+  const render=()=>{el.innerHTML='<label>Put the story in order</label><ol class="ord">'+ord.map((ci,pos)=>'<li><span class="ordt">'+CFG.order[ci]+'</span><span class="ordb"><button type="button" class="btn sm" data-up="'+pos+'"'+(pos===0||S.order.done?' disabled':'')+' aria-label="Move up">▲</button><button type="button" class="btn sm" data-dn="'+pos+'"'+(pos===n-1||S.order.done?' disabled':'')+' aria-label="Move down">▼</button></span></li>').join('')+
+    '</ol><p style="margin:6px 0 0"><button type="button" class="btn sm" id="ord-check"'+(S.order.done?' disabled':'')+'>Check the order</button> <span class="small'+(S.order.done?' okmsg':'')+'" id="ord-msg" aria-live="polite">'+S.order.msg+'</span></p>';};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t||S.order.done)return;
+    if(t.dataset.up!=null){const q=+t.dataset.up;[ord[q-1],ord[q]]=[ord[q],ord[q-1]];S.order.msg='';render();}
+    else if(t.dataset.dn!=null){const q=+t.dataset.dn;[ord[q+1],ord[q]]=[ord[q],ord[q+1]];S.order.msg='';render();}
+    else if(t.id==='ord-check'){S.order.tries++;const right=ord.filter((ci,pos)=>ci===pos).length;if(right===n){S.order.done=true;S.order.msg='In order ✓';count('story/'+CFG.lab+'/'+CFG.id+'/order-try-'+Math.min(S.order.tries,4));}else S.order.msg=right+' of '+n+' cards are in the right place. Move the others.';render();}});
+  render();}
+function tiInit(){const KEY='rjphyslab-story-'+CFG.id;tiOrder();
   try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');tiQs().forEach((t,i)=>{t.value=(d.a&&d.a[i])||'';});$('ti-name').value=localStorage.getItem('raider-labs-name')||d.n||'';}catch(e){}
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({a:tiQs().map(t=>t.value),n:$('ti-name').value}));if($('ti-name').value)localStorage.setItem('raider-labs-name',$('ti-name').value);}catch(e){}tiWords();};
   tiQs().forEach(t=>t.addEventListener('input',save));$('ti-name').addEventListener('input',save);tiWords();
   $('ti-vote').addEventListener('change',e=>{count('story/'+CFG.lab+'/'+CFG.id+'/vote-'+e.target.value);});
   $('ti-copy').onclick=()=>{const v=document.querySelector('input[name=vote]:checked'),vt={story:'This story version',current:'The current version',only:'I have only used this one'};
-    const lines=[CFG.title,'Name: '+$('ti-name').value,'Date: '+new Date().toLocaleDateString(),''].concat(CFG.copyLines?CFG.copyLines(S):[],['']);
+    const lines=[CFG.title,'Name: '+$('ti-name').value,'Date: '+new Date().toLocaleDateString(),''].concat(CFG.copyLines?CFG.copyLines(S):[],CFG.order?['Story in order: '+(S.order.done?'yes, on try '+S.order.tries:(S.order.tries?'not yet, after '+S.order.tries+(S.order.tries===1?' try':' tries'):'(skipped)'))]:[],['']);
     tiQs().forEach(t=>{lines.push(t.dataset.label+': '+t.value,'');});lines.push('Which helped me see it better: '+(v?vt[v.value]:'(no answer)'));const txt=lines.join('\n');
     const done=()=>{$('ti-msg').textContent='Copied. Paste it into the Canvas text box.';};
     const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){$('ti-msg').textContent='Could not copy. Select the text and copy it by hand.';}ta.remove();};
