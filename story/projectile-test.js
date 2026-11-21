@@ -13,6 +13,6 @@ TestYourself.mount({lab:'PhysLab',id:'projectile',title:'Raider PhysLab · Where
  {q:'Ignoring air, how does a dropped bag move as seen by the crew looking down from the plane?',choices:['Straight down, right below the plane','Backward, falling behind the plane','Forward, ahead of the plane','In a curve away from the plane'],answer:0,
   hint:'In every flash the bag was right under the plane. Do the plane and the bag have the same sideways speed?',step:3,stepName:'always under the plane',
   why:'The bag keeps the plane’s sideways speed, so from the plane it only falls. From the ground, the same motion looks like a curve.'},
- {q:'Why does a thrown ball’s path bend into a curve?',choices:['Its sideways speed stays the same while its downward speed grows','Air pushes it forward','Its sideways speed slowly runs out','Gravity pulls it backward'],answer:0,
+ {q:'Why does a thrown ball’s path bend into a curve?',choices:['Its sideways speed stays the same while its downward speed grows','Air pushes it forward faster than it can fall','Its sideways speed slowly runs out as it falls','Gravity pulls it backward as well as down'],answer:0,
   hint:'Look at the two speed arrows: which one changes, and which one stays the same?',step:7,stepName:'speed as arrows',
   why:'The blue sideways arrow stays the same; the red downward arrow grows. Added tip to tail, they point more and more downward, so the path bends.'}]});

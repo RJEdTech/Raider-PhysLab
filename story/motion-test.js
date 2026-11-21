@@ -13,7 +13,7 @@ TestYourself.mount({lab:'PhysLab',id:'motion1d',title:'Raider PhysLab · Can you
    hint:v=>Math.abs(v-20)<.01?'20 m is a box 10 tall and 2 wide. Braking makes a triangle under the line, so take half of it.':'First find how long braking takes: 10 m/s, losing 5 m/s each second. Then the distance is the triangle under the line: ½ × base × height.',step:10,stepName:'distance is the space under the line',
    why:'It stops in 2 s. The triangle is ½ × 2 s × 10 m/s = 10 m.'},
   {q:'On the same road, a driver speeds up from 15 m/s to 30 m/s. What happens to the braking distance?',
-   choices:['It doubles','It triples','It becomes 4 times as long','It stays the same'],answer:2,
+   choices:['It becomes twice as long','It becomes three times as long','It becomes four times as long','It stays the same length'],answer:2,
    hint:'Twice the speed makes the braking triangle twice as wide (it takes twice as long to stop) and twice as tall. How many small triangles fit inside?',step:14,stepName:'the braking tiles',
    why:'Twice as wide and twice as tall makes 4 tiles. Braking distance grows with the square of the speed.'},
   {q:'On a position graph (time across, position up), where is the car going fastest?',
