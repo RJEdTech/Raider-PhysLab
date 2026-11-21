@@ -1,0 +1,22 @@
+/* Test yourself questions for "Can you stop in time?" (motion story). Uses test-yourself.js. Steps are 1-based story steps. */
+TestYourself.mount({lab:'PhysLab',id:'motion1d',title:'Raider PhysLab · Can you stop in time?',el:'#ty',scrollTo:'#stagebox',
+  go:i=>window.__story&&window.__story.go&&window.__story.go(i),
+  questions:[
+  {q:'A cyclist rides at a steady 8 m/s for 3 seconds, then brakes evenly to a stop. Which describes the velocity graph?',
+   choices:['A straight line sloping down from the start','A flat line, then a straight line sloping down to zero','A flat line, then a sudden drop straight to zero','A line that climbs, then levels off'],answer:1,
+   hint:'The height of a velocity graph is the speed. What does the speed do for the first 3 seconds? Then, while braking, it drops by the same amount every second.',step:8,stepName:'the velocity graph',
+   why:'Steady speed is a flat line. Braking evenly takes away the same speed each second, so the line slopes straight down to zero.'},
+  {q:'A driver going 25 m/s takes 1 second to react before the brakes go on. How far does the car go in that second?',answer:25,tol:.01,unit:'m',
+   hint:'Before the foot lands, the speed does not change. Distance = speed × time: the blue box under the velocity line.',step:10,stepName:'distance is the space under the line',
+   why:'25 m/s × 1 s = 25 m. On the velocity graph it is the blue box, 25 tall and 1 wide.'},
+  {q:'A car going 10 m/s brakes and loses 5 m/s every second. How far does it go while braking?',answer:10,tol:.01,unit:'m',
+   hint:v=>Math.abs(v-20)<.01?'20 m is a box 10 tall and 2 wide. Braking makes a triangle under the line, so take half of it.':'First find how long braking takes: 10 m/s, losing 5 m/s each second. Then the distance is the triangle under the line: ½ × base × height.',step:10,stepName:'distance is the space under the line',
+   why:'It stops in 2 s. The triangle is ½ × 2 s × 10 m/s = 10 m.'},
+  {q:'On the same road, a driver speeds up from 15 m/s to 30 m/s. What happens to the braking distance?',
+   choices:['It doubles','It triples','It becomes 4 times as long','It stays the same'],answer:2,
+   hint:'Twice the speed makes the braking triangle twice as wide (it takes twice as long to stop) and twice as tall. How many small triangles fit inside?',step:14,stepName:'the braking tiles',
+   why:'Twice as wide and twice as tall makes 4 tiles. Braking distance grows with the square of the speed.'},
+  {q:'On a position graph (time across, position up), where is the car going fastest?',
+   choices:['Where the line is highest','Where the line is steepest','Where the line is flat','Where the line starts'],answer:1,
+   hint:'Height on a position graph is where the car is, not how fast it goes. Speed is how much road it covers each second.',step:6,stepName:'steepness is speed',
+   why:'The steepest part covers the most road each second. Flat means stopped, wherever it is.'}]});

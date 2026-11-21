@@ -148,7 +148,7 @@ function run(cfg){CFG=cfg;BE=cfg.beats;H=cfg.H;OFF=cfg.off||0;Object.assign(S,cf
   wire();tiInit();fit();
   const h=/^#s(\d+)$/.exec(location.hash),start=qs.has('beat')?+qs.get('beat'):(h?+h[1]-1:0);
   go(start);if(FROZEN)S.bt=parseFloat(qs.get('bt'));
-  window.__story={S,BEATS:BE};requestAnimationFrame(frame);}
+  window.__story={S,BEATS:BE,go};requestAnimationFrame(frame);}
 
 /* A lesson is a list of beats: {ch, cap, alt, dur?, need?, nextLabel?, ui?, uiStatic?, uiSync?, act?, input?,
    enter?, draw(bt,dt), down?/move?/up?, replay?, view...}.
