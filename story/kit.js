@@ -68,7 +68,25 @@ function frame(ts){const now=ts/1000,dt=FROZEN?0:Math.min(.05,now-last||0);last=
 const capEl=$('cap'),actEl=$('act'),hintEl=$('hint'),nextB=$('next'),altEl=$('alt');
 function count(path){(function go(n){const g=window.goatcounter;if(g&&typeof g.count==='function'){try{g.count({path,title:CFG?CFG.id+' story':'story',event:true});}catch(e){}}else if(n<20)setTimeout(()=>go(n+1),300);})(0);}
 function speakable(html){const d=document.createElement('div');d.innerHTML=html;return d.textContent.replace(/m\/s²/g,' meters per second squared').replace(/m\/s/g,' meters per second').replace(/v₀/g,'v zero').replace(/½at²/g,'one half a t squared').replace(/−/g,'minus ').replace(/×/g,' times ').replace(/÷/g,' divided by ').replace(/mph/g,'miles per hour').replace(/\bN\b/g,'newtons').replace(/\bkg\b/g,'kilograms');}
-function say(){if(!S.aloud||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(speakable(capEl.innerHTML));const vs=speechSynthesis.getVoices();const v=vs.find(x=>/Natural/.test(x.name)&&/en-US/.test(x.lang))||vs.find(x=>/en-US/.test(x.lang));if(v)u.voice=v;u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+/* Read aloud uses only a natural-sounding voice (Raider Labs rule, Nov 18, 2026: robotic voices put students off).
+   With no natural voice in this browser, the button shows how to use Microsoft Edge's own Read aloud instead. */
+const RLV={v:null,
+ pick(){try{const vs=speechSynthesis.getVoices()||[],en=vs.filter(x=>/^en(-|_)?US/i.test(x.lang)),pool=en.length?en:vs.filter(x=>/^en/i.test(x.lang));
+   this.v=pool.find(x=>/natural|online|neural|premium|enhanced/i.test(x.name))||null;}catch(e){this.v=null;}return this.v;},
+ get(){return this.v||this.pick();},
+ how(){let d=document.getElementById('rlv-how');if(!d){d=document.createElement('dialog');d.id='rlv-how';d.setAttribute('aria-labelledby','rlv-h');
+   d.style.cssText='max-width:min(540px,92vw);border:0;border-radius:14px;padding:20px 24px;font:16px/1.55 "Segoe UI",system-ui,sans-serif;color:#1c1c1f;background:#fff';
+   const edge=/Edg\//.test(navigator.userAgent);
+   const steps=[[!edge,'Open this page in Microsoft Edge','Edge has natural-sounding voices built in. Copy the link from the address bar and paste it into Edge.'],
+    [1,'Select the words you want to hear','Drag across the text, then right-click it and choose <b>Read aloud selection</b>. To hear the whole page, press <b>Ctrl + Shift + U</b>.'],
+    [1,'Pick a natural voice','In the Read aloud bar at the top, click <b>Voice options</b> and choose a voice with <b>Natural</b> in its name.'],
+    [1,'Want fewer distractions? Use Immersive Reader','Select the text, right-click, and choose <b>Open in Immersive Reader</b>.']].filter(s=>s[0]);
+   d.innerHTML='<h2 id="rlv-h" style="margin:0 0 6px;font-size:20px">Hear it read aloud in Microsoft Edge</h2><p style="margin:0 0 8px">'+(edge?'Edge’s natural voices haven’t loaded yet. Wait a few seconds and try again, or use Edge’s own Read aloud:':'This browser doesn’t have a natural-sounding voice, so use Edge’s Read aloud.')+'</p><ol style="padding-left:22px;margin:8px 0 14px">'+
+    steps.map(s=>'<li style="margin:0 0 10px"><b>'+s[1]+'</b><br>'+s[2]+'</li>').join('')+'</ol><button type="button" style="font:inherit;padding:8px 16px;border-radius:9px;border:1px solid #ccc;background:#f3f3f1;cursor:pointer">Got it</button>';
+   d.querySelector('button').addEventListener('click',()=>d.close());d.addEventListener('click',e=>{if(e.target===d)d.close();});document.body.appendChild(d);}
+  if(d.showModal)d.showModal();else d.setAttribute('open','');}};
+if('speechSynthesis' in window){RLV.pick();try{speechSynthesis.addEventListener('voiceschanged',()=>RLV.pick());}catch(e){}}
+function say(){if(!S.aloud||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(speakable(capEl.innerHTML));const v=RLV.get();if(!v)return;u.voice=v;u.lang=v.lang;u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
 function canSkip(need,anim){return !!need&&!anim&&!FROZEN&&performance.now()-S.t0>45000;}
 function nav(){const b=B(),cap=typeof b.cap==='function'?b.cap():b.cap,ui=b.ui?b.ui():'',key=S.beat+'|'+cap+'|'+(b.uiStatic?'':ui);
   if(key!==S.capKey){S.capKey=key;const changed=cap!==S.capTxt;S.capTxt=cap;if(changed)capEl.innerHTML=cap;actEl.innerHTML=ui;if(b.uiSync)b.uiSync();if(changed)say();}
@@ -86,7 +104,7 @@ function next(){const b=B();if(S.bt<(b.dur||0)){S.bt=b.dur;return;}const n=b.nee
   if(n)count('story/'+CFG.lab+'/'+CFG.id+'/skip-'+pad(S.beat+1));
   if(S.beat===BE.length-1){if(CFG.reset)CFG.reset(S);S.reached={};go(0);return;}go(S.beat+1);}
 function wire(){nextB.onclick=next;$('back').onclick=()=>go(S.beat-1);$('replay').onclick=()=>{const b=B();if(b.replay)b.replay();else S.bt=0;};
-  $('aloud').onclick=()=>{S.aloud=!S.aloud;$('aloud').setAttribute('aria-pressed',S.aloud);if(S.aloud)say();else try{speechSynthesis.cancel();}catch(e){}};
+  $('aloud').onclick=()=>{if(!S.aloud&&!('speechSynthesis'in window&&RLV.get())){RLV.how();return;}S.aloud=!S.aloud;$('aloud').setAttribute('aria-pressed',S.aloud);if(S.aloud)say();else try{speechSynthesis.cancel();}catch(e){}};
   $('confused').onclick=()=>{altEl.textContent='Another way to say it: '+B().alt;altEl.hidden=false;count('confused/'+CFG.lab+'/'+(CFG.confusedId||CFG.id+'-story')+'/step-'+pad(S.beat+1));};
   $('chs').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(b)go(BE.findIndex(x=>x.ch===+b.dataset.ch));});
   document.addEventListener('keydown',e=>{if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(e.key==='ArrowRight'){e.preventDefault();next();}else if(e.key==='ArrowLeft'){e.preventDefault();go(S.beat-1);}});
