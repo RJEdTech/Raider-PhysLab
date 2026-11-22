@@ -8,6 +8,62 @@
    name agencies and programs, never parties; no em dashes. */
 window.RAIDER_NEWS = [
  {
+  "id": "us-storage-200-gwh-2026",
+  "week": "2026-11-22",
+  "date": "2026-11-17",
+  "title": "US battery storage passes 200 gigawatt-hours, with a record number of states setting records",
+  "summary": "The Solar Energy Industries Association (SEIA) and Benchmark Mineral Intelligence reported that installed US energy storage, almost all of it lithium-ion batteries, has passed 200 gigawatt-hours. Batteries let solar power captured at noon be used after sunset.",
+  "numbers": [
+   "Installed US energy storage has passed 200 gigawatt-hours (GWh) (<a href=\"https://www.powermag.com/u-s-exceeds-200-gwh-of-installed-energy-storage-capacity/\" target=\"_blank\" rel=\"noopener\">POWER Magazine, reporting the SEIA and Benchmark Mineral Intelligence outlook, Nov 17, 2026</a>).",
+   "14.3 GWh was added in July to September 2026: 12.2 GWh utility-scale, 1.3 GWh commercial and industrial, 746 MWh residential (<a href=\"https://www.powermag.com/u-s-exceeds-200-gwh-of-installed-energy-storage-capacity/\" target=\"_blank\" rel=\"noopener\">POWER Magazine, reporting the SEIA and Benchmark Mineral Intelligence outlook, Nov 17, 2026</a>).",
+   "48.3 GWh was added in the first nine months of 2026, up 20% from the same months of 2025 (<a href=\"https://www.powermag.com/u-s-exceeds-200-gwh-of-installed-energy-storage-capacity/\" target=\"_blank\" rel=\"noopener\">POWER Magazine, reporting the SEIA and Benchmark Mineral Intelligence outlook, Nov 17, 2026</a>).",
+   "The forecast for total US storage in 2030 was raised 3.7% to 708 GWh (<a href=\"https://www.powermag.com/u-s-exceeds-200-gwh-of-installed-energy-storage-capacity/\" target=\"_blank\" rel=\"noopener\">POWER Magazine, reporting the SEIA and Benchmark Mineral Intelligence outlook, Nov 17, 2026</a>).",
+   "Top states for utility-scale storage added in Q3: Texas 12.3 GWh, Arizona 7.7 GWh, California 6.8 GWh; eleven states set records (<a href=\"https://www.powermag.com/u-s-exceeds-200-gwh-of-installed-energy-storage-capacity/\" target=\"_blank\" rel=\"noopener\">POWER Magazine, reporting the SEIA and Benchmark Mineral Intelligence outlook, Nov 17, 2026</a>). These state totals are as reported and may count a longer period than one quarter.",
+   "The EIA expects large US battery power capacity to grow from 28.9 gigawatts (GW) in 2025 to 66 GW by the end of 2026 (<a href=\"https://www.energycentral.com/energy-biz/post/seia-eia-doe-storage-and-solar-soars-coal-contracts-emMzuD4OIqcZ4Kf\" target=\"_blank\" rel=\"noopener\">Energy Central, quoting the EIA Short-Term Energy Outlook, Nov 18, 2026</a>)."
+  ],
+  "concept": {
+   "title": "Energy is not power: GWh vs GW",
+   "html": "<b>Power</b> (watts) is how fast energy flows; <b>energy</b> (watt-hours or joules) is how much. They are linked by E = P &times; t. A battery rated 100 MW and 400 MWh can deliver 100 MW for 4 hours. Storage capacity is reported in GWh, while the size of power plants is reported in GW, so news stories often mix them up. 1 Wh = 3,600 J, so 1 GWh = 3.6 &times; 10<sup>12</sup> J."
+  },
+  "hook": {
+   "prompt": "Use the reported numbers. Part (b) assumes, as a teaching example, that the new batteries are all 4-hour batteries.",
+   "parts": [
+    {
+     "label": "(a) How many joules is 200 GWh? Give the answer in units of 10<sup>14</sup> J.",
+     "answer": 7.2,
+     "tol": 0.05,
+     "unit": "&times; 10<sup>14</sup> J"
+    },
+    {
+     "label": "(b) If the 14.3 GWh added in Q3 were all 4-hour batteries, what total power could they deliver at once?",
+     "answer": 3.575,
+     "tol": 0.02,
+     "unit": "GW"
+    },
+    {
+     "label": "(c) 48.3 GWh in the first nine months of 2026 was 20% more than the same months of 2025. How much was added in those months of 2025?",
+     "answer": 40.25,
+     "tol": 0.1,
+     "unit": "GWh"
+    }
+   ],
+   "worked": "(a) 200 &times; 10<sup>9</sup> Wh &times; 3,600 J/Wh = 7.2 &times; 10<sup>14</sup> J, so <b>7.2</b>. (b) P = E &divide; t = 14.3 GWh &divide; 4 h = <b>3.575 GW</b>, about three large power plants for 4 hours. (c) 48.3 &divide; 1.20 = <b>40.25 GWh</b> (not 48.3 &times; 0.8 = 38.6)."
+  },
+  "hides": "The hook gives the minimum lithium that must move; real cells hold more lithium than they cycle, and packs also need iron, phosphate, graphite, copper and aluminum. Mining those materials has its own environmental and community costs. A record in storage capacity (GWh) is not the same as how much energy is actually delivered, which depends on how often the batteries cycle. SEIA is an industry group, and the outlook's falling wholesale prices in Texas and California (42% and 51% since 2021) are an association, not proof that batteries caused the drop.",
+  "evidence": "Moderate: an industry market report with an independent analytics firm, read through trade-press coverage, not the report itself. The EIA capacity numbers are federal forecasts.",
+  "investigate": "The <a href=\"https://www.eia.gov/electricity/data/browser/\" target=\"_blank\" rel=\"noopener\">EIA Electricity Data Browser</a> shows generation by source for each state. Pick Texas or California and compare solar generation in a summer month of 2021 and 2025. How much did it grow?",
+  "related": [
+   {
+    "href": "index.html#power",
+    "label": "Work and power"
+   },
+   {
+    "href": "index.html#capacitor",
+    "label": "Capacitors and RC circuits"
+   }
+  ]
+ },
+ {
   "id": "eia-record-generation-2026",
   "week": "2026-11-15",
   "date": "2026-11-10",
