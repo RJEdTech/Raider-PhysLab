@@ -702,6 +702,7 @@ magnetism: {
   },
   matters: 'Motors in every car and fan, MRI scanners, speakers, the hard drives in data centers and the junkyard crane all use magnetic fields made by electric currents.',
   question: 'A wire with current flowing through it sits next to a compass. Will the compass move?',
+  look: 'Watch the bar magnet: the little compasses around it turn to line up with its field. Next, you’ll see that an electric current can make the same kind of field.',
   startKey: 'bar', startRun: true,
   steps: [
     { key: 'bar', title: 'A bar magnet', set: { scene: 'bar', flip: false }, fresh: true, speed: 1,
