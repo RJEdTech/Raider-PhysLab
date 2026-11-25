@@ -69,13 +69,49 @@ function orbit(v){if(ORB[v])return ORB[v];let x=0,y=R1,vx=v,vy=0,t=0,ang=0,pa=Ma
     if(Math.hypot(x,y)<=RE){landed=true;break;}if(ang>=2*Math.PI)break;}
   return ORB[v]={pts,landed,t,ang,ground:ang*RE};}
 const ESTARS=[];for(let i=0;i<110;i++)ESTARS.push([RND()*600,RND()*600,RND()*1.3+.4,RND()*.6+.2]);
-function earth(){ctx.save();ctx.beginPath();ctx.rect(0,0,600,H);ctx.clip();ctx.fillStyle='#05070f';ctx.fillRect(0,0,600,H);for(const s of ESTARS){ctx.fillStyle='rgba(255,255,255,'+s[3]+')';ctx.fillRect(s[0],s[1],s[2],s[2]);}
-  let g=ctx.createRadialGradient(EX,EY,150,EX,EY,166);g.addColorStop(0,'rgba(120,190,255,.55)');g.addColorStop(1,'rgba(120,190,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(EX,EY,166,0,7);ctx.fill();
-  g=ctx.createRadialGradient(EX-50,EY-60,20,EX,EY,150);g.addColorStop(0,'#4f9be0');g.addColorStop(1,'#1b4f9c');ctx.fillStyle=g;ctx.beginPath();ctx.arc(EX,EY,150,0,7);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(EX,EY,150,0,7);ctx.clip();ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineCap='round';for(const c of[[-60,-70,70,10,.4],[30,-20,90,14,-.2],[-20,60,110,12,.15],[70,90,60,9,.5],[-90,10,50,8,-.5]]){ctx.lineWidth=c[3];ctx.beginPath();ctx.ellipse(EX+c[0],EY+c[1],c[2],c[2]*.28,c[4],.2,2.6);ctx.stroke();}ctx.restore();
+/* Earth as it looks from space (redrawn Nov 25, 2026): oceans, continents in the right places (coarse outlines, orthographic view),
+   desert and ice tones, clouds, a lit side and a darker side, and a thin blue atmosphere. It turns slowly. Sizes and the station are
+   not to scale (the station is drawn far larger than life). */
+const LANDS=[
+ [[-17,21],[-16,12],[-8,4],[5,4],[9,4],[10,-3],[13,-12],[12,-18],[15,-27],[18,-34],[25,-34],[32,-29],[35,-24],[40,-15],[41,-2],[51,12],[43,12],[39,16],[33,28],[32,31],[25,32],[20,31],[11,33],[10,37],[-2,35],[-6,36],[-10,30],[-13,27]],
+ [[-9,37],[-9,43],[-2,44],[-5,48],[2,51],[5,53],[8,55],[10,57],[5,58],[5,62],[14,67],[20,70],[30,70],[40,67],[45,60],[40,50],[30,46],[28,41],[23,38],[20,40],[15,38],[12,44],[8,44],[3,42],[-2,37]],
+ [[28,41],[35,36],[36,32],[43,13],[52,16],[57,23],[56,26],[50,30],[57,25],[66,25],[72,21],[77,8],[80,13],[88,22],[92,21],[98,16],[100,13],[103,1],[104,10],[109,12],[108,21],[117,23],[121,30],[122,37],[122,40],[128,35],[129,40],[135,43],[140,48],[141,52],[156,51],[163,60],[178,64],[180,69],[140,72],[113,74],[100,78],[80,73],[68,69],[60,69],[45,67],[40,67],[45,60],[40,50],[30,46]],
+ [[-168,66],[-160,59],[-152,57],[-137,58],[-125,49],[-124,42],[-118,34],[-110,23],[-105,20],[-97,16],[-92,15],[-83,9],[-78,8],[-82,15],[-88,16],[-90,21],[-97,22],[-97,27],[-90,29],[-83,29],[-81,25],[-80,32],[-75,36],[-70,42],[-66,45],[-60,47],[-56,52],[-64,60],[-75,62],[-80,56],[-90,57],[-95,62],[-90,68],[-110,68],[-130,70],[-156,71]],
+ [[-80,9],[-77,8],[-72,12],[-62,11],[-52,5],[-50,0],[-35,-6],[-39,-15],[-48,-26],[-58,-34],[-65,-41],[-68,-50],[-72,-54],[-75,-48],[-73,-38],[-71,-28],[-70,-18],[-76,-14],[-81,-5],[-80,1]],
+ [[114,-22],[114,-34],[118,-35],[124,-33],[131,-31],[138,-35],[141,-38],[147,-38],[150,-36],[153,-28],[153,-25],[146,-19],[142,-11],[136,-12],[130,-12],[126,-14],[122,-17]],
+ [[-5,50],[1,51],[0,54],[-3,58],[-6,56]],[[130,31],[135,34],[140,36],[142,40],[141,45],[140,41],[135,35]],[[44,-25],[47,-25],[50,-15],[49,-12],[44,-17]],
+ [[95,5],[105,-6],[115,-8],[120,-9],[118,-4],[110,-2],[104,1]],[[131,-1],[141,-3],[150,-10],[143,-9],[136,-4]]];
+const DESERT=[[[-15,16],[-8,24],[0,30],[15,31],[30,30],[33,22],[25,17],[10,15],[0,16]],[[37,18],[45,15],[54,18],[56,24],[48,29],[40,29]],[[122,-22],[135,-21],[140,-27],[132,-30],[121,-29]]];
+const FOREST=[[[9,4],[18,5],[28,4],[30,-2],[28,-8],[18,-6],[12,-3]],[[-75,2],[-60,4],[-50,0],[-48,-6],[-60,-12],[-72,-10],[-76,-4]],[[96,4],[104,-2],[114,-3],[118,1],[110,4],[100,6]]];
+const ICECAP=[[[-73,78],[-60,82],[-30,83],[-20,75],[-22,70],[-42,60],[-50,64],[-54,68],[-60,76]]];
+const CLOUDS=[];for(let i=0;i<70;i++){const band=RND();const lat=band<.4?(RND()-.5)*16:(RND()<.5?1:-1)*(35+RND()*25);CLOUDS.push([lat,RND()*360-180,6+RND()*12,RND()*.6+.3]);}
+function dens(P){const out=[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],n=Math.max(1,Math.ceil(Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]))/3));for(let k=0;k<n;k++)out.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return out;}
+const LANDS_D=LANDS.map(dens),DESERT_D=DESERT.map(dens),FOREST_D=FOREST.map(dens),ICE_D=ICECAP.map(dens);
+function proj(lon,lat,lon0,lat0,R){const d=Math.PI/180,l=lat*d,L=(lon-lon0)*d,l0=lat0*d;const cosc=Math.sin(l0)*Math.sin(l)+Math.cos(l0)*Math.cos(l)*Math.cos(L);
+  let x=R*Math.cos(l)*Math.sin(L),y=R*(Math.cos(l0)*Math.sin(l)-Math.sin(l0)*Math.cos(l)*Math.cos(L));if(cosc<0){const m=Math.hypot(x,y)||1;x=x/m*R;y=y/m*R;}return [EX+x,EY-y,cosc];}
+function polyOn(P,lon0,lat0,R,fill){let vis=false;const Q=P.map(p=>{const q=proj(p[0],p[1],lon0,lat0,R);if(q[2]>0)vis=true;return q;});if(!vis)return;ctx.beginPath();Q.forEach((q,i)=>ctx[i?'lineTo':'moveTo'](q[0],q[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function earth(){ctx.save();ctx.beginPath();ctx.rect(0,0,600,H);ctx.clip();ctx.fillStyle='#03050b';ctx.fillRect(0,0,600,H);for(const s of ESTARS){ctx.fillStyle='rgba(255,255,255,'+s[3]+')';ctx.fillRect(s[0],s[1],s[2],s[2]);}
+  const R=150,lat0=18,lon0=-10+((Story.frozen?0:performance.now()/1000)*1.5)%360;
+  // atmosphere glow
+  let g=ctx.createRadialGradient(EX,EY,R-2,EX,EY,R+16);g.addColorStop(0,'rgba(110,170,255,.65)');g.addColorStop(1,'rgba(110,170,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(EX,EY,R+16,0,7);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.arc(EX,EY,R,0,7);ctx.clip();
+  g=ctx.createRadialGradient(EX-40,EY-50,10,EX,EY,R);g.addColorStop(0,'#1d5fa8');g.addColorStop(1,'#0b2f63');ctx.fillStyle=g;ctx.fillRect(EX-R,EY-R,2*R,2*R);
+  LANDS_D.forEach(P=>polyOn(P,lon0,lat0,R,'#5f7f45'));FOREST_D.forEach(P=>polyOn(P,lon0,lat0,R,'rgba(40,85,40,.85)'));DESERT_D.forEach(P=>polyOn(P,lon0,lat0,R,'rgba(196,160,104,.9)'));ICE_D.forEach(P=>polyOn(P,lon0,lat0,R,'#eef3f6'));
+  // Antarctica: the ice along the bottom edge
+  const ant=[];for(let lo=-180;lo<=180;lo+=6)ant.push([lo,-68]);for(let lo=180;lo>=-180;lo-=6)ant.push([lo,-90]);polyOn(ant,lon0,lat0,R,'#eef3f6');
+  // clouds
+  for(const c of CLOUDS){const q=proj(c[1],c[0],lon0,lat0,R);if(q[2]<=.05)continue;const s=c[2]*(.4+.6*q[2]),cg=ctx.createRadialGradient(q[0],q[1],0,q[0],q[1],s*1.6);cg.addColorStop(0,'rgba(255,255,255,'+(c[3]*.9)+')');cg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=cg;ctx.save();ctx.translate(q[0],q[1]);ctx.scale(2.6,.55);ctx.beginPath();ctx.arc(0,0,s*1.6,0,7);ctx.fill();ctx.restore();}
+  // lit side and darker side (sunlight from the upper left), plus darkening toward the edge
+  g=ctx.createLinearGradient(EX-R*.9,EY-R*.9,EX+R,EY+R);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.55,'rgba(0,0,0,.05)');g.addColorStop(.8,'rgba(0,5,20,.55)');g.addColorStop(1,'rgba(0,5,20,.85)');ctx.fillStyle=g;ctx.fillRect(EX-R,EY-R,2*R,2*R);
+  g=ctx.createRadialGradient(EX,EY,R*.7,EX,EY,R);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,10,30,.35)');ctx.fillStyle=g;ctx.fillRect(EX-R,EY-R,2*R,2*R);
+  ctx.restore();ctx.strokeStyle='rgba(150,200,255,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(EX,EY,R+.5,0,7);ctx.stroke();
   ctx.restore();seg(600,0,600,H,C.line,1.5);}
 const EP=(x,y)=>[EX+x*KE,EY-y*KE];
-function station(p,ang){ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(ang);ctx.fillStyle='#d9a441';ctx.fillRect(-13,-5,7,10);ctx.fillRect(6,-5,7,10);ctx.fillStyle='#e9ecf1';ctx.fillRect(-6,-1.5,12,3);ctx.fillRect(-2,-4,4,8);ctx.restore();}
+function station(p,ang){ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(ang);
+  // the Space Station: a long truss, eight gold solar wings, white modules in the middle (drawn far larger than life)
+  ctx.fillStyle='#b9bec5';ctx.fillRect(-20,-1.2,40,2.4);
+  for(const sx of[-17,-12,12,17])for(const sy of[-1,1]){ctx.fillStyle='#b88a2e';ctx.fillRect(sx-2,sy>0?2:-11,4,9);ctx.strokeStyle='rgba(60,40,10,.6)';ctx.lineWidth=.5;ctx.strokeRect(sx-2,sy>0?2:-11,4,9);}
+  ctx.fillStyle='#f2f4f6';ctx.fillRect(-2,-7,4,14);ctx.fillRect(-6,-2,12,4);ctx.fillStyle='#dfe3e8';ctx.fillRect(4,-5,3,3);ctx.fillRect(-7,2,3,3);ctx.restore();}
 
 /* ---------- beats ---------- */
 const CH=['The curve','What turns it','How much','The limit','Falling around'];
