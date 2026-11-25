@@ -125,7 +125,7 @@ function areaShapes(m,a1,a2){ctx.save();
   ctx.globalAlpha=a2;ctx.fillStyle='rgba(193,20,48,.22)';ctx.beginPath();ctx.moveTo(VX(m.tr),VY(m.v0));ctx.lineTo(VX(m.tr),VG.y);ctx.lineTo(VX(m.ts),VG.y);ctx.closePath();ctx.fill();ctx.strokeStyle=C.red;ctx.stroke();ctx.restore();}
 
 /* ---------- beats ---------- */
-const CH=['The stop','Position','Velocity','Acceleration','The formula','Faster','The pattern','Your road'];
+const CH=['The stop','Position','Velocity','Acceleration','The formula','Faster','The pattern','Your road','Who did it'];
 const yRow=k=>322+44*k;
 function stripRows(m,bt,fade){for(let k=0;k<=5;k++){const r=bt==null?1:ph(bt,.4+.45*k,.6);if(r<=0)continue;const y=lerp(GY,yRow(k),r);ctx.save();ctx.globalAlpha=r*fade;
     ctx.fillStyle='#e6e6e1';ctx.fillRect(RXL,y,RXW,3);car(m.x(k),{y:y,fill:'#c9ced6'});T(k+' s',10,y-3,{s:15,w:700,c:C.mute});ctx.restore();}}
@@ -303,10 +303,91 @@ const BEATS=[
     formulaLines([{y:386,sw:C.blue,parts:[[f1(m.v0)+' m/s × '+f1(m.tr)+' s',C.blue,700],['  =  '+f1(m.xr)+' m',C.ink,700]],note:'before your foot lands ('+Math.round(mph(m.v0))+' mph)'},
       {y:462,sw:C.red,parts:[['½ × '+f1(m.v0)+' m/s × '+f1(m.tb)+' s',C.red,700],['  =  '+f1(m.xb)+' m',C.ink,700]],note:'while braking at −'+m.a+' m/s²'},
       {y:540,parts:[[f1(m.xr)+' m',C.blue,700],[' + ',C.ink,500],[f1(m.xb)+' m',C.red,700],[' = '+f1(m.xs)+' m to stop',C.ink,700]],s:28}]);
-    }}
+    }},
+/* 16 */{ch:8,cap:()=>{const b=S.hb,m=hbModel(),done=b.run>=0&&b.run>=m.tStop;const w=Object.keys(b.wins||{});
+    if(w.includes('8.9|parked')&&w.includes('13.4|clear'))return 'Two ways to stop in time: <b>slower</b> (a shorter blue box and a much smaller red triangle) or <b>seen sooner</b>. Hoboken did both, and has gone nine years without a traffic death.';
+    if(!done)return 'Hoboken, New Jersey. A child steps off the curb at a corner. <b>Pick a speed limit and a corner, then run it.</b> Can the driver stop in time?';
+    if(!m.ok)return 'Too late: the parked car hid her until the driver was close, and at 30 mph the blue box and red triangle need more road than that. She jumped back. <b>Change one thing.</b>';
+    return b.corner==='clear'&&b.v>10?'Seen sooner: with the corner cleared, the driver sees her right away, so the same stop fits. <b>Now find the other way.</b>':'Slower: the blue box shrinks, and the red triangle shrinks a lot, because braking distance grows with the square of speed. <b>Now find the other way.</b>';},
+  alt:'Stopping takes two pieces of road: what you cover before your foot lands, and what you cover while braking. A slower car needs much less of both. A driver who sees the person sooner has more road to use.',
+  uiStatic:true,uiSync:hbSync,replay(){S.hb.run=0;},
+  act(d){const b=S.hb;if(d.hv){b.v=+d.hv;b.run=-1;hbSync();}if(d.hc){b.corner=d.hc;b.run=-1;hbSync();}if(d.hrun)b.run=0;},
+  ui:()=>'<span><b>Speed limit</b></span><span class="seg" role="group" aria-label="Speed limit">'+[[13.4,'30 mph'],[8.9,'20 mph']].map(a=>'<button type="button" data-hv="'+a[0]+'" aria-pressed="'+(S.hb.v===a[0])+'">'+a[1]+'</button>').join('')+'</span>'+
+    '<span><b>The corner</b></span><span class="seg" role="group" aria-label="Corner">'+[['parked','Parked car'],['clear','Cleared, curb extension']].map(a=>'<button type="button" data-hc="'+a[0]+'" aria-pressed="'+(S.hb.corner===a[0])+'">'+a[1]+'</button>').join('')+'</span>'+
+    '<button type="button" class="btn" data-hrun="1">▶ Run it</button>'+
+    '<span class="small" style="display:block;margin-top:8px;flex-basis:100%"><b>Go deeper:</b> <a href="https://www.cbsnews.com/newyork/news/hoboken-vision-zero/" target="_blank" rel="noopener">How Hoboken did it ↗</a> · <a href="https://www.planetizen.com/news/2026/06/137774-hobokens-20-vision-zero-fix" target="_blank" rel="noopener">The cheap fix at every corner ↗</a> · <a href="https://aaafoundation.org/impact-speed-pedestrians-risk-severe-injury-death/" target="_blank" rel="noopener">AAA Foundation: why impact speed matters ↗</a></span>',
+  enter(){S.hb.run=-1;hbSync();},
+  draw(bt,dt){const b=S.hb,m=hbModel();if(b.run>=0){if(b.run>=m.tStop&&m.ok)(b.wins=b.wins||{})[b.v+'|'+b.corner]=1;}
+    ctx.fillStyle='#f4f2ee';ctx.fillRect(0,0,W,H);const t=b.run>=0?Math.min(b.run,m.tStop+4):0;hbScene(t,b.run>=0);hbPanel();
+    T(b.v>10?'30 mph':'20 mph',14,566,{s:22,w:800,c:'#C11430'});T(b.corner==='parked'?'parked car at the corner':'corner cleared, curb extension',110,566,{s:16,w:600,c:C.ink});
+    T('Hoboken went nine years without a traffic death.',14,596,{s:15,w:600,c:C.mute});}}
 ];
 function setVG(tmax,vs){VG.tmax=tmax;VG.vs=vs;}
 
+
+/* ---------- Who is doing this (Nov 25, 2026): Hoboken, New Jersey and Vision Zero ----------
+   Sources: CBS New York (2024: speed limit now 20 mph; no parking too close to crosswalks so drivers see pedestrians; last traffic
+   death 2017); Results for America case study (2019 executive order by Mayor Ravi Bhalla; citywide limit lowered to 20 mph; zero traffic
+   deaths since 2017); Planetizen (2026: nine years without a traffic death; daylighting cut pedestrian injuries by 30% in its first few
+   years; curb extensions, visible crosswalks, signal timing); NJ 101.5 (2026: nine consecutive years); NBC/AP 2024 (daylighting removes
+   parking next to intersections). Physics uses this story's own model: 1.5 s before the foot lands, then braking at 7 m/s² on a dry road.
+   Simplified: the child is visible 1.3 s later behind a parked car; with a cleared corner and a curb extension she is visible at once.
+   Top-down drawing, 7 px per meter; no one is hit in any version. */
+const HB_PX=7,HB_X0=590,HB_D0=70,HB_A=7;
+function hbModel(){const b=S.hb,v=b.v,tTrig=(HB_D0-45)/v,ts=tTrig+(b.corner==='parked'?1.3:0),tb=ts+1.5,tStop=tb+v/HB_A,xStop=v*tb+v*v/(2*HB_A);
+  const x=t=>t<tb?v*t:(t<tStop?v*tb+v*(t-tb)-.5*HB_A*(t-tb)*(t-tb):xStop);return {v,tTrig,ts,tb,tStop,xStop,x,ok:HB_D0-xStop>=.6,seenAt:HB_D0-v*ts};}
+function hbFront(m,t){return HB_X0-(HB_D0-m.x(t))*HB_PX;}
+function hbCarTop(x,y,col,len,wid){// a car from above: body, windshield, roof, rear window, mirrors, lights (front at x)
+  ctx.save();ctx.translate(x,y);const L=len||32,Wd=wid||14;const g=ctx.createLinearGradient(0,-Wd/2,0,Wd/2);g.addColorStop(0,shadeHB(col,.25));g.addColorStop(.5,col);g.addColorStop(1,shadeHB(col,-.3));ctx.fillStyle=g;rr(-L,-Wd/2,L,Wd,4);ctx.fill();
+  ctx.fillStyle='#2b3540';rr(-L*.34,-Wd/2+1.5,L*.12,Wd-3,2);ctx.fill();rr(-L*.86,-Wd/2+1.5,L*.1,Wd-3,2);ctx.fill();ctx.fillStyle=shadeHB(col,.12);rr(-L*.72,-Wd/2+2,L*.36,Wd-4,2);ctx.fill();
+  ctx.fillStyle='#f4f0d8';ctx.fillRect(-2.5,-Wd/2+1.5,2,3);ctx.fillRect(-2.5,Wd/2-4.5,2,3);ctx.fillStyle='#b8282e';ctx.fillRect(-L,-Wd/2+1.5,1.6,3);ctx.fillRect(-L,Wd/2-4.5,1.6,3);
+  ctx.fillStyle=shadeHB(col,-.35);ctx.fillRect(-L*.36,-Wd/2-2,3,2);ctx.fillRect(-L*.36,Wd/2,3,2);ctx.restore();}
+function shadeHB(hex,k){const n=parseInt(hex.slice(1),16),f=v=>Math.round(k>0?v+(255-v)*k:v*(1+k));return 'rgb('+f(n>>16)+','+f(n>>8&255)+','+f(n&255)+')';}
+function hbPerson(x,y,col,kid){const s=kid?1.35:1.6;ctx.save();ctx.translate(x,y);ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(0,0,6*s,4*s,0,0,7);ctx.fill();ctx.fillStyle='#4a2f1e';ctx.beginPath();ctx.arc(0,0,3*s,0,7);ctx.fill();ctx.restore();}
+function hbScene(t,run){const b=S.hb,m=hbModel(),clear=b.corner==='clear';ctx.save();ctx.beginPath();ctx.rect(0,0,770,470);ctx.clip();
+  // row-house roofs above and below the street
+  [[0,0,770,118],[0,336,640,134],[740,336,30,134],[740,0,30,118]].forEach(([x,y,w,h])=>{ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y,w,h);});
+  for(let i=0;i<14;i++){const x=i*48;[[0,4],[340,1]].forEach(([y0,k])=>{if(x>=640&&y0>300)return;const c=['#8a6f5a','#6f6a66','#9a7a62','#7a7470','#86705f'][(i+k)%5];ctx.fillStyle=c;ctx.fillRect(x+2,y0+4,44,y0?124:110);ctx.strokeStyle='rgba(40,30,25,.45)';ctx.lineWidth=2;ctx.strokeRect(x+2,y0+4,44,y0?124:110);ctx.fillStyle='rgba(220,225,230,.6)';ctx.fillRect(x+12,y0+(y0?40:30),10,8);ctx.fillStyle='rgba(60,50,45,.6)';ctx.fillRect(x+30,y0+(y0?80:70),8,8);});}
+  // the cross street
+  ctx.fillStyle='#4a4d52';ctx.fillRect(640,0,100,470);
+  // sidewalks and the main street
+  ctx.fillStyle='#cfccc4';ctx.fillRect(0,118,640,32);ctx.fillRect(0,300,640,36);ctx.fillRect(740,118,30,32);ctx.fillRect(740,300,30,36);
+  ctx.strokeStyle='rgba(120,115,105,.35)';ctx.lineWidth=1;for(let x=0;x<640;x+=24){ctx.beginPath();ctx.moveTo(x,118);ctx.lineTo(x,150);ctx.moveTo(x,300);ctx.lineTo(x,336);ctx.stroke();}
+  const rg=ctx.createLinearGradient(0,150,0,300);rg.addColorStop(0,'#52565c');rg.addColorStop(1,'#46494e');ctx.fillStyle=rg;ctx.fillRect(0,150,770,150);
+  ctx.strokeStyle='#e9c46a';ctx.lineWidth=2;ctx.setLineDash([18,14]);ctx.beginPath();ctx.moveTo(0,224);ctx.lineTo(640,224);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,272);ctx.lineTo(590,272);ctx.stroke();
+  // the crosswalk
+  ctx.fillStyle='#f2f2ee';for(let y=154;y<298;y+=12)ctx.fillRect(HB_X0,y,22,7);
+  // trees in sidewalk pits
+  [60,180,300,420].forEach(x=>[134,318].forEach(y=>{const g=ctx.createRadialGradient(x-4,y-4,2,x,y,17);g.addColorStop(0,'#6f9a4c');g.addColorStop(1,'#3e6a33');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,16,0,7);ctx.fill();}));
+  // parked cars along the curb, or a cleared corner with a curb extension and planters
+  const cols=['#9aa3ad','#2f4f7a','#8a2b2b','#dcdcd6','#3d6b4f','#6a6a72','#b8b0a0','#1d1f24','#7a8a9a'];
+  for(let i=0;i<9;i++){const fx=168+i*50;if(clear&&fx>500)continue;hbCarTop(fx,286,cols[i]);}
+  if(clear){ctx.fillStyle='#cfccc4';ctx.beginPath();ctx.moveTo(512,300);ctx.lineTo(518,276);ctx.lineTo(590,276);ctx.lineTo(590,300);ctx.closePath();ctx.fill();ctx.strokeStyle='#a9a59b';ctx.lineWidth=2;ctx.stroke();
+    [[532,288],[556,288]].forEach(([x,y])=>{ctx.fillStyle='#8a7a66';ctx.fillRect(x-7,y-7,14,14);ctx.fillStyle='#5f8a45';ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();});}
+  // the child and the driver
+  const tt=run?t:0,y0=clear?274:290;let py=y0;if(run&&tt>m.tTrig){const w=tt-m.tTrig;py=y0-w*14;if(!m.ok){const back=m.tTrig+(clear?.9:1.7);if(tt>back){const yb=Math.max(150,y0-(back-m.tTrig)*14);py=Math.min(306,yb+(tt-back)*30);}}py=Math.max(140,py);}
+  hbPerson(HB_X0+11,py,'#e8b23a',true);hbPerson(HB_X0+34,314,'#5a6f9a');if(!run)pill('a child steps off the curb',HB_X0-70,330,{bg:'rgba(255,255,255,.92)',s:13});
+  const fx=hbFront(m,tt),visible=run&&tt>=m.ts,stopped=run&&tt>=m.tStop;
+  if(run&&tt>m.tTrig&&!stopped){const dx=fx-8,dy=248;ctx.save();if(visible){ctx.strokeStyle='rgba(47,160,90,.9)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(dx,dy);ctx.lineTo(HB_X0+11,py);ctx.stroke();}
+    else{ctx.strokeStyle='rgba(120,120,130,.85)';ctx.lineWidth=2;ctx.setLineDash([5,4]);const hx=536,hy=dy+(py-dy)*(hx-dx)/(HB_X0+11-dx);ctx.beginPath();ctx.moveTo(dx,dy);ctx.lineTo(hx,hy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#7a7a82';ctx.beginPath();ctx.arc(hx,hy,3,0,7);ctx.fill();}ctx.restore();}
+  hbCarTop(fx,248,'#c1272d',32,15);
+  if(run&&tt>=m.tb&&!stopped){ctx.fillStyle='rgba(255,60,40,.9)';ctx.fillRect(fx-33,241,3,4);ctx.fillRect(fx-33,251,3,4);}
+  if(stopped){const ok=m.ok;ctx.save();ctx.strokeStyle=ok?'#2f8f4e':'#C11430';ctx.lineWidth=3;ctx.setLineDash(ok?[]:[6,4]);rr(fx-36,236,40,26,5);ctx.stroke();ctx.restore();
+    pill(ok?'stopped in time':'stopped in the crosswalk',Math.min(560,fx-16),214,{bg:ok?'#2f8f4e':'#C11430',c:'#fff',s:14});}
+  ctx.restore();
+  // the same blue box and red triangle, laid along the road under it
+  const yS=492;ctx.fillStyle='#f4f2ee';ctx.fillRect(0,470,770,70);T('the road, from above:',14,486,{s:13,w:700,c:C.mute});
+  ctx.strokeStyle='#c9c6bf';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(10,yS+18);ctx.lineTo(760,yS+18);ctx.stroke();ctx.strokeStyle='#26262b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(HB_X0,470);ctx.lineTo(HB_X0,540);ctx.stroke();T('crosswalk',HB_X0+6,536,{s:12,w:600,c:C.mute});
+  if(run&&tt>=m.ts){const xs=HB_X0-m.seenAt*HB_PX,xr=xs+m.v*1.5*HB_PX,xe=HB_X0-(HB_D0-m.xStop)*HB_PX;ctx.fillStyle='rgba(37,99,201,.85)';ctx.fillRect(xs,yS,Math.max(0,Math.min(xr,hbFront(m,tt))-xs),16);
+    if(tt>=m.tb){ctx.fillStyle='rgba(193,20,48,.85)';ctx.beginPath();ctx.moveTo(xr,yS);ctx.lineTo(Math.min(xe,hbFront(m,tt)),yS+16-16*Math.min(1,(hbFront(m,tt)-xr)/Math.max(1,xe-xr)));ctx.lineTo(Math.min(xe,hbFront(m,tt)),yS+16);ctx.lineTo(xr,yS+16);ctx.closePath();ctx.fill();}
+    ctx.fillStyle='#2fa05a';ctx.beginPath();ctx.moveTo(xs,yS-10);ctx.lineTo(xs-5,yS-2);ctx.lineTo(xs+5,yS-2);ctx.closePath();ctx.fill();T('she is seen',xs-4,yS-14,{s:12,w:700,c:'#2f8f4e',a:'right'});}
+  T('blue: before your foot lands · red: braking',770-8,486,{s:12,w:600,c:C.mute,a:'right'});}
+function hbPanel(){const x=790;ctx.fillStyle='#fff';ctx.strokeStyle='#d8d8d3';ctx.lineWidth=1;rr(x,12,398,588,12);ctx.fill();ctx.stroke();
+  T('Hoboken, New Jersey',x+20,48,{s:20,w:700});
+  [['🏙️','a dense city, about 60,000 people'],['📜','2019: Vision Zero order'],['🚗','speed limit down to 20 mph'],['🅿️','no parking right at corners'],['🚸','curb extensions, clear crosswalks'],['📉','pedestrian injuries down 30%'],['✅','no traffic deaths since 2017'],['⚖️','hard part: fewer parking spots']].forEach(([i,t],k)=>{const y=100+k*56;T(i,x+38,y+8,{s:26,a:'center'});T(t,x+70,y+2,{s:16,w:600});});
+  T('Sources: CBS New York; Results for America;',x+20,566,{s:12,c:C.mute});T('Planetizen 2026; NJ 101.5 (2026).',x+20,582,{s:12,c:C.mute});}
+function hbSync(){const b=S.hb;document.querySelectorAll('[data-hv]').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.hv===b.v)));document.querySelectorAll('[data-hc]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.hc===b.corner)));}
 
 /* ---------- sandbox controls ---------- */
 function sbSync(){const b=S.sb,vo=$('sb-vo'),to=$('sb-to');if(vo)vo.textContent=b.v+' m/s · '+Math.round(mph(b.v))+' mph';if(to)to.textContent=b.tr+' s'+(b.tr<=1?' · paying attention':(b.tr>=5?' · reading a text':''));
@@ -316,10 +397,10 @@ Story.run({id:'motion1d',lab:'PhysLab',confusedId:'motion-story',H:H,off:OFF,cha
   title:'Raider PhysLab · Can you stop in time? (Motion in one dimension, story version)',
   order:['You see the deer. For 1 second your foot is still moving, so the car holds 20 m/s.','The brakes go on. The car loses 5 m/s every second.','Each second the car covers less road than the second before.','After 5 seconds and 60 m, the car is still.'],
   words:[['position',/position/i],['velocity',/velocit/i],['acceleration',/accelerat/i],['distance',/distance/i],['slope or steepness',/slope|steep/i]],
-  state:{vx1:85.5,g1:null,g2:null,scrub:2.2,sMin:9,sMax:0,touched:false,touched8:false,n:1,ans:null,tau:1.5,tauMax:0,tile:10,tiles:{},sb:{v:20,tr:1,a:5},sbRun:-1},
+  state:{vx1:85.5,g1:null,g2:null,scrub:2.2,sMin:9,sMax:0,touched:false,touched8:false,n:1,ans:null,tau:1.5,tauMax:0,tile:10,tiles:{},sb:{v:20,tr:1,a:5},sbRun:-1,hb:{v:13.4,corner:'parked',run:-1,wins:{}}},
   frozen(S,qs){if(qs.has('sbv'))S.sb.v=+qs.get('sbv');if(qs.has('sbt'))S.sb.tr=+qs.get('sbt');if(qs.has('sba'))S.sb.a=+qs.get('sba');S.sMin=0;S.sMax=6;S.tauMax=4;S.tiles={10:1,20:1,30:1};S.touched=true;},
-  reset(S){Object.assign(S,{g1:null,g2:null,ans:null,n:1,tiles:{},tile:10,sMin:9,sMax:0,tauMax:0,tau:1.5,touched:false,touched8:false});},
-  frame(dt,frozen){if(S.sbRun>=0)S.sbRun+=dt;const last=S.beat===BEATS.length-1,target=last?Math.max(85.5,Math.min(430,sandboxModel().xs+18)):(BEATS[S.beat].view1||85.5);
+  reset(S){Object.assign(S,{hb:{v:13.4,corner:'parked',run:-1,wins:{}},g1:null,g2:null,ans:null,n:1,tiles:{},tile:10,sMin:9,sMax:0,tauMax:0,tau:1.5,touched:false,touched8:false});},
+  frame(dt,frozen){if(S.sbRun>=0)S.sbRun+=dt;if(S.hb&&S.hb.run>=0)S.hb.run+=dt;const last=S.beat===15,target=last?Math.max(85.5,Math.min(430,sandboxModel().xs+18)):(BEATS[S.beat].view1||85.5);
     S.vx1=frozen?target:S.vx1+(target-S.vx1)*Math.min(1,dt*5);},
   preDraw(){setVG(6.14,12.24);},
   copyLines(S){return['My flag at 45 mph: '+(S.g1==null?'(skipped)':Math.round(S.g1)+' m')+'. Real stop: 60 m.','My flag at 67 mph: '+(S.g2==null?'(skipped)':Math.round(S.g2)+' m')+'. Real stop: 120 m.',
