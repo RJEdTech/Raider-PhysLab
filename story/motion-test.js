@@ -19,4 +19,7 @@ TestYourself.mount({lab:'PhysLab',id:'motion1d',title:'Raider PhysLab · Can you
   {q:'On a position graph (time across, position up), where is the car going fastest?',
    choices:['Where the line is highest','Where the line is steepest','Where the line is flat','Where the line starts'],answer:1,
    hint:'Height on a position graph is where the car is, not how fast it goes. Speed is how much road it covers each second.',step:6,stepName:'steepness is speed',
-   why:'The steepest part covers the most road each second. Flat means stopped, wherever it is.'}]});
+   why:'The steepest part covers the most road each second. Flat means stopped, wherever it is.'},
+  {q:'On a dry road, a car at 30 mph needs about 13 m of braking to stop. Braking distance grows with the square of the speed. About how many meters does it need at 20 mph?',answer:5.8,tol:.4,unit:'m',
+   hint:v=>Math.abs(v-8.7)<.5?'That shrinks it in step with the speed. Braking distance goes with the square: multiply by (20/30)² = 4/9.':'13 × (20 ÷ 30)².',step:17,stepName:'hoboken',
+   why:'13 × 4/9 ≈ 5.8 m: less than half the braking road for a speed two-thirds as fast. That is one reason Hoboken lowered its limit to 20 mph.'}]});
