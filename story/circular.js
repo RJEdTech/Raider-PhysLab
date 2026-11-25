@@ -243,6 +243,7 @@ const BEATS=[
     T('Gravity is now the center-pointing force.',630,420,{s:19,w:700,c:COL.f,alpha:a});
     T('The Earth and the 400 km height are to scale. The tower is not real:',630,552,{s:14,c:C.mute});T('it stands in for a rocket. Each path takes about 6 seconds here.',630,572,{s:14,c:C.mute});}},
 /* 8 */{ch:4,cap:'This is the International Space Station: 400 km up, 7.66 km/s, with people aboard without a break since November 2000. Gravity there is 89% of what you feel now. The crew float because they are <b>falling around the Earth</b> together.',
+  ui:()=>'<span class="small" style="display:block;margin-top:8px"><b>Go deeper:</b> <a href="https://spotthestation.nasa.gov/" target="_blank" rel="noopener">Spot the Station: see it fly over you ↗</a> · <a href="https://www.nasa.gov/humans-in-space/benefits-for-everyone-from-international-space-station-research/" target="_blank" rel="noopener">How station research helps people on Earth ↗</a></span>',
   alt:'If gravity switched off up there, the station would not float. It would fly off in a straight line, like the car on the ice.',
   draw(bt,dt){S.isT+=dt;earth();const th=(Story.frozen?bt:S.isT)*2*Math.PI/14+1.1,p=[EX+R1*KE*Math.cos(th),EY-R1*KE*Math.sin(th)];ctx.save();ctx.setLineDash([3,6]);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(EX,EY,R1*KE,0,7);ctx.stroke();ctx.restore();
     const hd=HEAD(th),tc=TOC(th);arrow(p[0],p[1],p[0]+hd[0]*56,p[1]+hd[1]*56,COL.v,5);arrow(p[0],p[1],p[0]+tc[0]*48,p[1]+tc[1]*48,COL.f,5);station(p,Math.atan2(hd[1],hd[0]));
