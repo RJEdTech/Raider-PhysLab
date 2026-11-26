@@ -1,0 +1,20 @@
+/* Test yourself questions for "Why does traffic stop for no reason?" (stop-and-go waves). Uses test-yourself.js. Steps are 1-based story steps. */
+TestYourself.mount({lab:'PhysLab',id:'traffic',title:'Raider PhysLab · Why does traffic stop for no reason?',el:'#ty',scrollTo:'#stagebox',
+  go:i=>window.__story&&window.__story.go&&window.__story.go(i),
+  questions:[
+  {q:'The car ahead of you slows from 20 m/s to 17 m/s. You take 1 second to react. How many meters of gap do you lose before you react?',answer:3,tol:.05,unit:'m',
+   hint:v=>Math.abs(v-17)<.1||Math.abs(v-20)<.1?'That is a whole second of driving. You only lose the difference: it is slower than you by 20 − 17 m/s.':'Gap lost = how much it slowed × your reaction time.',step:5,stepName:'why each driver brakes harder',
+   why:'It is 3 m/s slower than you for 1 s, so the gap shrinks by 3 m/s × 1 s = 3 m. To win that back you must slow more than it did.'},
+  {q:'22 cars, each 4 m long, are spaced evenly around a 230 m circle. How big is each gap, bumper to bumper?',answer:6.45,tol:.06,unit:'m',
+   hint:v=>Math.abs(v-10.45)<.1?'That is the space each car takes up, including the car itself. Take away the 4 m car.':'First find the road left after the cars: 230 − 22 × 4. Then share it among 22 gaps.',step:2,stepName:'the circle test',
+   why:'230 − 88 = 142 m of open road, shared by 22 gaps: 142 ÷ 22 ≈ 6.45 m.'},
+  {q:'On a graph of each car’s position over time (time across, position up), what does a traffic jam look like?',
+   choices:['A stripe of flat, red lines that slants downward over time','A stripe of red lines that slants upward with the traffic','One car’s line that stays perfectly flat forever','Lines that all bunch at the top of the graph'],answer:0,
+   hint:'Flat means a car is not moving. Then ask: as time goes on, is the stopped spot ahead of where it was, or behind it?',step:6,stepName:'where the jam goes',
+   why:'Stopped cars draw flat bits. Each new car stops a little farther back, so the stripe slants down: the jam moves backward while every car moves forward.'},
+  {q:'A jam is 3 km ahead of you, moving backward at 18 km/h. You drive toward it at 72 km/h. In how many minutes do you reach it?',answer:2,tol:.05,unit:'min',
+   hint:v=>Math.abs(v-2.5)<.1?'That treats the jam as standing still. It is coming toward you too, so add the speeds.':(Math.abs(v-3.33)<.1?'Subtracting assumes the jam moves the same way you do. It moves backward, toward you.':'You and the jam close in on each other at 72 + 18 km/h. Time = distance ÷ that speed, then change hours to minutes.'),step:6,stepName:'where the jam goes',
+   why:'You close in at 72 + 18 = 90 km/h. 3 km ÷ 90 km/h = 1/30 hour = 2 minutes. You meet the jam sooner than you would if it stood still.'},
+  {q:'In the 2016 Arizona test, one steady smart car cut the fuel used by all the cars by about 40%. If the cars burned 10 liters in a stop-and-go run, about how many liters would they burn with the smart car?',answer:6,tol:.05,unit:'L',
+   hint:v=>Math.abs(v-4)<.1?'4 liters is the fuel saved. How much is still burned?':'40% less means 100% − 40% = 60% of the fuel.',step:8,stepName:'be the fix',
+   why:'40% of 10 L is 4 L saved, so they burn 10 − 4 = 6 L. Fewer hard brakes means less speeding back up, and that is where the fuel goes.'}]});
